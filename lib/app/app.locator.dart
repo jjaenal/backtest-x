@@ -14,6 +14,7 @@ import 'package:stacked_shared/stacked_shared.dart';
 import '../services/backtest_engine_service.dart';
 import '../services/data_parser_service.dart';
 import '../services/indicator_service.dart';
+import '../services/storage_service.dart';
 
 final locator = StackedLocator.instance;
 
@@ -32,4 +33,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => DataParserService());
   locator.registerLazySingleton(() => IndicatorService());
   locator.registerLazySingleton(() => BacktestEngineService());
+  locator.registerLazySingleton(() => StorageService());
 }

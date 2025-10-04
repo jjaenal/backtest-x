@@ -7,6 +7,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/data_parser_service.dart';
 import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/services/storage_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -22,6 +23,7 @@ import 'package:backtestx/services/backtest_engine_service.dart';
     LazySingleton(classType: DataParserService),
     LazySingleton(classType: IndicatorService),
     LazySingleton(classType: BacktestEngineService),
+    LazySingleton(classType: StorageService),
 // @stacked-service
   ],
   bottomsheets: [
