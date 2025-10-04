@@ -5,6 +5,7 @@ import 'package:backtestx/ui/views/startup/startup_view.dart';
 import 'package:stacked/stacked_annotations.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/data_parser_service.dart';
+import 'package:backtestx/services/indicator_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -18,6 +19,7 @@ import 'package:backtestx/services/data_parser_service.dart';
     LazySingleton(classType: DialogService),
     LazySingleton(classType: NavigationService),
     LazySingleton(classType: DataParserService),
+    LazySingleton(classType: IndicatorService),
 // @stacked-service
   ],
   bottomsheets: [

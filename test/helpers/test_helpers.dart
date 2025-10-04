@@ -3,6 +3,7 @@ import 'package:mockito/mockito.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/data_parser_service.dart';
+import 'package:backtestx/services/indicator_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -14,6 +15,7 @@ import 'test_helpers.mocks.dart';
     MockSpec<BottomSheetService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<DataParserService>(onMissingStub: OnMissingStub.returnDefault),
+    MockSpec<IndicatorService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
   ],
 )
@@ -22,6 +24,7 @@ void registerServices() {
   getAndRegisterBottomSheetService();
   getAndRegisterDialogService();
   getAndRegisterDataParserService();
+  getAndRegisterIndicatorService();
 // @stacked-mock-register
 }
 
@@ -83,6 +86,13 @@ MockDataParserService getAndRegisterDataParserService() {
   _removeRegistrationIfExists<DataParserService>();
   final service = MockDataParserService();
   locator.registerSingleton<DataParserService>(service);
+  return service;
+}
+
+MockIndicatorService getAndRegisterIndicatorService() {
+  _removeRegistrationIfExists<IndicatorService>();
+  final service = MockIndicatorService();
+  locator.registerSingleton<IndicatorService>(service);
   return service;
 }
 // @stacked-mock-create
