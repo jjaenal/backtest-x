@@ -11,6 +11,7 @@ import 'package:stacked_services/src/dialog/dialog_service.dart';
 import 'package:stacked_services/src/navigation/navigation_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
+import '../services/backtest_engine_service.dart';
 import '../services/data_parser_service.dart';
 import '../services/indicator_service.dart';
 
@@ -30,4 +31,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => NavigationService());
   locator.registerLazySingleton(() => DataParserService());
   locator.registerLazySingleton(() => IndicatorService());
+  locator.registerLazySingleton(() => BacktestEngineService());
 }

@@ -8,6 +8,7 @@ import 'dart:io' as _i9;
 import 'dart:ui' as _i8;
 
 import 'package:backtestx/models/candle.dart' as _i2;
+import 'package:backtestx/services/backtest_engine_service.dart' as _i11;
 import 'package:backtestx/services/data_parser_service.dart' as _i3;
 import 'package:backtestx/services/indicator_service.dart' as _i10;
 import 'package:flutter/material.dart' as _i6;
@@ -783,4 +784,118 @@ class MockDataParserService extends _i1.Mock implements _i3.DataParserService {
 /// A class which mocks [IndicatorService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIndicatorService extends _i1.Mock implements _i10.IndicatorService {}
+class MockIndicatorService extends _i1.Mock implements _i10.IndicatorService {
+  @override
+  List<double?> calculateSMA(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateSMA,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateEMA(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateEMA,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateRSI(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateRSI,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateATR(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateATR,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  Map<String, List<double?>> calculateMACD(
+    List<_i2.Candle>? candles, {
+    int? fastPeriod = 12,
+    int? slowPeriod = 26,
+    int? signalPeriod = 9,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateMACD,
+          [candles],
+          {
+            #fastPeriod: fastPeriod,
+            #slowPeriod: slowPeriod,
+            #signalPeriod: signalPeriod,
+          },
+        ),
+        returnValue: <String, List<double?>>{},
+        returnValueForMissingStub: <String, List<double?>>{},
+      ) as Map<String, List<double?>>);
+
+  @override
+  Map<String, List<double?>> calculateBollingerBands(
+    List<_i2.Candle>? candles,
+    int? period,
+    double? stdDev,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateBollingerBands,
+          [
+            candles,
+            period,
+            stdDev,
+          ],
+        ),
+        returnValue: <String, List<double?>>{},
+        returnValueForMissingStub: <String, List<double?>>{},
+      ) as Map<String, List<double?>>);
+}
+
+/// A class which mocks [BacktestEngineService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockBacktestEngineService extends _i1.Mock
+    implements _i11.BacktestEngineService {}

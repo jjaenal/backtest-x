@@ -4,6 +4,7 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/data_parser_service.dart';
 import 'package:backtestx/services/indicator_service.dart';
+import 'package:backtestx/services/backtest_engine_service.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -16,6 +17,7 @@ import 'test_helpers.mocks.dart';
     MockSpec<DialogService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<DataParserService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<IndicatorService>(onMissingStub: OnMissingStub.returnDefault),
+    MockSpec<BacktestEngineService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
   ],
 )
@@ -25,6 +27,7 @@ void registerServices() {
   getAndRegisterDialogService();
   getAndRegisterDataParserService();
   getAndRegisterIndicatorService();
+  getAndRegisterBacktestEngineService();
 // @stacked-mock-register
 }
 
@@ -93,6 +96,13 @@ MockIndicatorService getAndRegisterIndicatorService() {
   _removeRegistrationIfExists<IndicatorService>();
   final service = MockIndicatorService();
   locator.registerSingleton<IndicatorService>(service);
+  return service;
+}
+
+MockBacktestEngineService getAndRegisterBacktestEngineService() {
+  _removeRegistrationIfExists<BacktestEngineService>();
+  final service = MockBacktestEngineService();
+  locator.registerSingleton<BacktestEngineService>(service);
   return service;
 }
 // @stacked-mock-create
