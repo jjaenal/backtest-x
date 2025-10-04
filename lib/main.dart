@@ -1,27 +1,73 @@
-import 'package:flutter/material.dart';
 import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.dialogs.dart';
-import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/ui/common/ui_helpers.dart';
+import 'package:flutter/material.dart';
+import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
-Future<void> main() async {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Setup locator
   await setupLocator();
   setupDialogUi();
   setupBottomSheetUi();
-  runApp(const MainApp());
+  setupSnackbarUi();
+
+  runApp(const MyApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      title: 'Backtest Pro',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+        ),
+      ),
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ),
+        useMaterial3: true,
+        cardTheme: CardTheme(
+          elevation: 2,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+        ),
+      ),
+      themeMode: ThemeMode.system,
       initialRoute: Routes.startupView,
-      onGenerateRoute: StackedRouter().onGenerateRoute,
       navigatorKey: StackedService.navigatorKey,
+      onGenerateRoute: StackedRouter().onGenerateRoute,
       navigatorObservers: [StackedService.routeObserver],
     );
   }

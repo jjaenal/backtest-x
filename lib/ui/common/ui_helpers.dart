@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:backtestx/app/app.locator.dart';
 import 'package:flutter/material.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 const double _tinySize = 5.0;
 const double _smallSize = 10.0;
@@ -87,4 +90,63 @@ double getResponsiveFontSize(
   );
 
   return responsiveSize;
+}
+
+enum SnackbarType { undo, withIcon, error }
+
+void setupSnackbarUi() {
+  final service = locator<SnackbarService>();
+
+  service.registerCustomSnackbarConfig(
+    variant: SnackbarType.undo,
+    config: SnackbarConfig(
+      snackPosition: SnackPosition.BOTTOM,
+      closeSnackbarOnMainButtonTapped: true,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      borderRadius: 12,
+    ),
+  );
+
+  service.registerCustomSnackbarConfig(
+    variant: SnackbarType.withIcon,
+    config: SnackbarConfig(
+      icon: const Padding(
+        padding: EdgeInsets.only(left: 16),
+        child: FaIcon(
+          FontAwesomeIcons.solidCircleCheck,
+          color: Colors.amberAccent,
+          size: 18,
+        ),
+      ),
+      snackPosition: SnackPosition.TOP,
+      closeSnackbarOnMainButtonTapped: true,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      backgroundColor: Colors.white,
+      textColor: Colors.grey.shade700,
+      borderRadius: 24,
+      mainButtonTextColor: Colors.blue.shade500,
+    ),
+  );
+
+  service.registerCustomSnackbarConfig(
+    variant: SnackbarType.error,
+    config: SnackbarConfig(
+      icon: Padding(
+        padding: const EdgeInsets.only(left: 16),
+        child: FaIcon(
+          FontAwesomeIcons.circleXmark,
+          color: Colors.red.shade500,
+          size: 18,
+        ),
+      ),
+      snackPosition: SnackPosition.TOP,
+      closeSnackbarOnMainButtonTapped: true,
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(14),
+      borderRadius: 24,
+      mainButtonTextColor: Colors.blue.shade500,
+    ),
+  );
 }

@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
@@ -6,10 +7,9 @@ import 'package:backtestx/services/indicator_service.dart';
 import 'package:uuid/uuid.dart';
 
 class BacktestEngineService {
-  final IndicatorService _indicatorService;
+  // final IndicatorService _indicatorService;
+  final IndicatorService _indicatorService = locator<IndicatorService>();
   final _uuid = const Uuid();
-
-  BacktestEngineService(this._indicatorService);
 
   /// Run backtest
   Future<BacktestResult> runBacktest({

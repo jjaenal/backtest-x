@@ -1,74 +1,233 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'package:backtestx/ui/common/app_colors.dart';
-import 'package:backtestx/ui/common/ui_helpers.dart';
-
 import 'home_viewmodel.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
   const HomeView({Key? key}) : super(key: key);
 
   @override
-  Widget builder(BuildContext context, HomeViewModel viewModel, Widget? child) {
+  Widget builder(
+    BuildContext context,
+    HomeViewModel viewModel,
+    Widget? child,
+  ) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Backtest Pro'),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.workspace_premium),
+            onPressed: viewModel.navigateToWorkspace,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 25.0),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                verticalSpaceLarge,
-                Column(
-                  children: [
-                    const Text(
-                      'Hello, STACKED!',
-                      style: TextStyle(
-                        fontSize: 35,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    verticalSpaceMedium,
-                    MaterialButton(
-                      color: Colors.black,
-                      onPressed: viewModel.incrementCounter,
-                      child: Text(
-                        viewModel.counterLabel,
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Quick Stats Card
+              _buildStatsCard(viewModel),
+              const SizedBox(height: 24),
+
+              // Action Buttons
+              _buildActionButton(
+                context,
+                icon: Icons.upload_file,
+                title: 'Upload Data',
+                subtitle: 'Import historical market data',
+                onTap: viewModel.navigateToDataUpload,
+              ),
+              const SizedBox(height: 16),
+              _buildActionButton(
+                context,
+                icon: Icons.psychology,
+                title: 'Create Strategy',
+                subtitle: 'Build your trading strategy',
+                onTap: viewModel.navigateToStrategyBuilder,
+              ),
+              const SizedBox(height: 16),
+              _buildActionButton(
+                context,
+                icon: Icons.assessment,
+                title: 'View Results',
+                subtitle: 'Analyze backtest performance',
+                onTap: viewModel.navigateToBacktestResult,
+                enabled: viewModel.hasResults,
+              ),
+
+              const Spacer(),
+
+              // Recent Activity
+              if (viewModel.recentStrategies.isNotEmpty) ...[
+                const Text(
+                  'Recent Strategies',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    MaterialButton(
-                      color: kcDarkGreyColor,
-                      onPressed: viewModel.showDialog,
-                      child: const Text(
-                        'Show Dialog',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                    MaterialButton(
-                      color: kcDarkGreyColor,
-                      onPressed: viewModel.showBottomSheet,
-                      child: const Text(
-                        'Show Bottom Sheet',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 12),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: viewModel.recentStrategies.length,
+                    itemBuilder: (context, index) {
+                      final strategy = viewModel.recentStrategies[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(strategy.name),
+                          subtitle: Text(
+                            'Created: ${_formatDate(strategy.createdAt)}',
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.play_arrow),
+                            onPressed: () => viewModel.runStrategy(strategy.id),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
-            ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  Widget _buildStatsCard(HomeViewModel viewModel) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildStatItem(
+                  'Strategies',
+                  '${viewModel.strategiesCount}',
+                  Icons.psychology,
+                ),
+                _buildStatItem(
+                  'Data Sets',
+                  '${viewModel.dataSetsCount}',
+                  Icons.storage_rounded,
+                ),
+                _buildStatItem(
+                  'Tests Run',
+                  '${viewModel.testsCount}',
+                  Icons.speed,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, size: 32, color: Colors.blue),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    return Card(
+      elevation: enabled ? 2 : 0,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: enabled
+                      ? Colors.blue.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 32,
+                  color: enabled ? Colors.blue : Colors.grey,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: enabled ? Colors.black : Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: enabled ? Colors.grey[600] : Colors.grey[400],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: enabled ? Colors.grey : Colors.grey[300],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
   @override
   HomeViewModel viewModelBuilder(BuildContext context) => HomeViewModel();
+
+  @override
+  void onViewModelReady(HomeViewModel viewModel) => viewModel.initialize();
 }
