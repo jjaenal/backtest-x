@@ -53,7 +53,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void navigateToStrategyBuilder() {
-    // _navigationService.navigateToStrategyBuilderView();
+    _navigationService.navigateToStrategyBuilderView();
   }
 
   void navigateToBacktestResult() {

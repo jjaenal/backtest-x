@@ -9,6 +9,7 @@ import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/ui/views/data_upload/data_upload_view.dart';
+import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -17,6 +18,7 @@ import 'package:backtestx/ui/views/data_upload/data_upload_view.dart';
     MaterialRoute(page: StartupView),
     MaterialRoute(page: DataUploadView),
 
+    MaterialRoute(page: StrategyBuilderView),
 // @stacked-route
   ],
   dependencies: [
