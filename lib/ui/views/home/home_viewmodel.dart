@@ -1,9 +1,8 @@
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
-import 'package:backtestx/gold_strategy.dart';
 import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
-import 'package:backtestx/ui/common/backtest_helper.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -58,12 +57,7 @@ class HomeViewModel extends BaseViewModel {
     _navigationService.navigateToStrategyBuilderView();
   }
 
-  void navigateToBacktestResult() async {
-    final helper = BacktestTestHelper();
-    final marketData = await _storageService.getAllMarketData();
-
-    // await helper.testGoldConservative(marketData.first);
-    helper.testEmaCrossover(marketData.first);
+  void navigateToBacktestResult() {
     if (hasResults) {
       _navigationService.navigateToBacktestResultView();
     }
@@ -73,9 +67,25 @@ class HomeViewModel extends BaseViewModel {
     // _navigationService.navigateToWorkspaceView();
   }
 
+  Future<void> editStrategy(String strategyId) async {
+    _navigationService.navigateToStrategyBuilderView(strategyId: strategyId);
+  }
+
   Future<void> runStrategy(String strategyId) async {
-    // TODO: Implement quick run from home
-    // This would show a dialog to select market data and run backtest
-    print('Running strategy: $strategyId');
+    final strategy = await _storageService.getStrategy(strategyId);
+    final marketData = await _storageService.getAllMarketData();
+
+    // Run backtest
+    final backtestEngine = locator<BacktestEngineService>();
+    final result = await backtestEngine.runBacktest(
+      marketData: marketData.first,
+      strategy: strategy!,
+    );
+
+    // await _storageService.saveStrategy(strategy);
+    await _storageService.saveBacktestResult(result);
+
+    // View results
+    _navigationService.navigateToBacktestResultView(resultId: result.id);
   }
 }

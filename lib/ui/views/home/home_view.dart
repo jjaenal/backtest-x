@@ -77,15 +77,19 @@ class HomeView extends StackedView<HomeViewModel> {
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       final strategy = viewModel.recentStrategies[index];
-                      return Card(
-                        child: ListTile(
-                          title: Text(strategy.name),
-                          subtitle: Text(
-                            'Created: ${_formatDate(strategy.createdAt)}',
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.play_arrow),
-                            onPressed: () => viewModel.runStrategy(strategy.id),
+                      return InkWell(
+                        onTap: () => viewModel.editStrategy(strategy.id),
+                        child: Card(
+                          child: ListTile(
+                            title: Text(strategy.name),
+                            subtitle: Text(
+                              'Created: ${_formatDate(strategy.createdAt)}',
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.play_arrow),
+                              onPressed: () =>
+                                  viewModel.runStrategy(strategy.id),
+                            ),
                           ),
                         ),
                       );

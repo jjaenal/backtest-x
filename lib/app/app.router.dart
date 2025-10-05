@@ -81,8 +81,12 @@ class StackedRouter extends _i1.RouterBase {
       );
     },
     _i5.StrategyBuilderView: (data) {
+      final args = data.getArgs<StrategyBuilderViewArguments>(
+        orElse: () => const StrategyBuilderViewArguments(),
+      );
       return _i7.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i5.StrategyBuilderView(),
+        builder: (context) =>
+            _i5.StrategyBuilderView(key: args.key, strategyId: args.strategyId),
         settings: data,
       );
     },
@@ -103,6 +107,33 @@ class StackedRouter extends _i1.RouterBase {
 
   @override
   Map<Type, _i1.StackedRouteFactory> get pagesMap => _pagesMap;
+}
+
+class StrategyBuilderViewArguments {
+  const StrategyBuilderViewArguments({
+    this.key,
+    this.strategyId,
+  });
+
+  final _i7.Key? key;
+
+  final String? strategyId;
+
+  @override
+  String toString() {
+    return '{"key": "$key", "strategyId": "$strategyId"}';
+  }
+
+  @override
+  bool operator ==(covariant StrategyBuilderViewArguments other) {
+    if (identical(this, other)) return true;
+    return other.key == key && other.strategyId == strategyId;
+  }
+
+  @override
+  int get hashCode {
+    return key.hashCode ^ strategyId.hashCode;
+  }
 }
 
 class BacktestResultViewArguments {
@@ -175,14 +206,18 @@ extension NavigatorStateExtension on _i8.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> navigateToStrategyBuilderView([
+  Future<dynamic> navigateToStrategyBuilderView({
+    _i7.Key? key,
+    String? strategyId,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
-  ]) async {
+  }) async {
     return navigateTo<dynamic>(Routes.strategyBuilderView,
+        arguments:
+            StrategyBuilderViewArguments(key: key, strategyId: strategyId),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -248,14 +283,18 @@ extension NavigatorStateExtension on _i8.NavigationService {
         transition: transition);
   }
 
-  Future<dynamic> replaceWithStrategyBuilderView([
+  Future<dynamic> replaceWithStrategyBuilderView({
+    _i7.Key? key,
+    String? strategyId,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
     Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
         transition,
-  ]) async {
+  }) async {
     return replaceWith<dynamic>(Routes.strategyBuilderView,
+        arguments:
+            StrategyBuilderViewArguments(key: key, strategyId: strategyId),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
