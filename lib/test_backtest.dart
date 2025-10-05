@@ -20,48 +20,48 @@ void main() async {
   debugPrint('🚀 Starting Backtest Test...\n');
 
   // Create services
-  final indicatorService = IndicatorService();
-  final backtestEngine = BacktestEngineService();
+  // final indicatorService = IndicatorService();
+  // final backtestEngine = BacktestEngineService();
   // final debugHelper = BacktestDebugHelper();
-  final debugger = StrategyDebugger();
+  // final debugger = StrategyDebugger();
 
   // Generate realistic test data (200 candles trending up)
-  final storageService = locator<StorageService>();
-  final marketData = await storageService.getAllMarketData();
-  final marketFakeData = _generateTestData();
-  debugPrint('✅ Generated ${marketData.first.candles.length} candles');
-  debugPrint(
-      '   Price range: ${marketData.first.candles.first.close} → ${marketData.first.candles.last.close}\n');
+  // final storageService = locator<StorageService>();
+  // final marketData = await storageService.getAllMarketData();
+  // final marketFakeData = _generateTestData();
+  // debugPrint('✅ Generated ${marketData.first.candles.length} candles');
+  // debugPrint(
+  //     '   Price range: ${marketData.first.candles.first.close} → ${marketData.first.candles.last.close}\n');
 
-  final bestStrategy = ExampleStrategies.getAllExamples();
-  final strategies = GoldStrategies.getAllGoldStrategies();
+  // final bestStrategy = ExampleStrategies.getAllExamples();
+  // final strategies = GoldStrategies.getAllGoldStrategies();
 
   // quickDebug(marketData.first.candles);
   // testSingleRule(marketData.first.candles);
 
-  for (var strategy in strategies) {
-    // for (final rule in strategy.entryRules) {
-    //   print('Rule: ${rule.indicator.name} ${rule.operator.name}');
-    //   rule.value.when(
-    //     number: (n) => print('  Compare with: $n'),
-    //     indicator: (type, period) =>
-    //         print('  Compare with: ${type.name}($period)'),
-    //   );
-    // }
+  // for (var strategy in strategies) {
+  // for (final rule in strategy.entryRules) {
+  //   print('Rule: ${rule.indicator.name} ${rule.operator.name}');
+  //   rule.value.when(
+  //     number: (n) => print('  Compare with: $n'),
+  //     indicator: (type, period) =>
+  //         print('  Compare with: ${type.name}($period)'),
+  //   );
+  // }
 
-    // debugger.debugStrategy(marketData.first.candles, strategy);
-    // debugPrint('📊 Test ${strategy.name} Strategy');
-    // await _runTest(backtestEngine, marketData.first, strategy);
-    debugPrint('\n🧪 Testing: ${strategy.name}');
-    final result = await backtestEngine.runBacktest(
-      marketData: marketData.first,
-      strategy: strategy,
-      debug: true,
-    );
-    debugPrint('Trades: ${result.summary.totalTrades}');
-    debugPrint('Win Rate: ${result.summary.winRate.toStringAsFixed(2)}%');
-    debugPrint('PnL: \$${result.summary.totalPnl.toStringAsFixed(2)}');
-  }
+  // debugger.debugStrategy(marketData.first.candles, strategy);
+  // debugPrint('📊 Test ${strategy.name} Strategy');
+  // await _runTest(backtestEngine, marketData.first, strategy);
+  //   debugPrint('\n🧪 Testing: ${strategy.name}');
+  //   final result = await backtestEngine.runBacktest(
+  //     marketData: marketData.first,
+  //     strategy: strategy,
+  //     debug: true,
+  //   );
+  //   debugPrint('Trades: ${result.summary.totalTrades}');
+  //   debugPrint('Win Rate: ${result.summary.winRate.toStringAsFixed(2)}%');
+  //   debugPrint('PnL: \$${result.summary.totalPnl.toStringAsFixed(2)}');
+  // }
 
   // // Test 1: Simple RSI Strategy (easier to trigger)
   // debugPrint('📊 Test 1: Simple RSI Oversold/Overbought Strategy');

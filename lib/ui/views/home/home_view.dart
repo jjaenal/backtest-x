@@ -22,85 +22,99 @@ class HomeView extends StackedView<HomeViewModel> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Quick Stats Card
-                _buildStatsCard(viewModel),
-                const SizedBox(height: 24),
+      body: viewModel.isBusy
+          ? const Center(child: CircularProgressIndicator())
+          : SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Quick Stats Card
+                      _buildStatsCard(viewModel),
+                      const SizedBox(height: 24),
 
-                // Action Buttons
-                _buildActionButton(
-                  context,
-                  icon: Icons.upload_file,
-                  title: 'Upload Data',
-                  subtitle: 'Import historical market data',
-                  onTap: viewModel.navigateToDataUpload,
-                ),
-                const SizedBox(height: 16),
-                _buildActionButton(
-                  context,
-                  icon: Icons.psychology,
-                  title: 'Create Strategy',
-                  subtitle: 'Build your trading strategy',
-                  onTap: viewModel.navigateToStrategyBuilder,
-                ),
-                const SizedBox(height: 16),
-                _buildActionButton(
-                  context,
-                  icon: Icons.assessment,
-                  title: 'View Results',
-                  subtitle: 'Analyze backtest performance',
-                  onTap: viewModel.navigateToBacktestResult,
-                  enabled: viewModel.hasResults,
-                ),
+                      // Action Buttons
+                      _buildActionButton(
+                        context,
+                        icon: Icons.upload_file,
+                        title: 'Upload Data',
+                        subtitle: 'Import historical market data',
+                        onTap: viewModel.navigateToDataUpload,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildActionButton(
+                        context,
+                        icon: Icons.psychology,
+                        title: 'Create Strategy',
+                        subtitle: 'Build your trading strategy',
+                        onTap: viewModel.navigateToStrategyBuilder,
+                      ),
+                      const SizedBox(height: 16),
+                      _buildActionButton(
+                        context,
+                        icon: Icons.assessment,
+                        title: 'View Results',
+                        subtitle: 'Analyze backtest performance',
+                        onTap: viewModel.hasResults
+                            ? viewModel.navigateToBacktestResult
+                            : null,
+                        enabled: viewModel.hasResults,
+                      ),
 
-                const SizedBox(height: 24),
+                      const SizedBox(height: 24),
 
-                // Recent Activity
-                if (viewModel.recentStrategies.isNotEmpty) ...[
-                  const Text(
-                    'Recent Strategies',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ListView.builder(
-                    itemCount: viewModel.recentStrategies.length,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      final strategy = viewModel.recentStrategies[index];
-                      return InkWell(
-                        onTap: () => viewModel.editStrategy(strategy.id),
-                        child: Card(
-                          child: ListTile(
-                            title: Text(strategy.name),
-                            subtitle: Text(
-                              'Created: ${_formatDate(strategy.createdAt)}',
-                            ),
-                            trailing: IconButton(
-                              icon: const Icon(Icons.play_arrow),
-                              onPressed: () =>
-                                  viewModel.runStrategy(strategy.id),
-                            ),
+                      // Recent Activity
+                      if (viewModel.recentStrategies.isNotEmpty) ...[
+                        const Text(
+                          'Recent Strategies',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      );
-                    },
+                        const SizedBox(height: 12),
+                        ListView.builder(
+                          itemCount: viewModel.recentStrategies.length,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemBuilder: (context, index) {
+                            final strategy = viewModel.recentStrategies[index];
+                            return Card(
+                              child: ListTile(
+                                title: Text(strategy.name),
+                                subtitle: Text(
+                                  'Created: ${_formatDate(strategy.createdAt)}',
+                                ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.edit, size: 20),
+                                      onPressed: () =>
+                                          viewModel.editStrategy(strategy.id),
+                                      tooltip: 'Edit',
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.play_arrow,
+                                          size: 20),
+                                      onPressed: () =>
+                                          viewModel.runStrategy(strategy.id),
+                                      tooltip: 'Run',
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
                   ),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -122,7 +136,7 @@ class HomeView extends StackedView<HomeViewModel> {
                 _buildStatItem(
                   'Data Sets',
                   '${viewModel.dataSetsCount}',
-                  Icons.storage_rounded,
+                  Icons.storage,
                 ),
                 _buildStatItem(
                   'Tests Run',
@@ -165,7 +179,7 @@ class HomeView extends StackedView<HomeViewModel> {
     required IconData icon,
     required String title,
     required String subtitle,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
     bool enabled = true,
   }) {
     return Card(
