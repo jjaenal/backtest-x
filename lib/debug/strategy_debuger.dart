@@ -237,6 +237,6 @@ class StrategyDebugger {
 }
 
 /// Usage:
-/// 
+///
 /// final debugger = StrategyDebugger(_indicatorService);
 /// debugger.debugStrategy(xauusdData.candles, strategy);

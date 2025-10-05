@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-
 import 'strategy_builder_viewmodel.dart';
 
 class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
@@ -13,17 +12,35 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     Widget? child,
   ) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: Container(
-        padding: const EdgeInsets.only(left: 25.0, right: 25.0),
-        child: const Center(child: Text("StrategyBuilderView")),
+      appBar: AppBar(
+        title: const Text('Strategy Builder'),
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.construction,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Strategy Builder',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Coming Soon!',
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   @override
-  StrategyBuilderViewModel viewModelBuilder(
-    BuildContext context,
-  ) =>
+  StrategyBuilderViewModel viewModelBuilder(BuildContext context) =>
       StrategyBuilderViewModel();
 }

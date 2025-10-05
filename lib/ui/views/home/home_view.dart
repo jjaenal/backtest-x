@@ -13,7 +13,7 @@ class HomeView extends StackedView<HomeViewModel> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Backtest Pro'),
+        title: const Text('Backtest-X'),
         centerTitle: true,
         actions: [
           IconButton(
@@ -25,54 +25,56 @@ class HomeView extends StackedView<HomeViewModel> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Quick Stats Card
-              _buildStatsCard(viewModel),
-              const SizedBox(height: 24),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Quick Stats Card
+                _buildStatsCard(viewModel),
+                const SizedBox(height: 24),
 
-              // Action Buttons
-              _buildActionButton(
-                context,
-                icon: Icons.upload_file,
-                title: 'Upload Data',
-                subtitle: 'Import historical market data',
-                onTap: viewModel.navigateToDataUpload,
-              ),
-              const SizedBox(height: 16),
-              _buildActionButton(
-                context,
-                icon: Icons.psychology,
-                title: 'Create Strategy',
-                subtitle: 'Build your trading strategy',
-                onTap: viewModel.navigateToStrategyBuilder,
-              ),
-              const SizedBox(height: 16),
-              _buildActionButton(
-                context,
-                icon: Icons.assessment,
-                title: 'View Results',
-                subtitle: 'Analyze backtest performance',
-                onTap: viewModel.navigateToBacktestResult,
-                enabled: viewModel.hasResults,
-              ),
-
-              const Spacer(),
-
-              // Recent Activity
-              if (viewModel.recentStrategies.isNotEmpty) ...[
-                const Text(
-                  'Recent Strategies',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                // Action Buttons
+                _buildActionButton(
+                  context,
+                  icon: Icons.upload_file,
+                  title: 'Upload Data',
+                  subtitle: 'Import historical market data',
+                  onTap: viewModel.navigateToDataUpload,
                 ),
-                const SizedBox(height: 12),
-                Expanded(
-                  child: ListView.builder(
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
+                  icon: Icons.psychology,
+                  title: 'Create Strategy',
+                  subtitle: 'Build your trading strategy',
+                  onTap: viewModel.navigateToStrategyBuilder,
+                ),
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
+                  icon: Icons.assessment,
+                  title: 'View Results',
+                  subtitle: 'Analyze backtest performance',
+                  onTap: viewModel.navigateToBacktestResult,
+                  enabled: viewModel.hasResults,
+                ),
+
+                const SizedBox(height: 24),
+
+                // Recent Activity
+                if (viewModel.recentStrategies.isNotEmpty) ...[
+                  const Text(
+                    'Recent Strategies',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ListView.builder(
                     itemCount: viewModel.recentStrategies.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
                       final strategy = viewModel.recentStrategies[index];
                       return Card(
@@ -89,9 +91,9 @@ class HomeView extends StackedView<HomeViewModel> {
                       );
                     },
                   ),
-                ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),

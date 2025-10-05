@@ -135,8 +135,8 @@ class BacktestDebugHelper {
 }
 
 /// Usage in your test:
-/// 
+///
 /// final debugHelper = BacktestDebugHelper(indicatorService);
 /// debugHelper.debugStrategy(marketData.candles, strategy);
-/// 
+///
 /// Then run backtest to see detailed info

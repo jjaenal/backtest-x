@@ -1,7 +1,9 @@
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/gold_strategy.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/ui/common/backtest_helper.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -56,9 +58,14 @@ class HomeViewModel extends BaseViewModel {
     _navigationService.navigateToStrategyBuilderView();
   }
 
-  void navigateToBacktestResult() {
+  void navigateToBacktestResult() async {
+    final helper = BacktestTestHelper();
+    final marketData = await _storageService.getAllMarketData();
+
+    // await helper.testGoldConservative(marketData.first);
+    helper.testEmaCrossover(marketData.first);
     if (hasResults) {
-      // _navigationService.navigateToBacktestResultView();
+      _navigationService.navigateToBacktestResultView();
     }
   }
 

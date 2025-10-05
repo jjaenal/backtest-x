@@ -928,6 +928,7 @@ class MockBacktestEngineService extends _i1.Mock
   _i9.Future<_i4.BacktestResult> runBacktest({
     required _i2.MarketData? marketData,
     required _i14.Strategy? strategy,
+    bool? debug = false,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -936,6 +937,7 @@ class MockBacktestEngineService extends _i1.Mock
           {
             #marketData: marketData,
             #strategy: strategy,
+            #debug: debug,
           },
         ),
         returnValue: _i9.Future<_i4.BacktestResult>.value(_FakeBacktestResult_2(
@@ -946,6 +948,7 @@ class MockBacktestEngineService extends _i1.Mock
             {
               #marketData: marketData,
               #strategy: strategy,
+              #debug: debug,
             },
           ),
         )),
@@ -958,6 +961,7 @@ class MockBacktestEngineService extends _i1.Mock
             {
               #marketData: marketData,
               #strategy: strategy,
+              #debug: debug,
             },
           ),
         )),

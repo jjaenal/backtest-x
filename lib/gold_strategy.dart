@@ -265,7 +265,7 @@ class GoldStrategies {
 }
 
 /// Usage for XAUUSD H4 data:
-/// 
+///
 /// final strategies = GoldStrategies.getAllGoldStrategies();
 /// for (final strategy in strategies) {
 ///   final result = await engine.runBacktest(
