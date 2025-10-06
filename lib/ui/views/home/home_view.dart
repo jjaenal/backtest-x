@@ -22,99 +22,107 @@ class HomeView extends StackedView<HomeViewModel> {
           ),
         ],
       ),
-      body: viewModel.isBusy
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Quick Stats Card
-                      _buildStatsCard(viewModel),
-                      const SizedBox(height: 24),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Quick Stats Card
+                _buildStatsCard(viewModel),
+                const SizedBox(height: 24),
 
-                      // Action Buttons
-                      _buildActionButton(
-                        context,
-                        icon: Icons.upload_file,
-                        title: 'Upload Data',
-                        subtitle: 'Import historical market data',
-                        onTap: viewModel.navigateToDataUpload,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildActionButton(
-                        context,
-                        icon: Icons.psychology,
-                        title: 'Create Strategy',
-                        subtitle: 'Build your trading strategy',
-                        onTap: viewModel.navigateToStrategyBuilder,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildActionButton(
-                        context,
-                        icon: Icons.assessment,
-                        title: 'View Results',
-                        subtitle: 'Analyze backtest performance',
-                        onTap: viewModel.hasResults
-                            ? viewModel.navigateToBacktestResult
-                            : null,
-                        enabled: viewModel.hasResults,
-                      ),
+                // Action Buttons
+                _buildActionButton(
+                  context,
+                  icon: Icons.upload_file,
+                  title: 'Upload Data',
+                  subtitle: 'Import historical market data',
+                  onTap: viewModel.navigateToDataUpload,
+                ),
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
+                  icon: Icons.psychology,
+                  title: 'Create Strategy',
+                  subtitle: 'Build your trading strategy',
+                  onTap: viewModel.navigateToStrategyBuilder,
+                ),
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
+                  icon: Icons.assessment,
+                  title: 'View Results',
+                  subtitle: 'Analyze backtest performance',
+                  onTap: viewModel.hasResults
+                      ? viewModel.navigateToBacktestResult
+                      : null,
+                  enabled: viewModel.hasResults,
+                ),
 
-                      const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-                      // Recent Activity
-                      if (viewModel.recentStrategies.isNotEmpty) ...[
-                        const Text(
-                          'Recent Strategies',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                // Recent Activity
+                if (viewModel.recentStrategies.isNotEmpty) ...[
+                  const Text(
+                    'Recent Strategies',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ListView.builder(
+                    itemCount: viewModel.recentStrategies.length,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemBuilder: (context, index) {
+                      final strategy = viewModel.recentStrategies[index];
+                      return Card(
+                        child: ListTile(
+                          title: Text(strategy.name),
+                          subtitle: Text(
+                            'Created: ${_formatDate(strategy.createdAt)}',
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, size: 20),
+                                onPressed: () =>
+                                    viewModel.editStrategy(strategy.id),
+                                tooltip: 'Edit',
+                              ),
+                              if (viewModel.isRunningBacktest &&
+                                  index == viewModel.strategiesIndex) ...[
+                                const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.grey,
+                                    strokeWidth: 3,
+                                  ),
+                                ),
+                              ] else ...[
+                                InkWell(
+                                  child: const Icon(Icons.play_arrow, size: 20),
+                                  onTap: () =>
+                                      viewModel.runStrategy(strategy.id, index),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        ListView.builder(
-                          itemCount: viewModel.recentStrategies.length,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemBuilder: (context, index) {
-                            final strategy = viewModel.recentStrategies[index];
-                            return Card(
-                              child: ListTile(
-                                title: Text(strategy.name),
-                                subtitle: Text(
-                                  'Created: ${_formatDate(strategy.createdAt)}',
-                                ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.edit, size: 20),
-                                      onPressed: () =>
-                                          viewModel.editStrategy(strategy.id),
-                                      tooltip: 'Edit',
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.play_arrow,
-                                          size: 20),
-                                      onPressed: () =>
-                                          viewModel.runStrategy(strategy.id),
-                                      tooltip: 'Run',
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ],
+                      );
+                    },
                   ),
-                ),
-              ),
+                ],
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 

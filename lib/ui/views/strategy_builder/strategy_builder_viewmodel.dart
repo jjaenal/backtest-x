@@ -101,7 +101,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         notifyListeners();
       }
     } catch (e) {
-      print('Error loading strategy: $e');
+      debugPrint('Error loading strategy: $e');
       _snackbarService.showSnackbar(message: 'Failed to load strategy');
     }
   }
@@ -229,16 +229,15 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
       // Save to database
       await _storageService.saveStrategy(strategy);
+      // Navigate back
+      _navigationService.back();
 
       _snackbarService.showSnackbar(
         message: isEditing ? 'Strategy updated!' : 'Strategy saved!',
         duration: const Duration(seconds: 2),
       );
-
-      // Navigate back
-      _navigationService.back();
     } catch (e) {
-      print('Error saving strategy: $e');
+      debugPrint('Error saving strategy: $e');
       _snackbarService.showSnackbar(
         message: 'Failed to save strategy: $e',
         duration: const Duration(seconds: 3),
@@ -277,11 +276,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (response?.confirmed == true) {
       try {
         await _storageService.deleteStrategy(strategyId!);
+        // Navigate back
+        _navigationService.back();
         _snackbarService.showSnackbar(
           message: 'Strategy deleted',
           duration: const Duration(seconds: 2),
         );
-        _navigationService.back();
       } catch (e) {
         _snackbarService.showSnackbar(
           message: 'Failed to delete strategy',

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:backtestx/app/app.locator.dart';
-import 'package:backtestx/models/candle.dart';
+import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/data_parser_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:file_picker/file_picker.dart';
@@ -12,6 +12,7 @@ class DataUploadViewModel extends BaseViewModel {
   final _dataParserService = locator<DataParserService>();
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
+  final _dataManager = DataManager();
 
   final symbolController = TextEditingController();
 
@@ -19,7 +20,7 @@ class DataUploadViewModel extends BaseViewModel {
   File? selectedFile;
   String? selectedTimeframe = 'H1';
   ValidationResult? validationResult;
-  List<MarketData> recentUploads = [];
+  List<MarketDataInfo> recentUploads = [];
 
   final List<String> timeframes = [
     '1m',
@@ -40,14 +41,28 @@ class DataUploadViewModel extends BaseViewModel {
 
   Future<void> initialize() async {
     await _loadRecentUploads();
+    _printCacheInfo();
+  }
+
+  void _printCacheInfo() {
+    debugPrint('\n📊 CACHE INFO:');
+    debugPrint(_dataManager.getCacheInfo());
+    debugPrint('Memory usage: ${_dataManager.getMemoryUsageFormatted()}');
+
+    final allData = _dataManager.getAllData();
+    debugPrint('Total cached datasets: ${allData.length}');
+    for (final data in allData) {
+      debugPrint(
+          '  - ${data.id}: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
+    }
   }
 
   Future<void> _loadRecentUploads() async {
     try {
-      recentUploads = await _storageService.getAllMarketData();
+      recentUploads = await _storageService.getAllMarketDataInfo();
       notifyListeners();
     } catch (e) {
-      print('Error loading recent uploads: $e');
+      debugPrint('Error loading recent uploads: $e');
     }
   }
 
@@ -82,12 +97,20 @@ class DataUploadViewModel extends BaseViewModel {
 
     setBusy(true);
     try {
+      debugPrint('\n🚀 Starting upload process...');
+
       // Parse CSV
+      debugPrint('📄 Parsing CSV file: ${selectedFile!.path}');
       final marketData = await _dataParserService.parseCsvFile(
         file: selectedFile!,
         symbol: symbolController.text.trim().toUpperCase(),
         timeframe: selectedTimeframe!,
       );
+
+      debugPrint('✅ Parsed ${marketData.candles.length} candles');
+      debugPrint('   ID: ${marketData.id}');
+      debugPrint('   Symbol: ${marketData.symbol}');
+      debugPrint('   Timeframe: ${marketData.timeframe}');
 
       // Validate
       validationResult = _dataParserService.validateCandles(marketData.candles);
@@ -101,14 +124,34 @@ class DataUploadViewModel extends BaseViewModel {
         return;
       }
 
-      // Save to database
+      // CRITICAL: Cache market data in memory + disk (persistent!)
+      debugPrint('\n📦 Caching market data (memory + disk)...');
+      await _dataManager.cacheData(marketData);
+      debugPrint('✅ Data cached successfully!');
+      debugPrint('   Cache ID: ${marketData.id}');
+
+      // Verify cache
+      final cachedData = _dataManager.getData(marketData.id);
+      if (cachedData != null) {
+        debugPrint('✅ Verified: Data is in cache');
+      } else {
+        debugPrint('❌ ERROR: Data not found in cache after caching!');
+      }
+
+      // Save metadata only to database
+      debugPrint('\n💾 Saving metadata to database...');
       await _storageService.saveMarketData(marketData);
+      debugPrint('✅ Metadata saved to database');
 
       _snackbarService.showSnackbar(
         message:
             'Data uploaded successfully! ${marketData.candles.length} candles processed.',
         duration: const Duration(seconds: 3),
       );
+
+      // Print cache info
+      debugPrint('\n📊 Current cache state:');
+      _printCacheInfo();
 
       // Reset form
       selectedFile = null;
@@ -118,12 +161,15 @@ class DataUploadViewModel extends BaseViewModel {
 
       // Reload recent uploads
       await _loadRecentUploads();
-    } catch (e) {
+
+      debugPrint('\n✅ Upload process completed successfully!');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Upload error: $e');
+      debugPrint('Stack trace: $stackTrace');
       _snackbarService.showSnackbar(
         message: 'Upload failed: $e',
         duration: const Duration(seconds: 3),
       );
-      print('Upload error: $e');
     } finally {
       setBusy(false);
     }
@@ -131,14 +177,26 @@ class DataUploadViewModel extends BaseViewModel {
 
   Future<void> deleteMarketData(String id) async {
     try {
+      debugPrint('\n🗑️  Deleting market data: $id');
+
+      // Remove from database
       await _storageService.deleteMarketData(id);
+      debugPrint('✅ Deleted from database');
+
+      // Remove from cache
+      _dataManager.removeData(id);
+      debugPrint('✅ Removed from cache');
+
       await _loadRecentUploads();
 
       _snackbarService.showSnackbar(
         message: 'Data deleted successfully',
         duration: const Duration(seconds: 2),
       );
+
+      _printCacheInfo();
     } catch (e) {
+      debugPrint('❌ Delete error: $e');
       _snackbarService.showSnackbar(
         message: 'Delete failed: $e',
         duration: const Duration(seconds: 3),

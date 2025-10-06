@@ -4,6 +4,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/indicator_service.dart';
+import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class BacktestEngineService {
@@ -23,8 +24,8 @@ class BacktestEngineService {
     final indicators = _precalculateIndicators(candles, strategy);
 
     if (debug) {
-      print('\n🔍 Debug Mode - First 100 candles:');
-      print('Precalculated indicators: ${indicators.keys.join(", ")}');
+      debugPrint('\n🔍 Debug Mode - First 100 candles:');
+      debugPrint('Precalculated indicators: ${indicators.keys.join(", ")}');
     }
 
     Trade? openTrade;
@@ -73,12 +74,12 @@ class BacktestEngineService {
           entrySignals++;
 
           if (debug && entrySignals <= 5) {
-            print('Entry signal #$entrySignals at index $i:');
-            print('  Time: ${candle.timestamp}');
-            print('  Close: ${candle.close}');
+            debugPrint('Entry signal #$entrySignals at index $i:');
+            debugPrint('  Time: ${candle.timestamp}');
+            debugPrint('  Close: ${candle.close}');
             // Print indicator values at this point
             for (final key in indicators.keys) {
-              print('  $key: ${indicators[key]![i]}');
+              debugPrint('  $key: ${indicators[key]![i]}');
             }
           }
 
@@ -109,10 +110,10 @@ class BacktestEngineService {
     }
 
     if (debug) {
-      print('\n📊 Entry Check Summary:');
-      print('Total checks: $entryChecks');
-      print('Entry signals: $entrySignals');
-      print(
+      debugPrint('\n📊 Entry Check Summary:');
+      debugPrint('Total checks: $entryChecks');
+      debugPrint('Entry signals: $entrySignals');
+      debugPrint(
           'Signal rate: ${(entrySignals / entryChecks * 100).toStringAsFixed(2)}%');
     }
 

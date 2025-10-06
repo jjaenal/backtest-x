@@ -1,6 +1,5 @@
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
-import 'package:backtestx/gold_strategy.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
@@ -46,14 +45,6 @@ class BacktestTestHelper {
     // 4. Navigate to result view
     _navigationService.navigateToBacktestResultView(resultId: result.id);
     debugPrint('✅ Navigated to result view');
-  }
-
-  Future<void> testEmaCrossover(MarketData marketData) async {
-    final strategy = GoldStrategies.emaCrossover();
-    await runAndShowBacktest(
-      marketData: marketData,
-      strategy: strategy,
-    );
   }
 
   /// Quick test with Gold Conservative strategy
@@ -108,9 +99,9 @@ class BacktestTestHelper {
 }
 
 /// Usage in your main app or test:
-///
+/// 
 /// // After loading data
 /// final helper = BacktestTestHelper();
 /// await helper.testGoldConservative(xauusdData);
-///
+/// 
 /// // This will automatically navigate to the result view!

@@ -185,7 +185,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                 ),
               ],
 
-              const Spacer(),
+              const SizedBox(height: 24),
 
               // Recent Uploads List
               if (viewModel.recentUploads.isNotEmpty) ...[
@@ -207,7 +207,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                           leading: const Icon(Icons.dataset),
                           title: Text('${data.symbol} - ${data.timeframe}'),
                           subtitle: Text(
-                            '${data.candles.length} candles • ${_formatDate(data.uploadedAt)}',
+                            '${data.candlesCount} candles • ${_formatDate(data.uploadedAt)}',
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),

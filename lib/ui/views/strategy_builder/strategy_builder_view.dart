@@ -14,311 +14,320 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     StrategyBuilderViewModel viewModel,
     Widget? child,
   ) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(viewModel.isEditing ? 'Edit Strategy' : 'Create Strategy'),
-        actions: [
-          if (viewModel.isEditing)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () => viewModel.deleteStrategy(context),
-            ),
-        ],
-      ),
-      body: viewModel.isBusy
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Strategy Name
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Strategy Details',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: viewModel.nameController,
-                              decoration: const InputDecoration(
-                                labelText: 'Strategy Name',
-                                hintText: 'e.g. RSI Mean Reversion',
-                                prefixIcon: Icon(Icons.label),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title:
+              Text(viewModel.isEditing ? 'Edit Strategy' : 'Create Strategy'),
+          actions: [
+            if (viewModel.isEditing)
+              IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () => viewModel.deleteStrategy(context),
+              ),
+          ],
+        ),
+        body: viewModel.isBusy
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Strategy Name
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Strategy Details',
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            TextField(
-                              controller: viewModel.initialCapitalController,
-                              decoration: const InputDecoration(
-                                labelText: 'Initial Capital',
-                                hintText: '10000',
-                                prefixIcon: Icon(Icons.attach_money),
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: viewModel.nameController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Strategy Name',
+                                  hintText: 'e.g. RSI Mean Reversion',
+                                  prefixIcon: Icon(Icons.label),
+                                ),
                               ),
-                              keyboardType: TextInputType.number,
-                            ),
-                          ],
+                              const SizedBox(height: 16),
+                              TextField(
+                                controller: viewModel.initialCapitalController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Initial Capital',
+                                  hintText: '10000',
+                                  prefixIcon: Icon(Icons.attach_money),
+                                ),
+                                keyboardType: TextInputType.number,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Risk Management
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Risk Management',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Risk Type
-                            DropdownButtonFormField<RiskType>(
-                              value: viewModel.riskType,
-                              decoration: const InputDecoration(
-                                labelText: 'Risk Type',
-                                prefixIcon: Icon(Icons.trending_up),
+                      // Risk Management
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Risk Management',
+                                style: Theme.of(context).textTheme.titleLarge,
                               ),
-                              items: RiskType.values.map((type) {
-                                return DropdownMenuItem(
-                                  value: type,
-                                  child: Text(_formatRiskType(type)),
-                                );
-                              }).toList(),
-                              onChanged: viewModel.setRiskType,
-                            ),
+                              const SizedBox(height: 16),
 
-                            const SizedBox(height: 16),
-
-                            TextField(
-                              controller: viewModel.riskValueController,
-                              decoration: InputDecoration(
-                                labelText:
-                                    viewModel.riskType == RiskType.fixedLot
-                                        ? 'Lot Size'
-                                        : 'Risk Percentage',
-                                hintText:
-                                    viewModel.riskType == RiskType.fixedLot
-                                        ? '0.1'
-                                        : '2.0',
-                                prefixIcon: const Icon(Icons.percent),
+                              // Risk Type
+                              DropdownButtonFormField<RiskType>(
+                                value: viewModel.riskType,
+                                decoration: const InputDecoration(
+                                  labelText: 'Risk Type',
+                                  prefixIcon: Icon(Icons.trending_up),
+                                ),
+                                items: RiskType.values.map((type) {
+                                  return DropdownMenuItem(
+                                    value: type,
+                                    child: Text(_formatRiskType(type)),
+                                  );
+                                }).toList(),
+                                onChanged: viewModel.setRiskType,
                               ),
-                              keyboardType: TextInputType.number,
-                            ),
 
-                            const SizedBox(height: 16),
+                              const SizedBox(height: 16),
 
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: viewModel.stopLossController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Stop Loss (points)',
-                                      hintText: '100',
-                                      prefixIcon: Icon(Icons.arrow_downward),
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                  ),
+                              TextField(
+                                controller: viewModel.riskValueController,
+                                decoration: InputDecoration(
+                                  labelText:
+                                      viewModel.riskType == RiskType.fixedLot
+                                          ? 'Lot Size'
+                                          : 'Risk Percentage',
+                                  hintText:
+                                      viewModel.riskType == RiskType.fixedLot
+                                          ? '0.1'
+                                          : '2.0',
+                                  prefixIcon: const Icon(Icons.percent),
                                 ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: TextField(
-                                    controller: viewModel.takeProfitController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Take Profit (points)',
-                                      hintText: '200',
-                                      prefixIcon: Icon(Icons.arrow_upward),
+                                keyboardType: TextInputType.number,
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: viewModel.stopLossController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Stop Loss (points)',
+                                        hintText: '100',
+                                        prefixIcon: Icon(Icons.arrow_downward),
+                                      ),
+                                      keyboardType: TextInputType.number,
                                     ),
-                                    keyboardType: TextInputType.number,
                                   ),
-                                ),
-                              ],
-                            ),
-                          ],
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: TextField(
+                                      controller:
+                                          viewModel.takeProfitController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Take Profit (points)',
+                                        hintText: '200',
+                                        prefixIcon: Icon(Icons.arrow_upward),
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Entry Rules
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Entry Rules',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle),
-                                  onPressed: viewModel.addEntryRule,
-                                  color: Colors.blue,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            if (viewModel.entryRules.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(32.0),
-                                  child: Column(
-                                    children: [
-                                      Icon(Icons.add_box,
-                                          size: 48, color: Colors.grey[400]),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'No entry rules yet',
-                                        style:
-                                            TextStyle(color: Colors.grey[600]),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Tap + to add a rule',
-                                        style: TextStyle(
-                                            color: Colors.grey[500],
-                                            fontSize: 12),
-                                      ),
-                                    ],
+                      // Entry Rules
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Entry Rules',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
                                   ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: viewModel.addEntryRule,
+                                    color: Colors.blue,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (viewModel.entryRules.isEmpty)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(32.0),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.add_box,
+                                            size: 48, color: Colors.grey[400]),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'No entry rules yet',
+                                          style: TextStyle(
+                                              color: Colors.grey[600]),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Tap + to add a rule',
+                                          style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...viewModel.entryRules
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  return _buildRuleCard(
+                                    context,
+                                    viewModel,
+                                    entry.key,
+                                    entry.value,
+                                    true,
+                                  );
+                                }).toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Exit Rules
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Exit Rules',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add_circle),
+                                    onPressed: viewModel.addExitRule,
+                                    color: Colors.green,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (viewModel.exitRules.isEmpty)
+                                Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(32.0),
+                                    child: Column(
+                                      children: [
+                                        Icon(Icons.add_box,
+                                            size: 48, color: Colors.grey[400]),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          'No exit rules yet',
+                                          style: TextStyle(
+                                              color: Colors.grey[600]),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Tap + to add a rule',
+                                          style: TextStyle(
+                                              color: Colors.grey[500],
+                                              fontSize: 12),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
+                              else
+                                ...viewModel.exitRules
+                                    .asMap()
+                                    .entries
+                                    .map((entry) {
+                                  return _buildRuleCard(
+                                    context,
+                                    viewModel,
+                                    entry.key,
+                                    entry.value,
+                                    false,
+                                  );
+                                }).toList(),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Save Button
+                      ElevatedButton(
+                        onPressed: viewModel.canSave && !viewModel.isBusy
+                            ? () => viewModel.saveStrategy(context)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: viewModel.isBusy
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
                               )
-                            else
-                              ...viewModel.entryRules
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                return _buildRuleCard(
-                                  context,
-                                  viewModel,
-                                  entry.key,
-                                  entry.value,
-                                  true,
-                                );
-                              }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // Exit Rules
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Exit Rules',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.add_circle),
-                                  onPressed: viewModel.addExitRule,
-                                  color: Colors.green,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            if (viewModel.exitRules.isEmpty)
-                              Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(32.0),
-                                  child: Column(
-                                    children: [
-                                      Icon(Icons.add_box,
-                                          size: 48, color: Colors.grey[400]),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'No exit rules yet',
-                                        style:
-                                            TextStyle(color: Colors.grey[600]),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'Tap + to add a rule',
-                                        style: TextStyle(
-                                            color: Colors.grey[500],
-                                            fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              )
-                            else
-                              ...viewModel.exitRules
-                                  .asMap()
-                                  .entries
-                                  .map((entry) {
-                                return _buildRuleCard(
-                                  context,
-                                  viewModel,
-                                  entry.key,
-                                  entry.value,
-                                  false,
-                                );
-                              }).toList(),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
-
-                    // Save Button
-                    ElevatedButton(
-                      onPressed: viewModel.canSave && !viewModel.isBusy
-                          ? () => viewModel.saveStrategy(context)
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: viewModel.isBusy
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
+                            : Text(
+                                viewModel.isEditing
+                                    ? 'Update Strategy'
+                                    : 'Save Strategy',
+                                style: const TextStyle(fontSize: 16),
                               ),
-                            )
-                          : Text(
-                              viewModel.isEditing
-                                  ? 'Update Strategy'
-                                  : 'Save Strategy',
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                    ),
+                      ),
 
-                    const SizedBox(height: 24),
-                  ],
+                      const SizedBox(height: 24),
+                    ],
+                  ),
                 ),
               ),
-            ),
+      ),
     );
   }
 
@@ -331,9 +340,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isEntry
-          ? Colors.blue.withOpacity(0.05)
-          : Colors.green.withOpacity(0.05),
+      color: isEntry ? Colors.white70 : Colors.white70,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(

@@ -215,8 +215,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Trade History',
@@ -361,7 +361,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
 
     return LineChart(
       LineChartData(
-        gridData: FlGridData(
+        gridData: const FlGridData(
           show: true,
           drawVerticalLine: false,
           horizontalInterval: 1000,
@@ -379,11 +379,13 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               },
             ),
           ),
-          bottomTitles: AxisTitles(
+          bottomTitles: const AxisTitles(
             sideTitles: SideTitles(showTitles: false),
           ),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
@@ -392,7 +394,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             isCurved: true,
             color: Colors.blue,
             barWidth: 2,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               color: Colors.blue.withOpacity(0.1),
@@ -412,7 +414,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
 
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
         titlesData: FlTitlesData(
           leftTitles: AxisTitles(
             sideTitles: SideTitles(
@@ -426,9 +428,12 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               },
             ),
           ),
-          bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          bottomTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          topTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles:
+              const AxisTitles(sideTitles: SideTitles(showTitles: false)),
         ),
         borderData: FlBorderData(show: false),
         lineBarsData: [
@@ -437,7 +442,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             isCurved: true,
             color: Colors.red,
             barWidth: 2,
-            dotData: FlDotData(show: false),
+            dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
               color: Colors.red.withOpacity(0.1),

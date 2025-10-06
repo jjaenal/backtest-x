@@ -8,6 +8,12 @@ import 'package:backtestx/models/candle.dart';
 class StorageService {
   Database? _database;
 
+  // Cache untuk mengurangi database queries
+  final Map<String, Strategy> _strategyCache = {};
+  final Map<String, List<BacktestResult>> _resultCache = {};
+  bool _strategiesCacheValid = false;
+  List<Strategy>? _allStrategiesCache;
+
   Future<Database> get database async {
     if (_database != null) return _database!;
     _database = await _initDatabase();
@@ -37,35 +43,36 @@ class StorageService {
       )
     ''');
 
-    // Backtest results table
+    // Backtest results table - Store summary only, not full trades
     await db.execute('''
       CREATE TABLE backtest_results (
         id TEXT PRIMARY KEY,
         strategy_id TEXT NOT NULL,
         summary TEXT NOT NULL,
-        trades TEXT NOT NULL,
-        equity_curve TEXT NOT NULL,
+        trades_count INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
         FOREIGN KEY (strategy_id) REFERENCES strategies (id) ON DELETE CASCADE
       )
     ''');
 
-    // Market data table
+    // Market data table - Optimized
     await db.execute('''
       CREATE TABLE market_data (
         id TEXT PRIMARY KEY,
         symbol TEXT NOT NULL,
         timeframe TEXT NOT NULL,
-        candles TEXT NOT NULL,
+        candles_count INTEGER NOT NULL,
+        first_date INTEGER NOT NULL,
+        last_date INTEGER NOT NULL,
         uploaded_at INTEGER NOT NULL
       )
     ''');
 
     // Create indexes
-    await db
-        .execute('CREATE INDEX idx_strategy_created ON strategies(created_at)');
     await db.execute(
-        'CREATE INDEX idx_backtest_strategy ON backtest_results(strategy_id)');
+        'CREATE INDEX idx_strategy_created ON strategies(created_at DESC)');
+    await db.execute(
+        'CREATE INDEX idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
     await db.execute(
         'CREATE INDEX idx_market_symbol ON market_data(symbol, timeframe)');
   }
@@ -85,22 +92,43 @@ class StorageService {
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    // Invalidate cache
+    _strategyCache[strategy.id] = strategy;
+    _strategiesCacheValid = false;
+    _allStrategiesCache = null;
   }
 
   Future<List<Strategy>> getAllStrategies() async {
+    // Return from cache if valid
+    if (_strategiesCacheValid && _allStrategiesCache != null) {
+      return _allStrategiesCache!;
+    }
+
     final db = await database;
     final maps = await db.query(
       'strategies',
       orderBy: 'created_at DESC',
+      limit: 50, // Limit untuk performa
     );
 
-    return maps.map((map) {
+    _allStrategiesCache = maps.map((map) {
       final config = jsonDecode(map['config'] as String);
-      return Strategy.fromJson(config);
+      final strategy = Strategy.fromJson(config);
+      _strategyCache[strategy.id] = strategy;
+      return strategy;
     }).toList();
+
+    _strategiesCacheValid = true;
+    return _allStrategiesCache!;
   }
 
   Future<Strategy?> getStrategy(String id) async {
+    // Check cache first
+    if (_strategyCache.containsKey(id)) {
+      return _strategyCache[id];
+    }
+
     final db = await database;
     final maps = await db.query(
       'strategies',
@@ -111,7 +139,9 @@ class StorageService {
     if (maps.isEmpty) return null;
 
     final config = jsonDecode(maps.first['config'] as String);
-    return Strategy.fromJson(config);
+    final strategy = Strategy.fromJson(config);
+    _strategyCache[id] = strategy;
+    return strategy;
   }
 
   Future<void> deleteStrategy(String id) async {
@@ -121,52 +151,72 @@ class StorageService {
       where: 'id = ?',
       whereArgs: [id],
     );
+
+    // Clear cache
+    _strategyCache.remove(id);
+    _strategiesCacheValid = false;
+    _allStrategiesCache = null;
+    _resultCache.remove(id);
   }
 
   // ============ BACKTEST RESULTS ============
 
   Future<void> saveBacktestResult(BacktestResult result) async {
     final db = await database;
+
+    // Save summary only, not full trade list (optimization!)
     await db.insert(
       'backtest_results',
       {
         'id': result.id,
         'strategy_id': result.strategyId,
         'summary': jsonEncode(result.summary.toJson()),
-        'trades': jsonEncode(result.trades.map((t) => t.toJson()).toList()),
-        'equity_curve':
-            jsonEncode(result.equityCurve.map((e) => e.toJson()).toList()),
+        'trades_count': result.trades.length,
         'created_at': result.executedAt.millisecondsSinceEpoch,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    // Cache invalidation
+    _resultCache.remove(result.strategyId);
+
+    // Store full result in memory cache for quick access
+    if (!_resultCache.containsKey(result.strategyId)) {
+      _resultCache[result.strategyId] = [];
+    }
+    _resultCache[result.strategyId]!.insert(0, result);
   }
 
   Future<List<BacktestResult>> getBacktestResultsByStrategy(
       String strategyId) async {
+    // Check cache first
+    if (_resultCache.containsKey(strategyId)) {
+      return _resultCache[strategyId]!;
+    }
+
     final db = await database;
     final maps = await db.query(
       'backtest_results',
       where: 'strategy_id = ?',
       whereArgs: [strategyId],
       orderBy: 'created_at DESC',
+      limit: 20, // Limit for performance
     );
 
-    return maps.map((map) {
+    final results = maps.map((map) {
       return BacktestResult(
         id: map['id'] as String,
         strategyId: map['strategy_id'] as String,
         executedAt:
             DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
         summary: BacktestSummary.fromJson(jsonDecode(map['summary'] as String)),
-        trades: (jsonDecode(map['trades'] as String) as List)
-            .map((t) => Trade.fromJson(t))
-            .toList(),
-        equityCurve: (jsonDecode(map['equity_curve'] as String) as List)
-            .map((e) => EquityPoint.fromJson(e))
-            .toList(),
+        trades: [], // Empty trades list - load separately if needed
+        equityCurve: [], // Empty equity curve
       );
     }).toList();
+
+    _resultCache[strategyId] = results;
+    return results;
   }
 
   Future<BacktestResult?> getBacktestResult(String id) async {
@@ -185,12 +235,8 @@ class StorageService {
       strategyId: map['strategy_id'] as String,
       executedAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       summary: BacktestSummary.fromJson(jsonDecode(map['summary'] as String)),
-      trades: (jsonDecode(map['trades'] as String) as List)
-          .map((t) => Trade.fromJson(t))
-          .toList(),
-      equityCurve: (jsonDecode(map['equity_curve'] as String) as List)
-          .map((e) => EquityPoint.fromJson(e))
-          .toList(),
+      trades: [], // Trades not stored anymore for performance
+      equityCurve: [], // Equity curve not stored
     );
   }
 
@@ -201,26 +247,36 @@ class StorageService {
       where: 'id = ?',
       whereArgs: [id],
     );
+
+    // Clear relevant cache
+    _resultCache.clear();
   }
 
   // ============ MARKET DATA ============
 
   Future<void> saveMarketData(MarketData data) async {
     final db = await database;
+
+    // Store metadata only, not actual candles (too big!)
     await db.insert(
       'market_data',
       {
         'id': data.id,
         'symbol': data.symbol,
         'timeframe': data.timeframe,
-        'candles': jsonEncode(data.candles.map((c) => c.toJson()).toList()),
+        'candles_count': data.candles.length,
+        'first_date': data.candles.first.timestamp.millisecondsSinceEpoch,
+        'last_date': data.candles.last.timestamp.millisecondsSinceEpoch,
         'uploaded_at': data.uploadedAt.millisecondsSinceEpoch,
       },
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    // Note: Actual candles NOT stored in DB for performance!
+    // They should be kept in memory or re-loaded from CSV when needed
   }
 
-  Future<List<MarketData>> getAllMarketData() async {
+  Future<List<MarketDataInfo>> getAllMarketDataInfo() async {
     final db = await database;
     final maps = await db.query(
       'market_data',
@@ -228,40 +284,18 @@ class StorageService {
     );
 
     return maps.map((map) {
-      return MarketData(
+      return MarketDataInfo(
         id: map['id'] as String,
         symbol: map['symbol'] as String,
         timeframe: map['timeframe'] as String,
-        candles: (jsonDecode(map['candles'] as String) as List)
-            .map((c) => Candle.fromJson(c))
-            .toList(),
+        candlesCount: map['candles_count'] as int,
+        firstDate:
+            DateTime.fromMillisecondsSinceEpoch(map['first_date'] as int),
+        lastDate: DateTime.fromMillisecondsSinceEpoch(map['last_date'] as int),
         uploadedAt:
             DateTime.fromMillisecondsSinceEpoch(map['uploaded_at'] as int),
       );
     }).toList();
-  }
-
-  Future<MarketData?> getMarketData(String id) async {
-    final db = await database;
-    final maps = await db.query(
-      'market_data',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-
-    if (maps.isEmpty) return null;
-
-    final map = maps.first;
-    return MarketData(
-      id: map['id'] as String,
-      symbol: map['symbol'] as String,
-      timeframe: map['timeframe'] as String,
-      candles: (jsonDecode(map['candles'] as String) as List)
-          .map((c) => Candle.fromJson(c))
-          .toList(),
-      uploadedAt:
-          DateTime.fromMillisecondsSinceEpoch(map['uploaded_at'] as int),
-    );
   }
 
   Future<void> deleteMarketData(String id) async {
@@ -279,5 +313,40 @@ class StorageService {
     await db.delete('strategies');
     await db.delete('backtest_results');
     await db.delete('market_data');
+
+    // Clear all caches
+    _strategyCache.clear();
+    _resultCache.clear();
+    _strategiesCacheValid = false;
+    _allStrategiesCache = null;
   }
+
+  // Clear caches manually
+  void clearCache() {
+    _strategyCache.clear();
+    _resultCache.clear();
+    _strategiesCacheValid = false;
+    _allStrategiesCache = null;
+  }
+}
+
+// Lightweight market data info (without actual candles)
+class MarketDataInfo {
+  final String id;
+  final String symbol;
+  final String timeframe;
+  final int candlesCount;
+  final DateTime firstDate;
+  final DateTime lastDate;
+  final DateTime uploadedAt;
+
+  MarketDataInfo({
+    required this.id,
+    required this.symbol,
+    required this.timeframe,
+    required this.candlesCount,
+    required this.firstDate,
+    required this.lastDate,
+    required this.uploadedAt,
+  });
 }
