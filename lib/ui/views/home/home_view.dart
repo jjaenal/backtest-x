@@ -203,8 +203,8 @@ class HomeView extends StackedView<HomeViewModel> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: enabled
-                      ? Colors.blue.withValues(0.1)
-                      : Colors.grey.withValues(0.1),
+                      ? Colors.blue.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

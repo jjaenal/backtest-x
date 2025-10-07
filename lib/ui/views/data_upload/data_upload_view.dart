@@ -30,7 +30,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                       Icon(
                         Icons.cloud_upload,
                         size: 64,
-                        color: Colors.blue.withValues(0.5),
+                        color: Colors.blue.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -131,8 +131,8 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
               if (viewModel.validationResult != null) ...[
                 Card(
                   color: viewModel.validationResult!.isValid
-                      ? Colors.green.withValues(0.1)
-                      : Colors.red.withValues(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
