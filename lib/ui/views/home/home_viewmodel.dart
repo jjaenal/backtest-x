@@ -82,7 +82,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void navigateToWorkspace() {
-    // _navigationService.navigateToWorkspaceView();
+    _navigationService.navigateToWorkspaceView();
   }
 
   Future<void> editStrategy(String strategyId) async {

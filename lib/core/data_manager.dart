@@ -275,14 +275,14 @@ extension MarketDataCaching on MarketData {
 }
 
 /// Usage examples:
-/// 
+///
 /// // After upload - automatically saved to disk
 /// final marketData = await dataParser.parseCsvFile(...);
 /// await DataManager().cacheData(marketData);
-/// 
+///
 /// // Data persists across app restarts!
 /// // On app startup, data is auto-loaded from disk
-/// 
+///
 /// // When running backtest (after restart)
 /// final data = DataManager().getData(dataId);
 /// if (data != null) {
@@ -291,7 +291,7 @@ extension MarketDataCaching on MarketData {
 ///     strategy: strategy,
 ///   );
 /// }
-/// 
+///
 /// // Check storage
 /// debugPrint('Memory: ${DataManager().getMemoryUsageFormatted()}');
 /// debugPrint('Disk: ${await DataManager().getDiskUsageFormatted()}');

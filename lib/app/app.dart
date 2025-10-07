@@ -11,6 +11,8 @@ import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/ui/views/data_upload/data_upload_view.dart';
 import 'package:backtestx/ui/views/backtest_result/backtest_result_view.dart';
 import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart';
+import 'package:backtestx/ui/views/workspace/workspace_view.dart';
+import 'package:backtestx/ui/views/comparison/comparison_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -21,6 +23,8 @@ import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart';
 
     MaterialRoute(page: StrategyBuilderView),
     MaterialRoute(page: BacktestResultView),
+    MaterialRoute(page: WorkspaceView),
+    MaterialRoute(page: ComparisonView),
 // @stacked-route
   ],
   dependencies: [

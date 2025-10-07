@@ -99,9 +99,9 @@ class BacktestTestHelper {
 }
 
 /// Usage in your main app or test:
-/// 
+///
 /// // After loading data
 /// final helper = BacktestTestHelper();
 /// await helper.testGoldConservative(xauusdData);
-/// 
+///
 /// // This will automatically navigate to the result view!

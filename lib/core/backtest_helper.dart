@@ -132,7 +132,7 @@ class BacktestHelper {
 }
 
 /// Usage examples:
-/// 
+///
 /// // Run backtest with cached data
 /// final helper = BacktestHelper();
 /// final result = await helper.runBacktestWithCachedData(
@@ -141,12 +141,12 @@ class BacktestHelper {
 ///   saveToDatabase: true,
 ///   navigateToResult: true,
 /// );
-/// 
+///
 /// // Check available data
 /// final availableData = helper.getAvailableData();
 /// for (final data in availableData) {
 ///   debugPrint('${data.symbol} ${data.timeframe}: ${data.candles.length} candles');
 /// }
-/// 
+///
 /// // Test strategy on all cached data
 /// final results = await helper.runBacktestOnAllData(strategy: strategy);

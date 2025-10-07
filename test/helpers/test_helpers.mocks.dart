@@ -1084,25 +1084,17 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
       ) as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i2.MarketData>> getAllMarketData() => (super.noSuchMethod(
+  _i9.Future<List<_i15.MarketDataInfo>> getAllMarketDataInfo() =>
+      (super.noSuchMethod(
         Invocation.method(
-          #getAllMarketData,
+          #getAllMarketDataInfo,
           [],
         ),
-        returnValue: _i9.Future<List<_i2.MarketData>>.value(<_i2.MarketData>[]),
-        returnValueForMissingStub:
-            _i9.Future<List<_i2.MarketData>>.value(<_i2.MarketData>[]),
-      ) as _i9.Future<List<_i2.MarketData>>);
-
-  @override
-  _i9.Future<_i2.MarketData?> getMarketData(String? id) => (super.noSuchMethod(
-        Invocation.method(
-          #getMarketData,
-          [id],
-        ),
-        returnValue: _i9.Future<_i2.MarketData?>.value(),
-        returnValueForMissingStub: _i9.Future<_i2.MarketData?>.value(),
-      ) as _i9.Future<_i2.MarketData?>);
+        returnValue: _i9.Future<List<_i15.MarketDataInfo>>.value(
+            <_i15.MarketDataInfo>[]),
+        returnValueForMissingStub: _i9.Future<List<_i15.MarketDataInfo>>.value(
+            <_i15.MarketDataInfo>[]),
+      ) as _i9.Future<List<_i15.MarketDataInfo>>);
 
   @override
   _i9.Future<void> deleteMarketData(String? id) => (super.noSuchMethod(
@@ -1123,4 +1115,13 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
+  @override
+  void clearCache() => super.noSuchMethod(
+        Invocation.method(
+          #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
 }
