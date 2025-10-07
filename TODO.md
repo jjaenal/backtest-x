@@ -20,13 +20,13 @@
 
 **Features:**
 
-- [ ] Form-based strategy creation
-- [ ] Indicator selection dropdown
-- [ ] Condition builder (if-then logic)
-- [ ] Multiple entry/exit rules
-- [ ] Risk management settings
-- [ ] Save strategy to database
-- [ ] Load existing strategy
+- [x] Form-based strategy creation
+- [x] Indicator selection dropdown
+- [x] Condition builder (if-then logic)
+- [x] Multiple entry/exit rules
+- [x] Risk management settings
+- [x] Save strategy to database
+- [x] Load existing strategy
 
 **UI Components:**
 
@@ -56,16 +56,16 @@
 
 **Features:**
 
-- [ ] Summary stats cards
+- [x] Summary stats cards
   - Win rate, Profit factor, Max DD
   - Total trades, Win/Loss count
   - Sharpe ratio, Expectancy
-- [ ] Trade list table
+- [x] Trade list table
   - Sortable columns
   - Filter by win/loss
   - Export to CSV
-- [ ] Equity curve chart (fl_chart)
-- [ ] Drawdown chart
+- [x] Equity curve chart (fl_chart)
+- [x] Drawdown chart
 - [ ] Share/Export button
 
 **UI Layout:**
@@ -88,12 +88,13 @@
 
 **Features:**
 
-- [ ] List all saved strategies
-- [ ] Delete strategy
-- [ ] Duplicate strategy
-- [ ] View strategy details
+- [x] List all saved strategies
+- [x] Delete strategy
+- [x] Duplicate strategy
+- [x] View strategy details
+- [x] View historical results per strategy
+- [x] Compare results
 - [ ] Quick run backtest
-- [ ] View historical results per strategy
 
 **Estimated Time:** 1-2 days
 

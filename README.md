@@ -227,8 +227,9 @@ void main() {
 - [x] Storage service (SQLite)
 - [x] Home view
 - [x] Data upload view
-- [ ] Strategy builder view (form-based)
-- [ ] Backtest result view
+- [x] Strategy builder view (form-based)
+- [x] Backtest result view
+- [x] Workspace view
 - [ ] Basic charts
 
 ### Phase 2 - Polish (Next 3 months)
