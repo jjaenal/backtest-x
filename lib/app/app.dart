@@ -15,6 +15,7 @@ import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart';
 import 'package:backtestx/ui/views/workspace/workspace_view.dart';
 import 'package:backtestx/ui/views/comparison/comparison_view.dart';
 import 'package:backtestx/ui/views/market_analysis/market_analysis_view.dart';
+import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -28,6 +29,7 @@ import 'package:backtestx/ui/views/market_analysis/market_analysis_view.dart';
     MaterialRoute(page: WorkspaceView),
     MaterialRoute(page: ComparisonView),
     MaterialRoute(page: MarketAnalysisView),
+    MaterialRoute(page: PatternScannerView),
 // @stacked-route
   ],
   dependencies: [

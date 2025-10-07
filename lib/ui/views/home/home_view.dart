@@ -45,6 +45,14 @@ class HomeView extends StackedView<HomeViewModel> {
                 _buildActionButton(
                   context,
                   icon: Icons.psychology,
+                  title: 'Pattern Scanner',
+                  subtitle: 'Detect candlestick patterns',
+                  onTap: viewModel.navigateToPatternScanner,
+                ),
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
+                  icon: Icons.psychology,
                   title: 'Create Strategy',
                   subtitle: 'Build your trading strategy',
                   onTap: viewModel.navigateToStrategyBuilder,

@@ -67,6 +67,12 @@ class HomeViewModel extends BaseViewModel {
     _navigationService.navigateToDataUploadView().whenComplete(() => refresh());
   }
 
+  void navigateToPatternScanner() {
+    _navigationService
+        .navigateToPatternScannerView()
+        .whenComplete(() => refresh());
+  }
+
   void navigateToStrategyBuilder() {
     _navigationService
         .navigateToStrategyBuilderView()
