@@ -215,9 +215,7 @@ class BacktestEngineService {
       case IndicatorType.macd:
         return 'macd_$period';
       case IndicatorType.bollingerBands:
-        return 'bb_lower_$period'; // Default to lower band
-      default:
-        return '${type.name}_$period';
+        return 'bb_lower_$period';
     }
   }
 
@@ -248,66 +246,7 @@ class BacktestEngineService {
         final bb =
             _indicatorService.calculateBollingerBands(candles, period, 2.0);
         return bb['lower']!;
-      default:
-        return List.filled(candles.length, null);
     }
-  }
-
-  /// Calculate single indicator
-  List<double?> _calculateIndicator(
-    List<Candle> candles,
-    IndicatorType type,
-    ConditionValue value,
-  ) {
-    // For direct price types, return immediately
-    if (type == IndicatorType.close) {
-      return candles.map((c) => c.close as double?).toList();
-    }
-    if (type == IndicatorType.open) {
-      return candles.map((c) => c.open as double?).toList();
-    }
-    if (type == IndicatorType.high) {
-      return candles.map((c) => c.high as double?).toList();
-    }
-    if (type == IndicatorType.low) {
-      return candles.map((c) => c.low as double?).toList();
-    }
-
-    // For indicators that need period
-    return value.when(
-      number: (num) => candles.map((c) => c.close as double?).toList(),
-      indicator: (indicatorType, period) {
-        final p = period ?? 14; // Default period
-
-        switch (type) {
-          case IndicatorType.sma:
-            return _indicatorService.calculateSMA(candles, p);
-          case IndicatorType.ema:
-            return _indicatorService.calculateEMA(candles, p);
-          case IndicatorType.rsi:
-            return _indicatorService.calculateRSI(candles, p);
-          case IndicatorType.atr:
-            return _indicatorService.calculateATR(candles, p);
-          case IndicatorType.macd:
-            final macd = _indicatorService.calculateMACD(candles);
-            return macd['macd']!;
-          case IndicatorType.bollingerBands:
-            final bb =
-                _indicatorService.calculateBollingerBands(candles, p, 2.0);
-            return bb['lower']!; // For entry check
-          default:
-            return candles.map((c) => c.close as double?).toList();
-        }
-      },
-    );
-  }
-
-  String _getIndicatorKey(IndicatorType type, ConditionValue value) {
-    return value.when(
-      number: (num) => '${type.name}_static',
-      indicator: (indicatorType, period) =>
-          '${type.name}_${period ?? _getDefaultPeriod(type)}',
-    );
   }
 
   int _getDefaultPeriod(IndicatorType type) {
@@ -388,7 +327,7 @@ class BacktestEngineService {
 
     // Get comparison value
     final compareValue = rule.value.when(
-      number: (num) => num,
+      number: (number) => number,
       indicator: (type, period) {
         final compareKey =
             _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
@@ -431,8 +370,9 @@ class BacktestEngineService {
                 type, period ?? _getDefaultPeriod(type)),
           );
           final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || index >= compareIndicator.length)
+          if (compareIndicator == null || index >= compareIndicator.length) {
             return false;
+          }
           final prevCompare = compareIndicator[index - 1];
           final currCompare = compareIndicator[index];
           if (prevCompare == null || currCompare == null) return false;
@@ -454,8 +394,9 @@ class BacktestEngineService {
                 type, period ?? _getDefaultPeriod(type)),
           );
           final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || index >= compareIndicator.length)
+          if (compareIndicator == null || index >= compareIndicator.length) {
             return false;
+          }
           final prevCompare = compareIndicator[index - 1];
           final currCompare = compareIndicator[index];
           if (prevCompare == null || currCompare == null) return false;
@@ -688,7 +629,7 @@ class BacktestEngineService {
   /// Calculate summary statistics
   BacktestSummary _calculateSummary(List<Trade> trades, double initialCapital) {
     if (trades.isEmpty) {
-      return BacktestSummary(
+      return const BacktestSummary(
         totalTrades: 0,
         winningTrades: 0,
         losingTrades: 0,

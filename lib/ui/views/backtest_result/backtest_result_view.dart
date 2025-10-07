@@ -310,7 +310,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         color: Colors.grey[600],
                       ),
                 ),
-                Icon(icon, size: 20, color: color.withOpacity(0.7)),
+                Icon(icon, size: 20, color: color.withValues(alpha: 0.7)),
               ],
             ),
             const Spacer(),
@@ -397,7 +397,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.blue.withOpacity(0.1),
+              color: Colors.blue.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -445,7 +445,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.red.withOpacity(0.1),
+              color: Colors.red.withValues(alpha: 0.1),
             ),
           ),
         ],
@@ -459,8 +459,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: isProfitable
-            ? Colors.green.withOpacity(0.2)
-            : Colors.red.withOpacity(0.2),
+            ? Colors.green.withValues(alpha: 0.2)
+            : Colors.red.withValues(alpha: 0.2),
         child: Text(
           '#$number',
           style: TextStyle(
@@ -476,8 +476,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: trade.direction == TradeDirection.buy
-                  ? Colors.blue.withOpacity(0.2)
-                  : Colors.orange.withOpacity(0.2),
+                  ? Colors.blue.withValues(alpha: 0.2)
+                  : Colors.orange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(

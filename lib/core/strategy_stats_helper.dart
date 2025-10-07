@@ -2,6 +2,7 @@
 // This is NOT stored in database, computed dynamically
 
 import 'package:backtestx/models/trade.dart';
+import 'package:flutter/widgets.dart';
 
 class StrategyStatsData {
   final String strategyId;
@@ -73,7 +74,7 @@ class StrategyStatsData {
         lastRunDate: results.first.executedAt,
       );
     } catch (e) {
-      print('Error calculating stats from results: $e');
+      debugPrint('Error calculating stats from results: $e');
       return StrategyStatsData.empty(strategyId);
     }
   }
@@ -166,30 +167,35 @@ class StrategyStatsData {
 
     // Profitability (40 points)
     if (isProfitable) {
-      if (avgPnlPercent > 20)
+      if (avgPnlPercent > 20) {
         score += 40;
-      else if (avgPnlPercent > 10)
+      } else if (avgPnlPercent > 10) {
         score += 30;
-      else if (avgPnlPercent > 5)
+      } else if (avgPnlPercent > 5) {
         score += 20;
-      else
+      } else {
         score += 10;
+      }
     }
 
     // Win rate (30 points)
-    if (avgWinRate >= 60)
+    if (avgWinRate >= 60) {
       score += 30;
-    else if (avgWinRate >= 50)
+    } else if (avgWinRate >= 50) {
       score += 20;
-    else if (avgWinRate >= 40) score += 10;
+    } else if (avgWinRate >= 40) {
+      score += 10;
+    }
 
     // Consistency (30 points)
     final consistency = consistencyScore;
-    if (consistency >= 80)
+    if (consistency >= 80) {
       score += 30;
-    else if (consistency >= 60)
+    } else if (consistency >= 60) {
       score += 20;
-    else if (consistency >= 40) score += 10;
+    } else if (consistency >= 40) {
+      score += 10;
+    }
 
     return score.toDouble();
   }

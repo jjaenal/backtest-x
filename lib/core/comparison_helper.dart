@@ -252,8 +252,4 @@ class ResultComparison {
 }
 
 // Extension untuk MapEntry sorting
-extension on List<MapEntry<BacktestResult, double>> {
-  void sortByValue() {
-    sort((a, b) => b.value.compareTo(a.value));
-  }
-}
+extension on List<MapEntry<BacktestResult, double>> {}
