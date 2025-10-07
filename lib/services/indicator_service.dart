@@ -53,7 +53,9 @@ class IndicatorService {
 
     // First average gain/loss
     for (var i = 1; i <= period; i++) {
-      final change = closes[i] - closes[i - 1];
+      // final change = closes[i] - closes[i - 1];
+      final change =
+          candles[i].priceChange(candles[i - 1]); // ✅ Using extension
       if (change > 0) {
         avgGain += change;
       } else {
@@ -67,7 +69,9 @@ class IndicatorService {
 
     // Smooth with Wilder's method
     for (var i = period + 1; i < closes.length; i++) {
-      final change = closes[i] - closes[i - 1];
+      // final change = closes[i] - closes[i - 1];
+      final change =
+          candles[i].priceChange(candles[i - 1]); // ✅ Using extension
       final gain = change > 0 ? change : 0;
       final loss = change < 0 ? change.abs() : 0;
 

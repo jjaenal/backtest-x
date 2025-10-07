@@ -1,4 +1,4 @@
-import 'package:backtestx/core/strategy_stats_helper.dart';
+import 'package:backtestx/helpers/strategy_stats_helper.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:flutter/material.dart';

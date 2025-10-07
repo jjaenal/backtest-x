@@ -1,5 +1,5 @@
 import 'package:backtestx/app/app.locator.dart';
-import 'package:backtestx/core/backtest_helper.dart';
+import 'package:backtestx/helpers/backtest_helper.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/storage_service.dart';
