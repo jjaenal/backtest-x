@@ -4,8 +4,8 @@
 
 ```bash
 # Create Flutter project
-flutter create backtest_app
-cd backtest_app
+flutter create backtestx
+cd backtestx
 
 # Add all dependencies from pubspec.yaml
 flutter pub get
@@ -126,12 +126,12 @@ flutter pub run flutter_native_splash:create
 ```bash
 # View SQLite database (Android)
 adb shell
-run-as com.yourcompany.backtest_app
+run-as com.yourcompany.backtestx
 cd databases/
-cat backtest_app.db
+cat backtestx.db
 
 # Pull database to local (for inspection)
-adb pull /data/data/com.yourcompany.backtest_app/databases/backtest_app.db
+adb pull /data/data/com.yourcompany.backtestx/databases/backtestx.db
 
 # Open with DB Browser for SQLite
 # Download: https://sqlitebrowser.org/

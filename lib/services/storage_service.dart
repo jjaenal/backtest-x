@@ -22,7 +22,7 @@ class StorageService {
 
   Future<Database> _initDatabase() async {
     final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'backtest_app.db');
+    final path = join(dbPath, 'backtestx.db');
 
     return await openDatabase(
       path,
