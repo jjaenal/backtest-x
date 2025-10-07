@@ -52,6 +52,14 @@ class HomeView extends StackedView<HomeViewModel> {
                 const SizedBox(height: 16),
                 _buildActionButton(
                   context,
+                  icon: Icons.show_chart_outlined,
+                  title: 'Market Analysis',
+                  subtitle: 'Analyze market data',
+                  onTap: viewModel.navigateToMarketAnalysis,
+                ),
+                const SizedBox(height: 16),
+                _buildActionButton(
+                  context,
                   icon: Icons.assessment,
                   title: 'View Results',
                   subtitle: 'Analyze backtest performance',

@@ -5,6 +5,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -33,6 +34,7 @@ class BacktestHelper {
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
   final _dataManager = DataManager();
+  final _validationService = locator<DataValidationService>();
 
   /// Run backtest with cached market data
   Future<BacktestResult?> runBacktestWithCachedData({
@@ -50,6 +52,13 @@ class BacktestHelper {
       return null;
     }
 
+    // Validate before backtest
+    final validation = _validationService.validateMarketData(marketData);
+    if (!validation.isValid) {
+      debugPrint('❌ Market data validation failed: ${validation.summary}');
+      debugPrint('💡 Make sure to upload valid data first!');
+      return null;
+    }
     debugPrint('🚀 Running backtest...');
     debugPrint('   Strategy: ${strategy.name}');
     debugPrint('   Data: ${marketData.symbol} ${marketData.timeframe}');
