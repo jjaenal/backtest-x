@@ -1,185 +1,16 @@
-// import 'package:backtestx/app/app.locator.dart';
-// import 'package:backtestx/helpers/backtest_helper.dart';
-// import 'package:backtestx/models/trade.dart';
-// import 'package:backtestx/models/strategy.dart';
-// import 'package:backtestx/services/storage_service.dart';
-// import 'package:flutter/material.dart';
-// import 'package:stacked/stacked.dart';
-// import 'package:stacked_services/stacked_services.dart';
-
-// enum TradeFilter { all, wins, losses }
-
-// class BacktestResultViewModel extends BaseViewModel {
-//   final _storageService = locator<StorageService>();
-//   final _snackbarService = locator<SnackbarService>();
-
-//   final String? resultId;
-
-//   BacktestResultViewModel(this.resultId);
-
-//   BacktestResult? result;
-//   Strategy? strategy;
-//   bool showDrawdown = false;
-//   TradeFilter tradeFilter = TradeFilter.all;
-
-//   String get strategyName => strategy?.name ?? 'Unknown Strategy';
-
-//   List<Trade> get filteredTrades {
-//     if (result == null) return [];
-
-//     switch (tradeFilter) {
-//       case TradeFilter.all:
-//         return result!.trades;
-//       case TradeFilter.wins:
-//         return result!.trades.where((t) => (t.pnl ?? 0) > 0).toList();
-//       case TradeFilter.losses:
-//         return result!.trades.where((t) => (t.pnl ?? 0) < 0).toList();
-//     }
-//   }
-
-//   Future<void> initialize() async {
-//     setBusy(true);
-
-//     if (resultId != null) {
-//       await _loadResult(resultId!);
-//     } else {
-//       // Load most recent result
-//       await _loadMostRecentResult();
-//     }
-
-//     setBusy(false);
-//   }
-
-//   Future<void> _loadResult(String id) async {
-//     try {
-//       debugPrint('\n📊 Loading result: $id');
-
-//       // Try to get from cache first (has full data)
-//       result = ResultCache.get(id);
-
-//       if (result != null) {
-//         debugPrint('✅ Loaded from cache (full data)');
-//         debugPrint('   Trades: ${result!.trades.length}');
-//         debugPrint('   Equity points: ${result!.equityCurve.length}');
-//       } else {
-//         debugPrint('⚠️  Not in cache, loading from database (summary only)');
-//         // Load from database (summary only, no trades/equity)
-//         result = await _storageService.getBacktestResult(id);
-
-//         if (result != null) {
-//           debugPrint('✅ Loaded from database');
-//           debugPrint('   Note: Trades and equity curve not available from DB');
-//           debugPrint('   To see full details, re-run the backtest');
-//         }
-//       }
-
-//       if (result != null) {
-//         strategy = await _storageService.getStrategy(result!.strategyId);
-//       }
-
-//       notifyListeners();
-//     } catch (e) {
-//       debugPrint('Error loading result: $e');
-//       _snackbarService.showSnackbar(
-//         message: 'Failed to load result',
-//         duration: const Duration(seconds: 3),
-//       );
-//     }
-//   }
-
-//   Future<void> _loadMostRecentResult() async {
-//     try {
-//       debugPrint('\n📊 Loading most recent result...');
-
-//       final strategies = await _storageService.getAllStrategies();
-
-//       if (strategies.isEmpty) {
-//         debugPrint('⚠️  No strategies found');
-//         return;
-//       }
-
-//       // Get most recent strategy's most recent result
-//       for (final strat in strategies) {
-//         final results =
-//             await _storageService.getBacktestResultsByStrategy(strat.id);
-//         if (results.isNotEmpty) {
-//           final latestResult = results.first;
-
-//           // Try cache first
-//           result = ResultCache.get(latestResult.id);
-
-//           if (result == null) {
-//             debugPrint('⚠️  Latest result not in cache, using summary only');
-//             result = latestResult;
-//           } else {
-//             debugPrint('✅ Found latest result in cache');
-//           }
-
-//           strategy = strat;
-//           notifyListeners();
-//           return;
-//         }
-//       }
-
-//       debugPrint('⚠️  No results found');
-//     } catch (e) {
-//       debugPrint('Error loading recent result: $e');
-//     }
-//   }
-
-//   void toggleDrawdown() {
-//     showDrawdown = !showDrawdown;
-//     notifyListeners();
-//   }
-
-//   void setTradeFilter(TradeFilter filter) {
-//     tradeFilter = filter;
-//     notifyListeners();
-//   }
-
-//   Future<void> shareResults() async {
-//     if (result == null) return;
-
-//     final summary = result!.summary;
-//     final text = '''
-// 📊 Backtest Results - $strategyName
-
-// 💰 Total PnL: \${summary.totalPnl.toStringAsFixed(2)} (${summary.totalPnlPercentage.toStringAsFixed(2)}%)
-// 📈 Win Rate: ${summary.winRate.toStringAsFixed(1)}% (${summary.winningTrades}/${summary.totalTrades})
-// 📉 Profit Factor: ${summary.profitFactor.toStringAsFixed(2)}
-// ⚠️  Max Drawdown: ${summary.maxDrawdownPercentage.toStringAsFixed(1)}%
-
-// Generated by Backtest Pro
-//     ''';
-//     _snackbarService.showSnackbar(
-//       message: 'Share functionality coming soon!',
-//       duration: const Duration(seconds: 2),
-//     );
-
-//     debugPrint(text);
-//   }
-
-//   Future<void> exportResults() async {
-//     if (result == null) return;
-
-//     try {
-//       _snackbarService.showSnackbar(
-//         message: 'Export functionality coming soon!',
-//         duration: const Duration(seconds: 2),
-//       );
-//     } catch (e) {
-//       _snackbarService.showSnackbar(
-//         message: 'Export failed: $e',
-//         duration: const Duration(seconds: 3),
-//       );
-//     }
-//   }
-// }
-
 import 'package:backtestx/models/trade.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/app/app.locator.dart';
+import 'package:csv/csv.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
+    as html;
 
 class BacktestResultViewModel extends BaseViewModel {
   final BacktestResult result;
@@ -187,23 +18,135 @@ class BacktestResultViewModel extends BaseViewModel {
 
   BacktestResultViewModel(this.result);
 
-  Future<void> shareResults() async {
-    _snackbarService.showSnackbar(
-      message: 'Share feature coming soon!',
-      duration: const Duration(seconds: 2),
-    );
+  // Properti tambahan untuk data yang tidak ada di BacktestResult
+  String get strategyName => 'Strategy ${result.strategyId}';
+  String get symbol => 'Unknown';
+  String get timeframe => 'Unknown';
+  String get startDate => result.executedAt.toString().split(' ')[0];
+  String get endDate => result.executedAt.toString().split(' ')[0];
+
+  // Membuat teks ringkasan untuk dibagikan
+  String _generateSummaryText() {
+    final summary = result.summary;
+
+    return '''
+📊 Backtest Results - $strategyName
+
+💰 Total PnL: \$${summary.totalPnl.toStringAsFixed(2)} (${summary.totalPnlPercentage.toStringAsFixed(2)}%)
+📈 Win Rate: ${summary.winRate.toStringAsFixed(1)}% (${summary.winningTrades}/${summary.totalTrades})
+📉 Profit Factor: ${summary.profitFactor.toStringAsFixed(2)}
+⚠️ Max Drawdown: ${summary.maxDrawdownPercentage.toStringAsFixed(1)}%
+📆 Period: $startDate to $endDate
+🔄 Total Trades: ${summary.totalTrades}
+
+Generated by BacktestX
+    ''';
   }
 
+  // Fungsi untuk membagikan hasil backtest
+  Future<void> shareResults() async {
+    final text = _generateSummaryText();
+
+    try {
+      if (kIsWeb) {
+        // Untuk web, gunakan clipboard sebagai fallback utama
+        await Clipboard.setData(ClipboardData(text: text));
+        _snackbarService.showSnackbar(
+          message: 'Results copied to clipboard!',
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        // Untuk mobile/desktop, gunakan Share package
+        await Share.share(
+          text,
+          subject: 'BacktestX Results',
+        );
+        debugPrint('Shared successfully');
+      }
+    } catch (e) {
+      // Fallback: Copy ke clipboard
+      await Clipboard.setData(ClipboardData(text: text));
+      debugPrint('error: $e');
+      _snackbarService.showSnackbar(
+        message: 'Results copied to clipboard!',
+        duration: const Duration(seconds: 2),
+      );
+    }
+  }
+
+  // Fungsi untuk mengekspor hasil backtest ke CSV
   Future<void> exportResults() async {
     setBusy(true);
 
     try {
-      await Future.delayed(const Duration(seconds: 1)); // Simulate export
+      // Membuat data untuk CSV
+      final List<List<dynamic>> rows = [];
 
-      _snackbarService.showSnackbar(
-        message: 'Export feature coming soon!',
-        duration: const Duration(seconds: 2),
-      );
+      // Header
+      rows.add([
+        'Strategy',
+        'Symbol',
+        'Timeframe',
+        'Direction',
+        'Entry Date',
+        'Exit Date',
+        'Entry Price',
+        'Exit Price',
+        'PnL',
+        'PnL %',
+        'Duration'
+      ]);
+
+      // Data trades
+      for (final trade in result.trades) {
+        // Hitung durasi dalam hari jika exitTime tersedia
+        String duration = '-';
+        if (trade.exitTime != null) {
+          final diff = trade.exitTime!.difference(trade.entryTime).inHours;
+          duration = '${diff ~/ 24}d ${diff % 24}h';
+        }
+
+        rows.add([
+          strategyName,
+          symbol,
+          timeframe,
+          trade.direction == TradeDirection.buy ? 'BUY' : 'SELL',
+          trade.entryTime.toString(),
+          trade.exitTime?.toString() ?? '-',
+          trade.entryPrice.toStringAsFixed(2),
+          trade.exitPrice?.toStringAsFixed(2) ?? '-',
+          trade.pnl?.toStringAsFixed(2) ?? '-',
+          trade.pnlPercentage?.toStringAsFixed(2) ?? '-',
+          duration
+        ]);
+      }
+
+      // Konversi ke CSV
+      String csv = const ListToCsvConverter().convert(rows);
+
+      // Simpan file CSV dan bagikan
+      final fileName = '${strategyName}_backtest_results.csv';
+
+      // Gunakan pendekatan yang berbeda berdasarkan platform
+      try {
+        // Untuk web, gunakan universal_html
+        if (kIsWeb) {
+          _saveFileForWeb(csv, fileName);
+        } else {
+          // Untuk mobile/desktop, gunakan path_provider dan share_plus
+          await _saveFileForMobile(csv, fileName);
+        }
+
+        _snackbarService.showSnackbar(
+          message: 'Results exported to CSV',
+          duration: const Duration(seconds: 2),
+        );
+      } catch (e) {
+        _snackbarService.showSnackbar(
+          message: 'Export failed: $e',
+          duration: const Duration(seconds: 3),
+        );
+      }
     } catch (e) {
       _snackbarService.showSnackbar(
         message: 'Export failed: $e',
@@ -212,6 +155,25 @@ class BacktestResultViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  void _saveFileForWeb(String csv, String fileName) {
+    // Implementasi untuk web menggunakan universal_html
+    final blob = html.Blob([csv], 'text/csv');
+    final url = html.Url.createObjectUrlFromBlob(blob);
+    final anchor = html.AnchorElement(href: url)
+      ..setAttribute('download', fileName)
+      ..click();
+    html.Url.revokeObjectUrl(url);
+  }
+
+  Future<void> _saveFileForMobile(String csv, String fileName) async {
+    // Implementasi untuk mobile/desktop
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/$fileName';
+    final file = File(path);
+    await file.writeAsString(csv);
+    await Share.shareXFiles([XFile(path)], text: 'BacktestX Results');
   }
 
   String getTradeDirectionLabel(TradeDirection direction) {

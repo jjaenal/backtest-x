@@ -27,6 +27,7 @@
 - [x] Risk management settings
 - [x] Save strategy to database
 - [x] Load existing strategy
+- [x] Quick backtest preview
 
 **UI Components:**
 
@@ -66,7 +67,9 @@
   - Export to CSV
 - [x] Equity curve chart (fl_chart)
 - [x] Drawdown chart
-- [ ] Share/Export button
+- [x] Share/Export button
+  - Share results as text
+  - Export trades to CSV
 
 **UI Layout:**
 
@@ -94,7 +97,7 @@
 - [x] View strategy details
 - [x] View historical results per strategy
 - [x] Compare results
-- [ ] Quick run backtest
+- [x] Quick run backtest
 
 **Estimated Time:** 1-2 days
 

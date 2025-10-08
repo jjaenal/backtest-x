@@ -31,6 +31,15 @@ flutter pub run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
+## 📱 Key Features
+
+- **Strategy Builder**: Create trading strategies with custom entry/exit rules
+- **Backtest Engine**: Test strategies against historical data
+- **Performance Analytics**: Comprehensive statistics and visualizations
+- **Multi-platform Support**: Works on Web, Android, iOS, and desktop platforms
+- **Data Import/Export**: Import CSV data and export backtest results
+- **Share Results**: Share backtest results with others
+
 ## 📁 Project Structure
 
 ```
@@ -91,6 +100,34 @@ lib/
 └── main.dart
 ```
 
+## 📦 Dependencies
+
+Key packages used in this project:
+
+```yaml
+dependencies:
+  flutter:
+    sdk: flutter
+  stacked: ^3.4.0
+  stacked_services: ^1.1.0
+  
+  # Data & Storage
+  sqflite: ^2.3.0
+  path_provider: ^2.1.1
+  csv: ^6.0.0
+  share_plus: ^7.2.1
+  universal_html: ^2.2.4
+  
+  # Charts
+  fl_chart: ^0.65.0
+  candlesticks: ^2.1.0
+  
+  # Utils
+  intl: ^0.18.0
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  uuid: ^4.2.1
+```
 ## 🏗️ Architecture
 
 ### Stacked MVVM Pattern

@@ -1,8 +1,11 @@
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/helpers/strategy_stats_helper.dart';
+import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
+import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -13,6 +16,8 @@ class WorkspaceViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
   final _snackbarService = locator<SnackbarService>();
+  final _dataManager = locator<DataManager>();
+  final _backtestEngineService = locator<BacktestEngineService>();
 
   List<Strategy> _strategies = [];
   List<Strategy> get strategies => _strategies;
@@ -26,6 +31,20 @@ class WorkspaceViewModel extends BaseViewModel {
   SortType _sortBy = SortType.dateModified;
   SortType get sortBy => _sortBy;
 
+  // Quick run backtest
+  List<MarketData> _availableData = [];
+  List<MarketData> get availableData => _availableData;
+  String? _selectedDataId;
+  String? get selectedDataId => _selectedDataId;
+
+  Map<String, BacktestResult?> _quickResults = {};
+  BacktestResult? getQuickResult(String strategyId) =>
+      _quickResults[strategyId];
+
+  Map<String, bool> _isRunningQuickTest = {};
+  bool isRunningQuickTest(String strategyId) =>
+      _isRunningQuickTest[strategyId] ?? false;
+
   // Comparison mode
   bool _isCompareMode = false;
   bool get isCompareMode => _isCompareMode;
@@ -37,6 +56,7 @@ class WorkspaceViewModel extends BaseViewModel {
 
   Future<void> initialize() async {
     await runBusyFuture(loadData());
+    loadAvailableData();
   }
 
   Future<void> loadData() async {
@@ -50,6 +70,26 @@ class WorkspaceViewModel extends BaseViewModel {
     }
 
     _sortStrategies();
+    notifyListeners();
+  }
+
+  // Future<void> loadAvailableData() async {
+  //   _availableData = _dataManager.getAllData();
+  //   if (_availableData.isNotEmpty && _selectedDataId == null) {
+  //     _selectedDataId = _availableData.first.id;
+  //   }
+  //   notifyListeners();
+  // }
+
+  void loadAvailableData() {
+    _availableData = _dataManager.getAllData();
+    if (availableData.isNotEmpty && selectedDataId == null) {
+      _selectedDataId = availableData.first.id;
+    }
+  }
+
+  void setSelectedData(String dataId) {
+    _selectedDataId = dataId;
     notifyListeners();
   }
 
@@ -218,6 +258,59 @@ class WorkspaceViewModel extends BaseViewModel {
     //   Routes.backtestRunView,
     //   arguments: BacktestRunViewArguments(strategy: strategy),
     // );
+  }
+
+  Future<void> quickRunBacktest(Strategy strategy) async {
+    if (_selectedDataId == null || _availableData.isEmpty) {
+      _snackbarService.showSnackbar(
+        message: 'Please select market data first',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    _isRunningQuickTest[strategy.id] = true;
+    notifyListeners();
+
+    try {
+      // Load candles
+      final marketData = _dataManager.getData(_selectedDataId!);
+
+      if (marketData == null) {
+        _snackbarService.showSnackbar(
+          message: 'Selected market data is empty',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      // Run backtest
+      final result = await _backtestEngineService.runBacktest(
+        strategy: strategy,
+        marketData: marketData,
+      );
+
+      // Store result in memory (not in storage)
+      _quickResults[strategy.id] = result;
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Error running backtest: ${e.toString()}',
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      _isRunningQuickTest[strategy.id] = false;
+      notifyListeners();
+    }
+  }
+
+  void viewQuickResult(String strategyId) {
+    final result = _quickResults[strategyId];
+    if (result != null) {
+      _navigationService.navigateTo(
+        Routes.backtestResultView,
+        arguments: BacktestResultViewArguments(result: result),
+      );
+    }
   }
 
   void viewResult(BacktestResult result) {
@@ -406,61 +499,3 @@ extension SortTypeX on SortType {
     }
   }
 }
-
-// Helper class for stats (calculated on-the-fly)
-// class StrategyStatsData {
-//   final String strategyId;
-//   final int totalBacktests;
-//   final double avgPnl;
-//   final double avgPnlPercent;
-//   final double avgWinRate;
-//   final double bestPnl;
-//   final double worstPnl;
-//   final DateTime? lastRunDate;
-
-//   const StrategyStatsData({
-//     required this.strategyId,
-//     required this.totalBacktests,
-//     required this.avgPnl,
-//     required this.avgPnlPercent,
-//     required this.avgWinRate,
-//     required this.bestPnl,
-//     required this.worstPnl,
-//     this.lastRunDate,
-//   });
-
-//   factory StrategyStatsData.empty(String strategyId) {
-//     return StrategyStatsData(
-//       strategyId: strategyId,
-//       totalBacktests: 0,
-//       avgPnl: 0,
-//       avgPnlPercent: 0,
-//       avgWinRate: 0,
-//       bestPnl: 0,
-//       worstPnl: 0,
-//     );
-//   }
-
-//   bool get hasResults => totalBacktests > 0;
-//   bool get isProfitable => avgPnl > 0;
-
-//   String get performanceLabel {
-//     if (!hasResults) return 'No Data';
-//     if (avgPnlPercent > 20) return 'Excellent';
-//     if (avgPnlPercent > 10) return 'Good';
-//     if (avgPnlPercent > 0) return 'Profitable';
-//     return 'Unprofitable';
-//   }
-
-//   String formatAvgPnl() {
-//     return '\$${avgPnl.toStringAsFixed(2)}';
-//   }
-
-//   String formatAvgPnlPercent() {
-//     return '${avgPnlPercent >= 0 ? '+' : ''}${avgPnlPercent.toStringAsFixed(2)}%';
-//   }
-
-//   String formatWinRate() {
-//     return '${avgWinRate.toStringAsFixed(1)}%';
-//   }
-// }

@@ -310,7 +310,6 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (availableData.isNotEmpty && selectedDataId == null) {
       selectedDataId = availableData.first.id;
     }
-    // notifyListeners();
   }
 
   /// Set selected market data for preview

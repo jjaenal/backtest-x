@@ -331,13 +331,57 @@ class WorkspaceView extends StatelessWidget {
                   // Quick actions
                   Row(
                     children: [
+                      // Market data dropdown for quick test
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () => model.runBacktest(strategy),
-                          icon: const Icon(Icons.play_arrow, size: 18),
-                          label: const Text('Run Backtest'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              isExpanded: true,
+                              value: model.selectedDataId,
+                              hint: const Text('Select market data'),
+                              onChanged: (value) {
+                                if (value != null) {
+                                  model.setSelectedData(value);
+                                }
+                              },
+                              items: model.availableData.map((data) {
+                                return DropdownMenuItem(
+                                  value: data.id,
+                                  child: Text(
+                                    data.symbol,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Quick test button
+                      ElevatedButton.icon(
+                        onPressed: model.isRunningQuickTest(strategy.id)
+                            ? null
+                            : () => model.quickRunBacktest(strategy),
+                        icon: model.isRunningQuickTest(strategy.id)
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.flash_on, size: 18),
+                        label: const Text('Quick Test'),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 12,
                           ),
                         ),
                       ),
@@ -353,6 +397,12 @@ class WorkspaceView extends StatelessWidget {
                       ],
                     ],
                   ),
+
+                  // Quick result preview
+                  if (model.getQuickResult(strategy.id) != null) ...[
+                    const SizedBox(height: 12),
+                    _buildQuickResultPreview(context, model, strategy.id),
+                  ],
                 ],
               ),
             ),
@@ -446,6 +496,85 @@ class WorkspaceView extends StatelessWidget {
               color: Colors.grey[600],
               fontSize: 14,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickResultPreview(
+    BuildContext context,
+    WorkspaceViewModel model,
+    String strategyId,
+  ) {
+    final result = model.getQuickResult(strategyId);
+    if (result == null) return const SizedBox.shrink();
+
+    final summary = result.summary;
+    final isProfitable = summary.totalPnl > 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isProfitable ? Colors.green[300]! : Colors.red[300]!,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.flash_on,
+                size: 16,
+                color: Colors.amber[700],
+              ),
+              const SizedBox(width: 6),
+              const Text(
+                'Quick Test Result',
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: () => model.viewQuickResult(strategyId),
+                child: const Text('View Full Results'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: _buildStatItem(
+                  'Win Rate',
+                  '${(summary.winRate).toStringAsFixed(1)}%',
+                  Icons.check_circle_outline,
+                  Colors.blue,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  'P&L',
+                  summary.totalPnl.toStringAsFixed(2),
+                  Icons.trending_up,
+                  isProfitable ? Colors.green : Colors.red,
+                ),
+              ),
+              Expanded(
+                child: _buildStatItem(
+                  'Trades',
+                  '${summary.totalTrades}',
+                  Icons.swap_horiz,
+                  Colors.purple,
+                ),
+              ),
+            ],
           ),
         ],
       ),

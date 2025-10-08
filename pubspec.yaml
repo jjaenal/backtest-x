@@ -16,6 +16,8 @@ dependencies:
   sqflite: ^2.3.0
   path_provider: ^2.1.1
   csv: ^6.0.0
+  share_plus: ^7.2.1
+  universal_html: ^2.2.4
 
   # Charts
   fl_chart: ^0.65.0
