@@ -104,10 +104,10 @@
 
 **Features:**
 
-- [ ] Basic candlestick chart
-- [ ] Zoom & pan
+- [x] Basic candlestick chart
+- [x] Zoom & pan
 - [ ] Show entry/exit markers
-- [ ] Overlay indicators (SMA, EMA)
+- [x] Overlay indicators (SMA, EMA)
 - [ ] Tooltip on hover
 
 **Library:** Use `candlesticks` or `fl_chart`
@@ -132,7 +132,7 @@
 
 - [ ] Select multiple symbols
 - [ ] Run backtest on all
-- [ ] Compare results
+- [x] Compare results
 - [ ] Portfolio view
 
 ### UI/UX Improvements

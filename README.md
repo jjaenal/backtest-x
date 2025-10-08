@@ -68,8 +68,12 @@ lib/
 │   │       ├── workspace_view.dart
 │   │       └── workspace_viewmodel.dart
 │   └── widgets/
-│       ├── candlestick_chart/   # TODO
-│       └── equity_curve/        # TODO
+│       ├── candlestick_chart/
+|       |   └── candlestick_chart.dart
+│       ├── indicator_panel/
+│       │   └── indicator_panel.dart
+│       └── equity_curve/
+│           └── equity_curve.dart
 ├── services/
 │   ├── data_parser_service.dart
 │   ├── backtest_engine_service.dart
@@ -241,7 +245,7 @@ void main() {
 - [x] Market analysis view
 - [x] Pattern scanner view
 - [x] comparison view
-- [ ] Basic charts
+- [x] Basic charts
 
 ### Phase 2 - Polish (Next 3 months)
 
@@ -250,7 +254,7 @@ void main() {
 - [ ] Multi-timeframe analysis
 - [ ] UI/UX improvements
 - [ ] Dark/Light theme toggle
-- [ ] Advanced charts (candlestick with indicators)
+- [x] Advanced charts (candlestick with indicators)
 
 ### Phase 3 - Premium (6-12 months)
 

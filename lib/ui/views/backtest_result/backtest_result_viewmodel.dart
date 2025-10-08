@@ -188,7 +188,6 @@ class BacktestResultViewModel extends BaseViewModel {
   BacktestResultViewModel(this.result);
 
   Future<void> shareResults() async {
-    // TODO: Implement share functionality
     _snackbarService.showSnackbar(
       message: 'Share feature coming soon!',
       duration: const Duration(seconds: 2),
@@ -199,7 +198,6 @@ class BacktestResultViewModel extends BaseViewModel {
     setBusy(true);
 
     try {
-      // TODO: Implement export to CSV/PDF
       await Future.delayed(const Duration(seconds: 1)); // Simulate export
 
       _snackbarService.showSnackbar(
