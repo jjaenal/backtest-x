@@ -126,12 +126,10 @@ class StackedRouter extends _i1.RouterBase {
       );
     },
     _i6.BacktestResultView: (data) {
-      final args = data.getArgs<BacktestResultViewArguments>(
-        orElse: () => const BacktestResultViewArguments(),
-      );
+      final args = data.getArgs<BacktestResultViewArguments>(nullOk: false);
       return _i11.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i6.BacktestResultView(key: args.key, resultId: args.resultId),
+            _i6.BacktestResultView(key: args.key, result: args.result),
         settings: data,
       );
     },
@@ -200,27 +198,27 @@ class StrategyBuilderViewArguments {
 class BacktestResultViewArguments {
   const BacktestResultViewArguments({
     this.key,
-    this.resultId,
+    required this.result,
   });
 
   final _i11.Key? key;
 
-  final String? resultId;
+  final _i12.BacktestResult result;
 
   @override
   String toString() {
-    return '{"key": "$key", "resultId": "$resultId"}';
+    return '{"key": "$key", "result": "$result"}';
   }
 
   @override
   bool operator ==(covariant BacktestResultViewArguments other) {
     if (identical(this, other)) return true;
-    return other.key == key && other.resultId == resultId;
+    return other.key == key && other.result == result;
   }
 
   @override
   int get hashCode {
-    return key.hashCode ^ resultId.hashCode;
+    return key.hashCode ^ result.hashCode;
   }
 }
 
@@ -314,7 +312,7 @@ extension NavigatorStateExtension on _i13.NavigationService {
 
   Future<dynamic> navigateToBacktestResultView({
     _i11.Key? key,
-    String? resultId,
+    required _i12.BacktestResult result,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -322,7 +320,7 @@ extension NavigatorStateExtension on _i13.NavigationService {
         transition,
   }) async {
     return navigateTo<dynamic>(Routes.backtestResultView,
-        arguments: BacktestResultViewArguments(key: key, resultId: resultId),
+        arguments: BacktestResultViewArguments(key: key, result: result),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -450,7 +448,7 @@ extension NavigatorStateExtension on _i13.NavigationService {
 
   Future<dynamic> replaceWithBacktestResultView({
     _i11.Key? key,
-    String? resultId,
+    required _i12.BacktestResult result,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -458,7 +456,7 @@ extension NavigatorStateExtension on _i13.NavigationService {
         transition,
   }) async {
     return replaceWith<dynamic>(Routes.backtestResultView,
-        arguments: BacktestResultViewArguments(key: key, resultId: resultId),
+        arguments: BacktestResultViewArguments(key: key, result: result),
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

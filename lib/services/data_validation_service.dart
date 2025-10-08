@@ -279,7 +279,9 @@ class DataValidationService {
       if (candle.open <= 0 ||
           candle.high <= 0 ||
           candle.low <= 0 ||
-          candle.close <= 0) return false;
+          candle.close <= 0) {
+        return false;
+      }
     }
 
     return true;
@@ -328,7 +330,7 @@ class ValidationResult {
     buffer.writeln();
 
     if (hasErrors) {
-      buffer.writeln('ERRORS (${errorCount}):');
+      buffer.writeln('ERRORS ($errorCount):');
       buffer.writeln('-' * 50);
       for (var issue in errors) {
         buffer.writeln('• ${issue.message}');

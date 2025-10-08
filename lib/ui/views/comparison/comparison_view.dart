@@ -36,9 +36,7 @@ class ComparisonView extends StatelessWidget {
                 ),
               ],
               onSelected: (value) {
-                if (value == 'export') {
-                  // TODO: Implement export
-                }
+                if (value == 'export') {}
               },
             ),
           ],

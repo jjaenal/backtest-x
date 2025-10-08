@@ -85,16 +85,8 @@ class HomeViewModel extends BaseViewModel {
         .whenComplete(() => refresh());
   }
 
-  void navigateToBacktestResult() {
-    if (hasResults) {
-      _navigationService
-          .navigateToBacktestResultView()
-          .whenComplete(() => refresh());
-    }
-  }
-
   void navigateToWorkspace() {
-    _navigationService.navigateToWorkspaceView();
+    _navigationService.navigateToWorkspaceView().whenComplete(() => refresh());
   }
 
   Future<void> editStrategy(String strategyId) async {
@@ -172,10 +164,6 @@ class HomeViewModel extends BaseViewModel {
         if (result != null) {
           _isRunningBacktest = false;
           rebuildUi();
-          _snackbarService.showSnackbar(
-            message: '✅ Backtest completed successfully!',
-            duration: const Duration(seconds: 3),
-          );
         }
 
         // Refresh stats

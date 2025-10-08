@@ -1,18 +1,4 @@
-<!-- # backtestx
-
-A new Flutter project.
-
-## Golden Tests
-
-Golden tests are already setup for this project. To run the tests and update the golden files, run:
-
-```bash
-flutter test --update-goldens
-```
-
-The golden test screenshots will be stored under `test/golden/`. -->
-
-# Backtest Pro - Trading Backtest Application
+# Backtest-X - Trading Backtest Application
 
 Full-featured trading backtest application for retail traders built with Flutter & Stacked architecture.
 
@@ -53,6 +39,8 @@ lib/
 │   ├── app.dart                 # Stacked app config
 │   ├── app.locator.dart         # DI (auto-generated)
 │   └── app.router.dart          # Routes (auto-generated)
+├── core/
+│   ├── data_manager.dart
 ├── ui/
 │   ├── views/
 │   │   ├── home/
@@ -61,21 +49,41 @@ lib/
 │   │   ├── data_upload/
 │   │   │   ├── data_upload_view.dart
 │   │   │   └── data_upload_viewmodel.dart
-│   │   ├── strategy_builder/    # TODO
-│   │   ├── backtest_result/     # TODO
-│   │   └── workspace/           # TODO
+│   │   ├── pattern_scanner/
+│   │   │   ├── pattern_scanner_view.dart
+│   │   │   └── pattern_scanner_viewmodel.dart
+│   │   ├── strategy_builder/
+│   │   │   ├── strategy_builder_view.dart
+│   │   │   └── strategy_builder_viewmodel.dart
+│   │   ├── market_analysis/
+│   │   │   ├── market_analysis_view.dart
+│   │   │   └── market_analysis_viewmodel.dart
+│   │   ├── backtest_result/
+│   │   │   ├── backtest_result_view.dart
+│   │   │   └── backtest_result_viewmodel.dart
+│   │   ├── startup/
+│   │   │   ├── startup_view.dart
+│   │   │   └── startup_viewmodel.dart
+│   │   └── workspace/
+│   │       ├── workspace_view.dart
+│   │       └── workspace_viewmodel.dart
 │   └── widgets/
 │       ├── candlestick_chart/   # TODO
 │       └── equity_curve/        # TODO
 ├── services/
 │   ├── data_parser_service.dart
 │   ├── backtest_engine_service.dart
+|   |── data_validation_service.dart
 │   ├── indicator_service.dart
 │   └── storage_service.dart
 ├── models/
 │   ├── candle.dart              # Freezed model
 │   ├── strategy.dart            # Freezed model
 │   └── trade.dart               # Freezed model
+├── helpers/
+│   ├── backtest_helper.dart
+│   ├── comparison_helper.dart
+│   └── strategy_stats_helper.dart
 └── main.dart
 ```
 
@@ -230,6 +238,9 @@ void main() {
 - [x] Strategy builder view (form-based)
 - [x] Backtest result view
 - [x] Workspace view
+- [x] Market analysis view
+- [x] Pattern scanner view
+- [x] comparison view
 - [ ] Basic charts
 
 ### Phase 2 - Polish (Next 3 months)
@@ -317,8 +328,8 @@ MIT License - Free to use and modify
 For issues or questions:
 
 - Create GitHub issue
-- Email: [your-email]
-- Twitter: [@yourhandle]
+- Email: [tuangkang@backtestpro.app]
+- Twitter: [@jjayuz]
 
 ---
 

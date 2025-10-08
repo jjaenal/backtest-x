@@ -1,4 +1,7 @@
+import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
+import 'package:backtestx/ui/widgets/common/indicator_panel/indicator_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -20,6 +23,14 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Market Analysis'),
+        actions: [
+          if (viewModel.selectedMarketData != null)
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () => viewModel.showIndicatorSettings(),
+              tooltip: 'Chart Settings',
+            ),
+        ],
       ),
       body: viewModel.isBusy
           ? const Center(child: CircularProgressIndicator())
@@ -117,6 +128,78 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Price Chart with indicators
+          SizedBox(
+            height: 400,
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: CandlestickChart(
+                  candles: model.marketData!.candles,
+                  sma: model.sma20,
+                  ema: model.ema50,
+                  // bollingerBands: model.bb,
+                  showVolume: false, //model.marketData!.hasVolumeData,
+                  title:
+                      '${model.analysisData!.symbol} (${model.analysisData!.timeframe})',
+                  onRangeChanged: (startIndex, endIndex) {
+                    model.updateChartRange(startIndex, endIndex);
+                  },
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // RSI Panel
+          SizedBox(
+            height: 180,
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: IndicatorPanel(
+                  type: IndicatorType.rsi,
+                  values: model.rsi!,
+                  totalCandles: model.marketData!.candles.length,
+                  startIndex: model.chartStartIndex,
+                  endIndex: model.chartEndIndex,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // MACD Panel
+          SizedBox(
+            height: 180,
+            child: Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: IndicatorPanel(
+                  type: IndicatorType.macd,
+                  values: model.macd!['macd']!,
+                  additionalLine1: model.macd!['signal'],
+                  additionalLine2: model.macd!['histogram'],
+                  totalCandles: model.marketData!.candles.length,
+                  startIndex: model.chartStartIndex,
+                  endIndex: model.chartEndIndex,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           // Overview card
           _buildOverviewCard(context, data),
           const SizedBox(height: 16),
@@ -282,7 +365,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: trendColor.withOpacity(0.1),
+                color: trendColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -354,7 +437,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.2),
+                    color: color.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

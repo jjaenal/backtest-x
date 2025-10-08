@@ -18,7 +18,7 @@ class HomeView extends StackedView<HomeViewModel> {
         actions: [
           IconButton(
             icon: const Icon(Icons.workspace_premium),
-            onPressed: viewModel.navigateToWorkspace,
+            onPressed: () {},
           ),
         ],
       ),
@@ -44,7 +44,7 @@ class HomeView extends StackedView<HomeViewModel> {
                 const SizedBox(height: 16),
                 _buildActionButton(
                   context,
-                  icon: Icons.psychology,
+                  icon: Icons.candlestick_chart,
                   title: 'Pattern Scanner',
                   subtitle: 'Detect candlestick patterns',
                   onTap: viewModel.navigateToPatternScanner,
@@ -68,13 +68,10 @@ class HomeView extends StackedView<HomeViewModel> {
                 const SizedBox(height: 16),
                 _buildActionButton(
                   context,
-                  icon: Icons.assessment,
-                  title: 'View Results',
-                  subtitle: 'Analyze backtest performance',
-                  onTap: viewModel.hasResults
-                      ? viewModel.navigateToBacktestResult
-                      : null,
-                  enabled: viewModel.hasResults,
+                  icon: Icons.folder_open,
+                  title: 'Workspace',
+                  subtitle: 'Manage strategies',
+                  onTap: viewModel.navigateToWorkspace,
                 ),
 
                 const SizedBox(height: 24),

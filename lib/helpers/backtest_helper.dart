@@ -93,7 +93,7 @@ class BacktestHelper {
 
     // Navigate to result view if requested
     if (navigateToResult) {
-      _navigationService.navigateToBacktestResultView(resultId: result.id);
+      _navigationService.navigateToBacktestResultView(result: result);
     }
 
     return result;

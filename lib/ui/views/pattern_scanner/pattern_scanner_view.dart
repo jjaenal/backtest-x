@@ -25,7 +25,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: () => _showPatternsGuide(context),
+            onPressed: viewModel.showPatternsGuide,
           ),
         ],
       ),
@@ -375,96 +375,6 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showPatternsGuide(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Candlestick Patterns Guide'),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildPatternGuideItem(
-                'Hammer',
-                'Bullish reversal pattern with long lower wick and small body at top. '
-                    'Forms at bottom of downtrend.',
-                Colors.green,
-              ),
-              const SizedBox(height: 12),
-              _buildPatternGuideItem(
-                'Shooting Star',
-                'Bearish reversal pattern with long upper wick and small body at bottom. '
-                    'Forms at top of uptrend.',
-                Colors.red,
-              ),
-              const SizedBox(height: 12),
-              _buildPatternGuideItem(
-                'Doji',
-                'Indecision pattern where open and close are nearly equal. '
-                    'Indicates potential reversal or continuation.',
-                Colors.orange,
-              ),
-              const SizedBox(height: 12),
-              _buildPatternGuideItem(
-                'Marubozu',
-                'Strong momentum pattern with little to no wicks. '
-                    'Indicates continuation of current trend.',
-                Colors.blue,
-              ),
-              const SizedBox(height: 12),
-              _buildPatternGuideItem(
-                'Spinning Top',
-                'Indecision pattern with small body and long wicks. '
-                    'Indicates uncertainty in market direction.',
-                Colors.purple,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Got it'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPatternGuideItem(String title, String description, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[700],
-              height: 1.4,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

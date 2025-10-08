@@ -223,7 +223,7 @@ class WorkspaceViewModel extends BaseViewModel {
   void viewResult(BacktestResult result) {
     _navigationService.navigateTo(
       Routes.backtestResultView,
-      arguments: BacktestResultViewArguments(resultId: result.id),
+      arguments: BacktestResultViewArguments(result: result),
     );
   }
 

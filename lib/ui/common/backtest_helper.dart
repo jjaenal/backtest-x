@@ -43,7 +43,7 @@ class BacktestTestHelper {
     debugPrint('✅ Result saved with ID: ${result.id}');
 
     // 4. Navigate to result view
-    _navigationService.navigateToBacktestResultView(resultId: result.id);
+    _navigationService.navigateToBacktestResultView(result: result);
     debugPrint('✅ Navigated to result view');
   }
 

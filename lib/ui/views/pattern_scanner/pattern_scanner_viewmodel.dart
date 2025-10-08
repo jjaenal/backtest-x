@@ -1,9 +1,11 @@
+import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class PatternMatch {
   final Candle candle;
@@ -61,6 +63,7 @@ extension PatternStrengthX on PatternStrength {
 
 class PatternScannerViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
+  final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = DataManager();
 
   List<MarketDataInfo> _marketDataList = [];
@@ -116,7 +119,6 @@ class PatternScannerViewModel extends BaseViewModel {
 
     _patterns = [];
 
-    // TODO: Load actual candles from storage or CSV
     final marketData = _dataManager.getData(_selectedMarketData!.id);
     // final marketData = await _storageService.loadFullMarketData(_selectedMarketData!.id);
     _patterns = _scanCandlesForPatterns(marketData!.candles);
@@ -218,5 +220,14 @@ class PatternScannerViewModel extends BaseViewModel {
   void toggleIndecisionFilter() {
     _showIndecision = !_showIndecision;
     notifyListeners();
+  }
+
+  showPatternsGuide() {
+    _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.candlestickPatternGuide,
+      title: 'Candlestick Patterns Guide',
+      barrierDismissible: true,
+      isScrollControlled: true,
+    );
   }
 }

@@ -1,8 +1,11 @@
+import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/models/candle.dart';
+import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class MarketAnalysisData {
   final String symbol;
@@ -64,8 +67,17 @@ class MarketAnalysisData {
 
 class MarketAnalysisViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
+  final _indicatorService = locator<IndicatorService>();
+  final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = DataManager();
+  MarketData? _marketData;
+  MarketData? get marketData => _marketData;
 
+  List<double?>? sma20;
+  List<double?>? ema50;
+  Map<String, List<double?>>? bb;
+  List<double?>? rsi;
+  Map<String, List<double?>>? macd;
   List<MarketDataInfo> _marketDataList = [];
   List<MarketDataInfo> get marketDataList => _marketDataList;
 
@@ -75,6 +87,12 @@ class MarketAnalysisViewModel extends BaseViewModel {
   // Analysis data (would come from actual MarketData with candles)
   MarketAnalysisData? _analysisData;
   MarketAnalysisData? get analysisData => _analysisData;
+
+  // Chart scroll state
+  int _chartStartIndex = 0;
+  int _chartEndIndex = 100;
+  int get chartStartIndex => _chartStartIndex;
+  int get chartEndIndex => _chartEndIndex;
 
   Future<void> initialize() async {
     await runBusyFuture(loadMarketData());
@@ -96,7 +114,8 @@ class MarketAnalysisViewModel extends BaseViewModel {
 
     setBusy(true);
 
-    final marketData = _dataManager.getData(_selectedMarketData!.id);
+    _marketData = _dataManager.getData(_selectedMarketData!.id);
+    await runBusyFuture(loadIndicatorData(_marketData!));
     _analysisData = _performAnalysis(marketData!);
 
     setBusy(false);
@@ -175,5 +194,29 @@ class MarketAnalysisViewModel extends BaseViewModel {
     if (atrPercent > 2) return 'High';
     if (atrPercent > 1) return 'Medium';
     return 'Low';
+  }
+
+  Future<void> loadIndicatorData(MarketData data) async {
+    // Calculate indicators
+    sma20 = _indicatorService.calculateSMA(data.candles, 20);
+    ema50 = _indicatorService.calculateEMA(data.candles, 50);
+    bb = _indicatorService.calculateBollingerBands(data.candles, 20, 2.0);
+    rsi = _indicatorService.calculateRSI(data.candles, 14);
+    macd = _indicatorService.calculateMACD(data.candles);
+    notifyListeners();
+  }
+
+  void updateChartRange(int startIndex, int endIndex) {
+    _chartStartIndex = startIndex;
+    _chartEndIndex = endIndex;
+    notifyListeners();
+  }
+
+  void showIndicatorSettings() {
+    _bottomSheetService.showCustomSheet(
+        variant: BottomSheetType.indicatorSettings,
+        title: 'Chart Indicators',
+        barrierDismissible: true,
+        isScrollControlled: true);
   }
 }
