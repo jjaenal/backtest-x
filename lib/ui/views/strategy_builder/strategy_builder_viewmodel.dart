@@ -1,5 +1,10 @@
 import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/core/data_manager.dart';
+import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/models/trade.dart';
+import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -40,12 +45,20 @@ class StrategyBuilderViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _snackbarService = locator<SnackbarService>();
   final _dialogService = locator<DialogService>();
+  final _dataManager = locator<DataManager>();
+  final _backtestEngine = locator<BacktestEngineService>();
   final _uuid = const Uuid();
 
   final String? strategyId;
   Strategy? existingStrategy;
 
   StrategyBuilderViewModel(this.strategyId);
+
+  // Quick backtest preview state
+  BacktestResult? previewResult;
+  bool isRunningPreview = false;
+  String? selectedDataId;
+  List<MarketData> availableData = [];
 
   // Controllers
   final nameController = TextEditingController();
@@ -289,6 +302,100 @@ class StrategyBuilderViewModel extends BaseViewModel {
         );
       }
     }
+  }
+
+  /// Get available market data for quick preview
+  void loadAvailableData() {
+    availableData = _dataManager.getAllData();
+    if (availableData.isNotEmpty && selectedDataId == null) {
+      selectedDataId = availableData.first.id;
+    }
+    // notifyListeners();
+  }
+
+  /// Set selected market data for preview
+  void setSelectedData(String? dataId) {
+    selectedDataId = dataId;
+    notifyListeners();
+  }
+
+  /// Run quick backtest preview without saving strategy
+  Future<void> quickPreviewBacktest() async {
+    if (!canSave) {
+      _snackbarService.showSnackbar(
+        message: 'Please fill all required fields before testing',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    if (selectedDataId == null) {
+      _snackbarService.showSnackbar(
+        message: 'Please select market data for testing',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    // Get selected market data
+    final marketData = _dataManager.getData(selectedDataId!);
+    if (marketData == null) {
+      _snackbarService.showSnackbar(
+        message: 'Selected market data not found',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    isRunningPreview = true;
+    notifyListeners();
+
+    try {
+      // Build temporary strategy object for testing
+      final strategy = Strategy(
+        id: 'temp-preview-${_uuid.v4()}',
+        name: nameController.text.trim(),
+        initialCapital: double.parse(initialCapitalController.text),
+        riskManagement: RiskManagement(
+          riskType: riskType,
+          riskValue: double.parse(riskValueController.text),
+          stopLoss: double.tryParse(stopLossController.text),
+          takeProfit: double.tryParse(takeProfitController.text),
+        ),
+        entryRules: entryRules.map(_builderToStrategyRule).toList(),
+        exitRules: exitRules.map(_builderToStrategyRule).toList(),
+        createdAt: DateTime.now(),
+      );
+
+      // Run backtest
+      previewResult = await _backtestEngine.runBacktest(
+        marketData: marketData,
+        strategy: strategy,
+      );
+
+      // Show quick summary
+      _snackbarService.showSnackbar(
+        message: 'Preview complete! Check results below.',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      debugPrint('Error running preview backtest: $e');
+      _snackbarService.showSnackbar(
+        message: 'Failed to run preview: $e',
+        duration: const Duration(seconds: 3),
+      );
+      previewResult = null;
+    } finally {
+      isRunningPreview = false;
+      notifyListeners();
+    }
+  }
+
+  /// Navigate to full backtest result view with current preview result
+  void viewFullResults() {
+    if (previewResult == null) return;
+
+    _navigationService.navigateToBacktestResultView(result: previewResult!);
   }
 
   @override

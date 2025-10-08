@@ -295,6 +295,147 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
 
                       const SizedBox(height: 24),
 
+                      // Quick Backtest Preview Card
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Quick Backtest Preview',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Load available data on first build
+                              Builder(builder: (context) {
+                                if (viewModel.availableData.isEmpty) {
+                                  viewModel.loadAvailableData();
+                                }
+
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Data selection dropdown
+                                    DropdownButtonFormField<String>(
+                                      value: viewModel.selectedDataId,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Select Market Data',
+                                        prefixIcon: Icon(Icons.bar_chart),
+                                      ),
+                                      items:
+                                          viewModel.availableData.map((data) {
+                                        return DropdownMenuItem(
+                                          value: data.id,
+                                          child: Text(
+                                              '${data.symbol} ${data.timeframe} (${data.candles.length} candles)'),
+                                        );
+                                      }).toList(),
+                                      onChanged: viewModel.setSelectedData,
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Test button
+                                    SizedBox(
+                                      width: double.infinity,
+                                      child: ElevatedButton.icon(
+                                        onPressed: viewModel.isRunningPreview
+                                            ? null
+                                            : viewModel.quickPreviewBacktest,
+                                        icon: viewModel.isRunningPreview
+                                            ? const SizedBox(
+                                                width: 20,
+                                                height: 20,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                  strokeWidth: 2,
+                                                ),
+                                              )
+                                            : const Icon(Icons.play_arrow),
+                                        label: Text(viewModel.isRunningPreview
+                                            ? 'Running...'
+                                            : 'Test Strategy'),
+                                        style: ElevatedButton.styleFrom(
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 12),
+                                        ),
+                                      ),
+                                    ),
+
+                                    // Preview results
+                                    if (viewModel.previewResult != null) ...[
+                                      const SizedBox(height: 16),
+                                      const Divider(),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Preview Results',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium,
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // Summary stats
+                                      Row(
+                                        children: [
+                                          _buildStatCard(
+                                            context,
+                                            'Win Rate',
+                                            '${viewModel.previewResult!.summary.winRate.toStringAsFixed(1)}%',
+                                            viewModel.previewResult!.summary
+                                                        .winRate >=
+                                                    50
+                                                ? Colors.green
+                                                : Colors.red,
+                                          ),
+                                          _buildStatCard(
+                                            context,
+                                            'PnL',
+                                            '\$${viewModel.previewResult!.summary.totalPnl.toStringAsFixed(2)}',
+                                            viewModel.previewResult!.summary
+                                                        .totalPnl >=
+                                                    0
+                                                ? Colors.green
+                                                : Colors.red,
+                                          ),
+                                          _buildStatCard(
+                                            context,
+                                            'Trades',
+                                            '${viewModel.previewResult!.summary.totalTrades}',
+                                            Colors.blue,
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 16),
+
+                                      // View full results button
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: OutlinedButton.icon(
+                                          onPressed: viewModel.viewFullResults,
+                                          icon: const Icon(Icons.analytics),
+                                          label:
+                                              const Text('View Full Results'),
+                                          style: OutlinedButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 12),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              }),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 24),
+
                       // Save Button
                       ElevatedButton(
                         onPressed: viewModel.canSave && !viewModel.isBusy
@@ -554,6 +695,39 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
       ComparisonOperator.crossBelow: 'Cross Below',
     };
     return map[op] ?? op.name;
+  }
+
+  // Helper method to build stat cards for preview results
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    Color valueColor,
+  ) {
+    return Expanded(
+      child: Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          child: Column(
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium!
+                    .copyWith(color: valueColor, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override

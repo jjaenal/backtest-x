@@ -1,3 +1,4 @@
+import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:backtestx/ui/dialogs/info_alert/info_alert_dialog.dart';
@@ -44,6 +45,7 @@ import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick
     LazySingleton(classType: BacktestEngineService),
     LazySingleton(classType: StorageService),
     LazySingleton(classType: DataValidationService),
+    LazySingleton(classType: DataManager),
 // @stacked-service
   ],
   bottomsheets: [
