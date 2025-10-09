@@ -14,6 +14,9 @@ class StorageService {
   final Map<String, List<BacktestResult>> _resultCache = {};
   bool _strategiesCacheValid = false;
   List<Strategy>? _allStrategiesCache;
+  // Save-result performance guards (run schema checks/normalization only once)
+  bool _backtestResultsColumnChecked = false;
+  bool _backtestResultsNormalized = false;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -33,7 +36,7 @@ class StorageService {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -96,6 +99,8 @@ class StorageService {
         'CREATE INDEX idx_market_symbol ON market_data(symbol, timeframe)');
     await db.execute(
         'CREATE INDEX idx_draft_updated ON strategy_drafts(updated_at DESC)');
+    await db.execute(
+        'CREATE INDEX idx_market_uploaded ON market_data(uploaded_at DESC)');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -142,6 +147,15 @@ class StorageService {
         ''');
         await db.execute(
             'CREATE INDEX IF NOT EXISTS idx_draft_updated ON strategy_drafts(updated_at DESC)');
+      } catch (_) {
+        // Non-critical
+      }
+    }
+    // Add index on uploaded_at in v4 for faster ordering
+    if (oldVersion < 4) {
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_market_uploaded ON market_data(uploaded_at DESC)');
       } catch (_) {
         // Non-critical
       }
@@ -236,14 +250,20 @@ class StorageService {
     final db = await database;
 
     // Ensure legacy databases have the expected column before inserting
-    await _ensureBacktestResultsMarketDataIdColumn(db);
+    if (!_backtestResultsColumnChecked) {
+      await _ensureBacktestResultsMarketDataIdColumn(db);
+      _backtestResultsColumnChecked = true;
+    }
     // Normalize any existing rows missing market_data_id
-    try {
-      await db.rawUpdate(
-        "UPDATE backtest_results SET market_data_id = 'unknown' WHERE market_data_id IS NULL OR TRIM(market_data_id) = ''",
-      );
-    } catch (_) {
-      // Safe to ignore if the column just got added and table has no rows yet
+    if (!_backtestResultsNormalized) {
+      try {
+        await db.rawUpdate(
+          "UPDATE backtest_results SET market_data_id = 'unknown' WHERE market_data_id IS NULL OR TRIM(market_data_id) = ''",
+        );
+      } catch (_) {
+        // Safe to ignore if the column just got added and table has no rows yet
+      }
+      _backtestResultsNormalized = true;
     }
 
     // Save summary only, not full trade list (optimization!)
@@ -301,6 +321,17 @@ class StorageService {
     );
   }
 
+  /// Get total count of backtest results (fast COUNT query)
+  Future<int> getTotalBacktestResultsCount() async {
+    final db = await database;
+    final res = await db.rawQuery('SELECT COUNT(*) as cnt FROM backtest_results');
+    if (res.isEmpty) return 0;
+    final value = res.first['cnt'];
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return 0;
+  }
+
   // Lightweight schema compatibility: add market_data_id if missing
   Future<void> _ensureBacktestResultsMarketDataIdColumn(Database db) async {
     try {
@@ -336,23 +367,7 @@ class StorageService {
       limit: 20, // Limit for performance
     );
 
-    // Lightweight migration: ensure market_data_id is non-null/non-empty
-    for (final map in maps) {
-      final rawMarketId = map['market_data_id'] as String?;
-      if (rawMarketId == null || rawMarketId.trim().isEmpty) {
-        // Update DB to keep data consistent going forward
-        try {
-          await db.update(
-            'backtest_results',
-            {'market_data_id': 'unknown'},
-            where: 'id = ?',
-            whereArgs: [map['id']],
-          );
-        } catch (_) {
-          // Safe fallback if update fails; proceed with in-memory default
-        }
-      }
-    }
+    // Note: Avoid DB writes during read for performance; normalize in-memory
 
     final results = maps.map((map) {
       final rawMarketId = map['market_data_id'] as String?;
@@ -387,20 +402,8 @@ class StorageService {
     if (maps.isEmpty) return null;
 
     final map = maps.first;
-    // Lightweight migration: ensure market_data_id is non-null/non-empty
+    // Avoid DB writes during read; normalize in-memory
     final rawMarketId = map['market_data_id'] as String?;
-    if (rawMarketId == null || rawMarketId.trim().isEmpty) {
-      try {
-        await db.update(
-          'backtest_results',
-          {'market_data_id': 'unknown'},
-          where: 'id = ?',
-          whereArgs: [map['id']],
-        );
-      } catch (_) {
-        // Ignore migration failure; continue with default value
-      }
-    }
     final normalizedMarketId =
         (rawMarketId == null || rawMarketId.trim().isEmpty)
             ? 'unknown'

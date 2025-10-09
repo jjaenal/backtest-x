@@ -9,10 +9,8 @@ class SkeletonLoader {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceVariant
-            .withValues(alpha: 0.3),
+        color:
+            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
         borderRadius: radius ?? BorderRadius.circular(8),
       ),
     );

@@ -9,7 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class BacktestEngineService {
-  final _indicatorService = locator<IndicatorService>();
+  // Allow DI so we can construct this inside isolate without locator
+  final IndicatorService _indicatorService;
+  BacktestEngineService({IndicatorService? indicatorService})
+      : _indicatorService = indicatorService ?? locator<IndicatorService>();
   final _uuid = const Uuid();
   // Last-run per-timeframe stats (preview-friendly, not persisted)
   Map<String, int> _lastTfSignals = {};

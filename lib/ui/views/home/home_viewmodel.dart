@@ -28,16 +28,24 @@ class HomeViewModel extends BaseViewModel {
   String? lastResultStrategyName;
 
   bool get hasResults => testsCount > 0;
+  bool get backgroundWarmupEnabled => _dataManager.isBackgroundWarmupEnabled;
+  bool get isWarmingUp => _dataManager.isWarmingUp;
 
   Future<void> initialize() async {
-    setBusy(true);
-
-    // Debug: Check cache state on home load
-    debugPrint('\n🏠 HomeView initialized');
-    _dataManager.debugPrintCache();
-
-    await _loadStats();
-    setBusy(false);
+    // Listen to DataManager warm-up status to refresh indicator
+    _dataManager.warmupNotifier.addListener(() {
+      rebuildUi();
+    });
+    // Render first frame fast; load stats after frame to avoid jank
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // Warm up cached datasets from disk in background
+      if (_dataManager.isBackgroundWarmupEnabled) {
+        _dataManager.warmUpCacheInBackground();
+      }
+      setBusy(true);
+      await _loadStats();
+      setBusy(false);
+    });
   }
 
   Future<void> _loadStats() async {
@@ -51,14 +59,8 @@ class HomeViewModel extends BaseViewModel {
       final marketDataInfo = await _storageService.getAllMarketDataInfo();
       dataSetsCount = marketDataInfo.length;
 
-      // Count total backtest results (optimized)
-      int totalTests = 0;
-      for (final strategy in strategies) {
-        final results =
-            await _storageService.getBacktestResultsByStrategy(strategy.id);
-        totalTests += results.length;
-      }
-      testsCount = totalTests;
+      // Count total backtest results with fast COUNT query
+      testsCount = await _storageService.getTotalBacktestResultsCount();
 
       // Load latest backtest result (for quick summary in Home)
       lastResult = await _storageService.getLatestBacktestResult();
@@ -122,6 +124,27 @@ class HomeViewModel extends BaseViewModel {
     _navigationService
         .navigateToStrategyBuilderView(strategyId: strategyId)
         .whenComplete(() => refresh());
+  }
+
+  // Background warm-up controls
+  void toggleBackgroundWarmup() {
+    final next = !_dataManager.isBackgroundWarmupEnabled;
+    _dataManager.setBackgroundWarmupEnabled(next);
+    _snackbarService.showSnackbar(
+      message: next
+          ? 'Background cache loading enabled'
+          : 'Background cache loading paused',
+      duration: const Duration(seconds: 2),
+    );
+    rebuildUi();
+  }
+
+  void warmUpCacheNow() {
+    _dataManager.warmUpCacheInBackground(force: true);
+    _snackbarService.showSnackbar(
+      message: 'Loading cache in background…',
+      duration: const Duration(seconds: 2),
+    );
   }
 
   Future<void> runStrategy(String strategyId, int index) async {

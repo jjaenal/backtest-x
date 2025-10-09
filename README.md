@@ -48,6 +48,9 @@ flutter run
 - **Share Results**: Share backtest results with others
  - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
+- **Background Cache Warm-up**: Pause/enable toggle and manual "Load Now" on Home
+- **Warm-up Indicator Banner**: "Loading cache…" visible during background loading
+- **Quick Stats Skeletons**: Placeholder numbers on Home while data loads
 
 ## 🧭 Usage - Workspace Filters
 
@@ -78,6 +81,18 @@ Gunakan aksi cepat di kartu strategi untuk menjalankan backtest tanpa meninggalk
 - Klik `Quick Test` untuk menjalankan satu backtest pada data terpilih.
 - Klik `Run Batch` untuk menjalankan backtest berturut pada semua data yang tersedia. Setiap hasil disimpan otomatis ke database dan muncul di daftar hasil.
 - Selama proses berjalan, tombol akan nonaktif dan menampilkan indikator progres (spinner) untuk mencegah aksi ganda.
+
+## 🔧 Usage - Home Cache Warm-up
+
+Kontrol pemuatan cache market data di Home:
+- Buka menu `⋮` di `AppBar` Home.
+- Pilih `Pause Background Warm-up` atau `Enable Background Warm-up` untuk menonaktifkan/menyalakan proses background.
+- Klik `Load Cache Now` untuk memaksa pemuatan cache segera.
+- Saat proses berjalan, banner teks `Loading cache…` muncul di kiri bawah layar. Angka quick stats menampilkan skeleton sampai data siap.
+
+Catatan:
+- Proses warm-up ditahan bila toggle dimatikan, dan dilanjutkan kembali saat diaktifkan.
+- Throttling & batching mengurangi spike I/O sehingga UI tetap responsif.
 
 Catatan:
 - `Run Batch` menggunakan seluruh koleksi data yang tersedia di aplikasi. Jika ingin membatasi jumlah, opsi batas maksimum akan ditambahkan kemudian (planned).

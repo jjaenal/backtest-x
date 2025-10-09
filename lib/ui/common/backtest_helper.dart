@@ -2,7 +2,7 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
-import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/helpers/isolate_backtest.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -11,7 +11,6 @@ import 'package:stacked_services/stacked_services.dart';
 class BacktestTestHelper {
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
-  final _backtestEngine = locator<BacktestEngineService>();
 
   /// Run backtest, save it, and navigate to result view
   Future<void> runAndShowBacktest({
@@ -21,7 +20,7 @@ class BacktestTestHelper {
     debugPrint('🚀 Running backtest for: ${strategy.name}');
 
     // 1. Run backtest
-    final result = await _backtestEngine.runBacktest(
+    final result = await IsolateBacktest.run(
       marketData: marketData,
       strategy: strategy,
     );

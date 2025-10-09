@@ -155,6 +155,9 @@
 - [ ] Onboarding tutorial
 - [ ] Empty states
  - [x] Loading skeletons
+- [x] Home: "Loading cache..." banner saat warm-up background
+- [x] Home: kontrol AppBar untuk pause/enable dan Load Now
+- [x] Home: skeleton angka quick stats saat busy
 - [ ] Error handling UI
 - [ ] Animations & transitions
 - [x] Dark/Light theme toggle
@@ -236,6 +239,7 @@
 
 - [ ] Optimize backtest loop (use Isolate)
  - [x] Database indexing
+- [x] Background cache warm-up throttling & batching (kurangi jank)
 - [ ] Lazy loading for large datasets
  - [ ] Memory optimization
    - [x] Chart rendering optimizations for >1000 candles

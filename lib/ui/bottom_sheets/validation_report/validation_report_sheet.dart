@@ -8,7 +8,8 @@ import 'validation_report_sheet_model.dart';
 class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
   final Function(SheetResponse)? completer;
   final SheetRequest request;
-  const ValidationReportSheet({Key? key, required this.completer, required this.request})
+  const ValidationReportSheet(
+      {Key? key, required this.completer, required this.request})
       : super(key: key);
 
   @override
@@ -19,8 +20,10 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
   ) {
     final payload = request.data as Map<String, dynamic>? ?? {};
     final errors = (payload['errors'] as List?)?.cast<String>() ?? const [];
-    final warningsIssues = (payload['warningsIssues'] as List?)?.cast<String>() ?? const [];
-    final warningsText = (payload['warningsText'] as List?)?.cast<String>() ?? const [];
+    final warningsIssues =
+        (payload['warningsIssues'] as List?)?.cast<String>() ?? const [];
+    final warningsText =
+        (payload['warningsText'] as List?)?.cast<String>() ?? const [];
 
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -45,7 +48,8 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
                 const SizedBox(width: 8),
                 Text(
                   request.title ?? 'Data Validation Report',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -58,7 +62,6 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
               ),
             ),
             const SizedBox(height: 16),
-
             if (errors.isNotEmpty) ...[
               Text(
                 'Errors (${errors.length})',
@@ -69,10 +72,11 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
                 ),
               ),
               const SizedBox(height: 8),
-              ...errors.map((msg) => _buildItem(context, msg, Colors.red.shade600)).toList(),
+              ...errors
+                  .map((msg) => _buildItem(context, msg, Colors.red.shade600))
+                  .toList(),
               const SizedBox(height: 16),
             ],
-
             if (warningsIssues.isNotEmpty || warningsText.isNotEmpty) ...[
               Text(
                 'Warnings (${warningsIssues.length + warningsText.length})',
@@ -84,21 +88,23 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
               ),
               const SizedBox(height: 8),
               ...warningsIssues
-                  .map((msg) => _buildItem(context, msg, Colors.orange.shade700))
+                  .map(
+                      (msg) => _buildItem(context, msg, Colors.orange.shade700))
                   .toList(),
               ...warningsText
-                  .map((msg) => _buildItem(context, msg, Colors.orange.shade700))
+                  .map(
+                      (msg) => _buildItem(context, msg, Colors.orange.shade700))
                   .toList(),
               const SizedBox(height: 16),
             ],
-
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
                       final textBuffer = StringBuffer();
-                      textBuffer.writeln(request.title ?? 'Data Validation Report');
+                      textBuffer
+                          .writeln(request.title ?? 'Data Validation Report');
                       textBuffer.writeln(request.description ?? '');
                       if (errors.isNotEmpty) {
                         textBuffer.writeln('\nErrors:');
@@ -106,7 +112,8 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
                           textBuffer.writeln('• $e');
                         }
                       }
-                      final totalWarnings = warningsIssues.length + warningsText.length;
+                      final totalWarnings =
+                          warningsIssues.length + warningsText.length;
                       if (totalWarnings > 0) {
                         textBuffer.writeln('\nWarnings:');
                         for (final w in warningsIssues) {
@@ -116,7 +123,8 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
                           textBuffer.writeln('• $w');
                         }
                       }
-                      Clipboard.setData(ClipboardData(text: textBuffer.toString()));
+                      Clipboard.setData(
+                          ClipboardData(text: textBuffer.toString()));
                     },
                     icon: const Icon(Icons.copy, size: 18),
                     label: const Text('Copy report'),

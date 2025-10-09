@@ -54,208 +54,209 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       body: viewModel.isBusy
           ? _buildResultSkeleton(context)
           : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Equity Curve Chart
-            SizedBox(
-              height: 450,
-              child: Card(
-                margin: const EdgeInsets.all(16),
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            viewModel.chartMode == ChartMode.equity
-                                ? 'Equity Curve'
-                                : 'Drawdown Chart',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .surfaceVariant
-                                  .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(25),
-                              border: Border.all(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .outline
-                                    .withValues(alpha: 0.3),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Equity Curve Chart
+                  SizedBox(
+                    height: 450,
+                    child: Card(
+                      margin: const EdgeInsets.all(16),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildModeButton(
-                                  context,
-                                  'Equity',
-                                  ChartMode.equity,
-                                  viewModel.chartMode == ChartMode.equity,
-                                  () =>
-                                      viewModel.setChartMode(ChartMode.equity),
+                                Text(
+                                  viewModel.chartMode == ChartMode.equity
+                                      ? 'Equity Curve'
+                                      : 'Drawdown Chart',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                                _buildModeButton(
-                                  context,
-                                  'Drawdown',
-                                  ChartMode.drawdown,
-                                  viewModel.chartMode == ChartMode.drawdown,
-                                  () => viewModel
-                                      .setChartMode(ChartMode.drawdown),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceVariant
+                                        .withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(25),
+                                    border: Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .outline
+                                          .withValues(alpha: 0.3),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _buildModeButton(
+                                        context,
+                                        'Equity',
+                                        ChartMode.equity,
+                                        viewModel.chartMode == ChartMode.equity,
+                                        () => viewModel
+                                            .setChartMode(ChartMode.equity),
+                                      ),
+                                      _buildModeButton(
+                                        context,
+                                        'Drawdown',
+                                        ChartMode.drawdown,
+                                        viewModel.chartMode ==
+                                            ChartMode.drawdown,
+                                        () => viewModel
+                                            .setChartMode(ChartMode.drawdown),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            Expanded(
+                              child: result.equityCurve.isEmpty
+                                  ? _buildEmptyChartState(context)
+                                  : EquityCurveChart(
+                                      equityCurve: result.equityCurve,
+                                      initialCapital:
+                                          (result.equityCurve.isNotEmpty &&
+                                                  result.summary.totalPnl > 0)
+                                              ? result.equityCurve.first.equity
+                                              : 10000,
+                                      showDrawdown: viewModel.chartMode ==
+                                          ChartMode.drawdown,
+                                      chartMode: viewModel.chartMode,
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: result.equityCurve.isEmpty
-                            ? _buildEmptyChartState(context)
-                            : EquityCurveChart(
-                                equityCurve: result.equityCurve,
-                                initialCapital:
-                                    (result.equityCurve.isNotEmpty &&
-                                            result.summary.totalPnl > 0)
-                                        ? result.equityCurve.first.equity
-                                        : 10000,
-                                showDrawdown:
-                                    viewModel.chartMode == ChartMode.drawdown,
-                                chartMode: viewModel.chartMode,
-                              ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ),
 
-            // Price Chart with Entry/Exit Markers
-            if (result.trades.isNotEmpty)
-              SizedBox(
-                height: 450,
-                child: Card(
-                  margin: const EdgeInsets.all(16),
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Padding(
+                  // Price Chart with Entry/Exit Markers
+                  if (result.trades.isNotEmpty)
+                    SizedBox(
+                      height: 450,
+                      child: Card(
+                        margin: const EdgeInsets.all(16),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Wrap(
+                              //   alignment: WrapAlignment.start,
+                              //   runSpacing: 8,
+                              //   children: [
+                              //     const Text(
+                              //       'Price Chart with Trade Markers',
+                              //       style: TextStyle(
+                              //         fontSize: 18,
+                              //         fontWeight: FontWeight.bold,
+                              //       ),
+                              //     ),
+                              //     const Spacer(),
+                              //     Container(
+                              //       padding: const EdgeInsets.symmetric(
+                              //           horizontal: 12, vertical: 6),
+                              //       decoration: BoxDecoration(
+                              //         color: Colors.blue[50],
+                              //         borderRadius: BorderRadius.circular(20),
+                              //         border: Border.all(color: Colors.blue[200]!),
+                              //       ),
+                              //       child: Row(
+                              //         mainAxisSize: MainAxisSize.min,
+                              //         children: [
+                              //           Icon(Icons.info_outline,
+                              //               size: 16, color: Colors.blue[700]),
+                              //           const SizedBox(width: 4),
+                              //           Text(
+                              //             '${result.trades.length} trades',
+                              //             style: TextStyle(
+                              //               fontSize: 12,
+                              //               color: Colors.blue[700],
+                              //               fontWeight: FontWeight.w500,
+                              //             ),
+                              //           ),
+                              //         ],
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
+                              // const SizedBox(height: 8),
+                              Expanded(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 200),
+                                  child: viewModel.isBusy
+                                      ? x_skeleton.SkeletonLoader.box(
+                                          context,
+                                          height: double.infinity,
+                                        )
+                                      : CandlestickChart(
+                                          candles: viewModel.getCandles(),
+                                          trades: result.trades,
+                                          title:
+                                              'Price Action with Entry/Exit Points',
+                                          showVolume: false,
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                  // Performance Summary
+                  Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Wrap(
-                        //   alignment: WrapAlignment.start,
-                        //   runSpacing: 8,
-                        //   children: [
-                        //     const Text(
-                        //       'Price Chart with Trade Markers',
-                        //       style: TextStyle(
-                        //         fontSize: 18,
-                        //         fontWeight: FontWeight.bold,
-                        //       ),
-                        //     ),
-                        //     const Spacer(),
-                        //     Container(
-                        //       padding: const EdgeInsets.symmetric(
-                        //           horizontal: 12, vertical: 6),
-                        //       decoration: BoxDecoration(
-                        //         color: Colors.blue[50],
-                        //         borderRadius: BorderRadius.circular(20),
-                        //         border: Border.all(color: Colors.blue[200]!),
-                        //       ),
-                        //       child: Row(
-                        //         mainAxisSize: MainAxisSize.min,
-                        //         children: [
-                        //           Icon(Icons.info_outline,
-                        //               size: 16, color: Colors.blue[700]),
-                        //           const SizedBox(width: 4),
-                        //           Text(
-                        //             '${result.trades.length} trades',
-                        //             style: TextStyle(
-                        //               fontSize: 12,
-                        //               color: Colors.blue[700],
-                        //               fontWeight: FontWeight.w500,
-                        //             ),
-                        //           ),
-                        //         ],
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
-                        // const SizedBox(height: 8),
-                        Expanded(
-                          child: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: viewModel.isBusy
-                                ? x_skeleton.SkeletonLoader.box(
-                                    context,
-                                    height: double.infinity,
-                                  )
-                                : CandlestickChart(
-                                    candles: viewModel.getCandles(),
-                                    trades: result.trades,
-                                    title:
-                                        'Price Action with Entry/Exit Points',
-                                    showVolume: false,
-                                  ),
-                          ),
-                        ),
+                        _buildSectionTitle('Performance Summary'),
+                        const SizedBox(height: 12),
+                        _buildPerformanceCards(context, result.summary),
+                        const SizedBox(height: 24),
+                        if (result.summary.tfStats != null &&
+                            result.summary.tfStats!.isNotEmpty) ...[
+                          _buildSectionTitle('Per-Timeframe Stats'),
+                          const SizedBox(height: 12),
+                          _buildTfStats(context, result.summary.tfStats!),
+                          const SizedBox(height: 24),
+                        ],
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Trade Statistics'),
+                        const SizedBox(height: 12),
+                        _buildTradeStatsCard(context, result.summary),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Risk Metrics'),
+                        const SizedBox(height: 12),
+                        _buildRiskMetricsCard(context, result.summary),
+                        const SizedBox(height: 24),
+                        _buildSectionTitle('Trade History'),
+                        const SizedBox(height: 12),
+                        _buildTradeHistoryCard(context, result.trades),
                       ],
                     ),
                   ),
-                ),
-              ),
-
-            // Performance Summary
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle('Performance Summary'),
-                  const SizedBox(height: 12),
-                  _buildPerformanceCards(context, result.summary),
-                  const SizedBox(height: 24),
-                  if (result.summary.tfStats != null &&
-                      result.summary.tfStats!.isNotEmpty) ...[
-                    _buildSectionTitle('Per-Timeframe Stats'),
-                    const SizedBox(height: 12),
-                    _buildTfStats(context, result.summary.tfStats!),
-                    const SizedBox(height: 24),
-                  ],
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Trade Statistics'),
-                  const SizedBox(height: 12),
-                  _buildTradeStatsCard(context, result.summary),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Risk Metrics'),
-                  const SizedBox(height: 12),
-                  _buildRiskMetricsCard(context, result.summary),
-                  const SizedBox(height: 24),
-                  _buildSectionTitle('Trade History'),
-                  const SizedBox(height: 12),
-                  _buildTradeHistoryCard(context, result.trades),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -281,14 +282,19 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        x_skeleton.SkeletonLoader.bar(context, width: 140, height: 20),
+                        x_skeleton.SkeletonLoader.bar(context,
+                            width: 140, height: 20),
                         Row(
                           children: [
                             x_skeleton.SkeletonLoader.bar(context,
-                                width: 70, height: 28, radius: BorderRadius.circular(20)),
+                                width: 70,
+                                height: 28,
+                                radius: BorderRadius.circular(20)),
                             const SizedBox(width: 8),
                             x_skeleton.SkeletonLoader.bar(context,
-                                width: 90, height: 28, radius: BorderRadius.circular(20)),
+                                width: 90,
+                                height: 28,
+                                radius: BorderRadius.circular(20)),
                           ],
                         )
                       ],
@@ -296,7 +302,9 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     const SizedBox(height: 12),
                     Expanded(
                       child: x_skeleton.SkeletonLoader.box(context,
-                          width: double.infinity, height: double.infinity, radius: BorderRadius.circular(12)),
+                          width: double.infinity,
+                          height: double.infinity,
+                          radius: BorderRadius.circular(12)),
                     ),
                   ],
                 ),
@@ -318,11 +326,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    x_skeleton.SkeletonLoader.bar(context, width: 220, height: 20),
+                    x_skeleton.SkeletonLoader.bar(context,
+                        width: 220, height: 20),
                     const SizedBox(height: 12),
                     Expanded(
                       child: x_skeleton.SkeletonLoader.box(context,
-                          width: double.infinity, height: double.infinity, radius: BorderRadius.circular(12)),
+                          width: double.infinity,
+                          height: double.infinity,
+                          radius: BorderRadius.circular(12)),
                     ),
                   ],
                 ),
@@ -352,11 +363,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              x_skeleton.SkeletonLoader.bar(context, width: 120, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 120, height: 16),
                               const SizedBox(height: 8),
-                              x_skeleton.SkeletonLoader.bar(context, width: 160, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 160, height: 16),
                               const SizedBox(height: 8),
-                              x_skeleton.SkeletonLoader.bar(context, width: 100, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 100, height: 16),
                             ],
                           ),
                         ),
@@ -373,11 +387,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              x_skeleton.SkeletonLoader.bar(context, width: 120, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 120, height: 16),
                               const SizedBox(height: 8),
-                              x_skeleton.SkeletonLoader.bar(context, width: 160, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 160, height: 16),
                               const SizedBox(height: 8),
-                              x_skeleton.SkeletonLoader.bar(context, width: 100, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 100, height: 16),
                             ],
                           ),
                         ),
@@ -403,20 +420,24 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(
                             children: [
-                              x_skeleton.SkeletonLoader.circle(context, size: 28),
+                              x_skeleton.SkeletonLoader.circle(context,
+                                  size: 28),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    x_skeleton.SkeletonLoader.bar(context, width: double.infinity, height: 12),
+                                    x_skeleton.SkeletonLoader.bar(context,
+                                        width: double.infinity, height: 12),
                                     const SizedBox(height: 6),
-                                    x_skeleton.SkeletonLoader.bar(context, width: 180, height: 12),
+                                    x_skeleton.SkeletonLoader.bar(context,
+                                        width: 180, height: 12),
                                   ],
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              x_skeleton.SkeletonLoader.bar(context, width: 60, height: 16),
+                              x_skeleton.SkeletonLoader.bar(context,
+                                  width: 60, height: 16),
                             ],
                           ),
                         );

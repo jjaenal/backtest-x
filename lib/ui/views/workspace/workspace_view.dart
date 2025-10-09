@@ -120,13 +120,17 @@ class WorkspaceView extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(16),
           color: Theme.of(context).scaffoldBackgroundColor,
-          child: x_skeleton.SkeletonLoader.bar(context, height: 44, radius: BorderRadius.circular(12)),
+          child: x_skeleton.SkeletonLoader.bar(context,
+              height: 44, radius: BorderRadius.circular(12)),
         ),
 
         // Optional compare banner skeleton space
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: x_skeleton.SkeletonLoader.bar(context, width: double.infinity, height: 36, radius: BorderRadius.circular(8)),
+          child: x_skeleton.SkeletonLoader.bar(context,
+              width: double.infinity,
+              height: 36,
+              radius: BorderRadius.circular(8)),
         ),
         const SizedBox(height: 8),
 
@@ -152,7 +156,8 @@ class WorkspaceView extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: x_skeleton.SkeletonLoader.bar(context, height: 18),
+                              child: x_skeleton.SkeletonLoader.bar(context,
+                                  height: 18),
                             ),
                             const SizedBox(width: 12),
                             x_skeleton.SkeletonLoader.circle(context, size: 24),
@@ -163,15 +168,18 @@ class WorkspaceView extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                              child: x_skeleton.SkeletonLoader.bar(context,
+                                  height: 12),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                              child: x_skeleton.SkeletonLoader.bar(context,
+                                  height: 12),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                              child: x_skeleton.SkeletonLoader.bar(context,
+                                  height: 12),
                             ),
                           ],
                         ),
@@ -179,11 +187,20 @@ class WorkspaceView extends StatelessWidget {
                         // Action buttons
                         Row(
                           children: [
-                            x_skeleton.SkeletonLoader.bar(context, width: 90, height: 32, radius: BorderRadius.circular(20)),
+                            x_skeleton.SkeletonLoader.bar(context,
+                                width: 90,
+                                height: 32,
+                                radius: BorderRadius.circular(20)),
                             const SizedBox(width: 8),
-                            x_skeleton.SkeletonLoader.bar(context, width: 100, height: 32, radius: BorderRadius.circular(20)),
+                            x_skeleton.SkeletonLoader.bar(context,
+                                width: 100,
+                                height: 32,
+                                radius: BorderRadius.circular(20)),
                             const Spacer(),
-                            x_skeleton.SkeletonLoader.bar(context, width: 80, height: 32, radius: BorderRadius.circular(20)),
+                            x_skeleton.SkeletonLoader.bar(context,
+                                width: 80,
+                                height: 32,
+                                radius: BorderRadius.circular(20)),
                           ],
                         ),
                       ],

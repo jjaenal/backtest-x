@@ -6,7 +6,7 @@ import 'package:backtestx/helpers/strategy_stats_helper.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
-import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/helpers/isolate_backtest.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
@@ -28,7 +28,7 @@ class WorkspaceViewModel extends BaseViewModel {
   final _snackbarService = locator<SnackbarService>();
   final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = locator<DataManager>();
-  final _backtestEngineService = locator<BacktestEngineService>();
+
   final _dataValidationService = locator<DataValidationService>();
 
   List<Strategy> _strategies = [];
@@ -268,10 +268,13 @@ class WorkspaceViewModel extends BaseViewModel {
       if (_filterPfPositive && s.profitFactor <= 1) return false;
       if (_filterWinRateAbove50 && s.winRate <= 50) return false;
       if (_selectedSymbolFilter != null &&
-          (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) return false;
-      if (_selectedTimeframeFilter != null &&
-          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter)
+          (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) {
         return false;
+      }
+      if (_selectedTimeframeFilter != null &&
+          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter) {
+        return false;
+      }
       if (_startDateFilter != null &&
           r.executedAt.isBefore(_startDateFilter!)) {
         return false;
@@ -491,48 +494,53 @@ class WorkspaceViewModel extends BaseViewModel {
           description: report.summary,
           data: {
             'errors': report.errors.map((i) => i.message).toList(),
-            'warningsIssues': report.warningsIssues.map((i) => i.message).toList(),
+            'warningsIssues':
+                report.warningsIssues.map((i) => i.message).toList(),
             'warningsText': report.warnings,
           },
         );
         return;
       }
 
-      // Run backtest
-      final result = await _backtestEngineService.runBacktest(
+      // Run backtest in isolate to avoid UI blocking
+      final result = await IsolateBacktest.run(
         strategy: strategy,
         marketData: marketData,
       );
       // Store result in memory
       _quickResults[strategy.id] = result;
 
-      // Persist to database so it appears under results list
-      try {
-        // Ensure strategy exists in storage
-        final existing = await _storageService.getStrategy(strategy.id);
-        if (existing == null) {
-          await _storageService.saveStrategy(strategy);
+      // Persist to database asynchronously to avoid UI jank
+      Future<void>(() async {
+        try {
+          // Ensure strategy exists in storage
+          final existing = await _storageService.getStrategy(strategy.id);
+          if (existing == null) {
+            await _storageService.saveStrategy(strategy);
+          }
+
+          // Save summary result to DB
+          await _storageService.saveBacktestResult(result);
+
+          // Refresh results for this strategy from DB
+          _strategyResults[strategy.id] =
+              await _storageService.getBacktestResultsByStrategy(strategy.id);
+
+          _snackbarService.showSnackbar(
+            message: 'Quick test saved to database',
+            duration: const Duration(seconds: 2),
+          );
+          notifyListeners();
+        } catch (e) {
+          debugPrint('Error saving quick test: $e');
+          _snackbarService.showSnackbar(
+            message: 'Failed to save quick test: ${e.toString()}',
+            duration: const Duration(seconds: 3),
+          );
         }
-
-        // Save summary result to DB
-        await _storageService.saveBacktestResult(result);
-
-        // Refresh results for this strategy from DB
-        _strategyResults[strategy.id] =
-            await _storageService.getBacktestResultsByStrategy(strategy.id);
-
-        _snackbarService.showSnackbar(
-          message: 'Quick test saved to database',
-          duration: const Duration(seconds: 2),
-        );
-      } catch (e) {
-        debugPrint('Error saving quick test: $e');
-        _snackbarService.showSnackbar(
-          message: 'Failed to save quick test: ${e.toString()}',
-          duration: const Duration(seconds: 3),
-        );
-      }
+      });
     } catch (e) {
+      debugPrint('Error running quick test: $e');
       _snackbarService.showSnackbar(
         message: 'Error running backtest: ${e.toString()}',
         duration: const Duration(seconds: 3),
@@ -581,7 +589,7 @@ class WorkspaceViewModel extends BaseViewModel {
             continue;
           }
 
-          final result = await _backtestEngineService.runBacktest(
+          final result = await IsolateBacktest.run(
             strategy: strategy,
             marketData: marketData,
           );
@@ -759,7 +767,7 @@ class WorkspaceViewModel extends BaseViewModel {
         }
 
         // Re-run backtest to get full trades (DB stores summary only)
-        final reResult = await _backtestEngineService.runBacktest(
+        final reResult = await IsolateBacktest.run(
           marketData: marketData,
           strategy: strategy,
         );

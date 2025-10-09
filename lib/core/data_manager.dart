@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:math' as math;
 import 'dart:io';
 import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
 import 'package:backtestx/helpers/timeframe_helper.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, compute;
+import 'package:flutter/foundation.dart' as f;
 import 'package:path_provider/path_provider.dart';
 
 /// Singleton class to manage market data with persistent file caching
@@ -27,6 +29,18 @@ class DataManager {
   // Cache directory
   Directory? _cacheDir;
 
+  // Control background warm-up behavior
+  bool _backgroundWarmupEnabled = true;
+  final f.ValueNotifier<bool> warmupNotifier = f.ValueNotifier(false);
+
+  bool get isBackgroundWarmupEnabled => _backgroundWarmupEnabled;
+  void setBackgroundWarmupEnabled(bool enabled) {
+    _backgroundWarmupEnabled = enabled;
+    debugPrint('⚙️ Background warm-up ${enabled ? 'enabled' : 'disabled'}');
+  }
+
+  bool get isWarmingUp => warmupNotifier.value;
+
   /// Initialize cache directory
   Future<void> _initializeCacheDir() async {
     try {
@@ -46,11 +60,31 @@ class DataManager {
         debugPrint('📁 Cache directory exists: ${_cacheDir!.path}');
       }
 
-      // Auto-load cached data on startup
-      await _loadAllFromDisk();
+      // Skip auto-load to avoid jank; caller can warm up in background
     } catch (e) {
       debugPrint('❌ Error initializing cache directory: $e');
     }
+  }
+
+  /// Warm up cache from disk in background (non-blocking UI)
+  void warmUpCacheInBackground({bool force = false}) {
+    Future.microtask(() async {
+      try {
+        if (!force && !_backgroundWarmupEnabled) {
+          debugPrint('⏸️ Background warm-up is disabled; skipping.');
+          return;
+        }
+        warmupNotifier.value = true;
+        if (_cacheDir == null) {
+          await _initializeCacheDir();
+        }
+        await _loadAllFromDisk();
+      } catch (e) {
+        debugPrint('❌ Error warming cache: $e');
+      } finally {
+        warmupNotifier.value = false;
+      }
+    });
   }
 
   /// Cache market data (memory + disk)
@@ -117,16 +151,31 @@ class DataManager {
 
       debugPrint('📂 Loading ${files.length} cached dataset(s) from disk...');
 
-      for (final file in files) {
-        try {
-          final json = await file.readAsString();
-          final data = MarketData.fromJson(jsonDecode(json));
-          _memoryCache[data.id] = data;
-          debugPrint(
-              '   ✅ Loaded: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
-        } catch (e) {
-          debugPrint('   ❌ Error loading ${file.path}: $e');
+      // Throttled, batched loading to reduce I/O spikes and jank
+      const int batchSize = 5;
+      for (int i = 0; i < files.length; i += batchSize) {
+        if (!_backgroundWarmupEnabled) {
+          debugPrint('⏹️ Background warm-up paused; stopping further loads.');
+          break;
         }
+
+        final batch = files.sublist(i, math.min(i + batchSize, files.length));
+        for (final file in batch) {
+          if (!_backgroundWarmupEnabled) break;
+          try {
+            final jsonStr = await file.readAsString();
+            final data = await compute(_parseMarketDataJson, jsonStr);
+            _memoryCache[data.id] = data;
+            debugPrint(
+                '   ✅ Loaded: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
+          } catch (e) {
+            debugPrint('   ❌ Error loading ${file.path}: $e');
+          }
+          // Small yield between files to avoid saturating main isolate
+          await Future.delayed(const Duration(milliseconds: 10));
+        }
+        // Brief pause between batches to smooth CPU/disk usage
+        await Future.delayed(const Duration(milliseconds: 100));
       }
 
       debugPrint('✅ Loaded ${_memoryCache.length} dataset(s) from disk cache');
@@ -320,6 +369,11 @@ class DataManager {
     _memoryCache.clear();
     await _loadAllFromDisk();
   }
+}
+
+/// Top-level parser for compute() to avoid blocking main isolate
+MarketData _parseMarketDataJson(String jsonStr) {
+  return MarketData.fromJson(jsonDecode(jsonStr));
 }
 
 /// Extension for easy access

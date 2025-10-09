@@ -4,7 +4,7 @@ import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
-import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/helpers/isolate_backtest.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +30,6 @@ class ResultCache {
 
 /// Helper class for running backtests with cached data
 class BacktestHelper {
-  final _backtestEngine = locator<BacktestEngineService>();
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
   final _dataManager = locator<DataManager>();
@@ -98,7 +97,7 @@ class BacktestHelper {
     debugPrint('   Candles: ${marketData.candles.length}');
 
     // Run backtest
-    final result = await _backtestEngine.runBacktest(
+    final result = await IsolateBacktest.run(
       marketData: marketData,
       strategy: strategy,
     );
@@ -141,7 +140,7 @@ class BacktestHelper {
 
     for (final data in allData) {
       debugPrint('\n📊 Testing on ${data.symbol} ${data.timeframe}...');
-      final result = await _backtestEngine.runBacktest(
+      final result = await IsolateBacktest.run(
         marketData: data,
         strategy: strategy,
       );

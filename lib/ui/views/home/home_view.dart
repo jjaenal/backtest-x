@@ -18,16 +18,58 @@ class HomeView extends StackedView<HomeViewModel> {
         title: const Text('Backtest-X'),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.brightness_6),
-            onPressed: () {
-              locator<ThemeService>().toggleTheme();
-            },
-            tooltip: 'Toggle Theme',
-          ),
+          // IconButton(
+          //   icon: const Icon(Icons.brightness_6),
+          //   onPressed: () {
+          //     locator<ThemeService>().toggleTheme();
+          //   },
+          //   tooltip: 'Toggle Theme',
+          // ),
           IconButton(
             icon: const Icon(Icons.workspace_premium),
             onPressed: () {},
+          ),
+          PopupMenuButton<int>(
+            tooltip: 'Options',
+            onSelected: (value) {
+              switch (value) {
+                case 1:
+                  viewModel.toggleBackgroundWarmup();
+                  break;
+                case 2:
+                  viewModel.warmUpCacheNow();
+                  break;
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<int>(
+                value: 1,
+                child: Row(
+                  children: [
+                    Icon(
+                      viewModel.backgroundWarmupEnabled
+                          ? Icons.pause_circle_outline
+                          : Icons.play_circle_outline,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(viewModel.backgroundWarmupEnabled
+                        ? 'Pause Background Loading'
+                        : 'Enable Background Loading'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              const PopupMenuItem<int>(
+                value: 2,
+                child: Row(
+                  children: [
+                    Icon(Icons.download_for_offline_outlined),
+                    SizedBox(width: 8),
+                    Text('Load Cache Now'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -172,6 +214,38 @@ class HomeView extends StackedView<HomeViewModel> {
               ),
             ),
 
+            // Warm-up indicator banner
+            if (viewModel.isWarmingUp) ...[
+              Positioned(
+                left: 16,
+                bottom: 16,
+                child: Card(
+                  elevation: 3,
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Loading cache…',
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+
             // Global progress overlay when running backtest
             if (viewModel.isRunningBacktest) ...[
               Positioned.fill(
@@ -224,18 +298,21 @@ class HomeView extends StackedView<HomeViewModel> {
                   'Strategies',
                   '${viewModel.strategiesCount}',
                   Icons.psychology,
+                  isLoading: viewModel.isBusy,
                 ),
                 _buildStatItem(
                   context,
                   'Data Sets',
                   '${viewModel.dataSetsCount}',
                   Icons.storage,
+                  isLoading: viewModel.isBusy,
                 ),
                 _buildStatItem(
                   context,
                   'Tests Run',
                   '${viewModel.testsCount}',
                   Icons.speed,
+                  isLoading: viewModel.isBusy,
                 ),
               ],
             ),
@@ -500,7 +577,8 @@ class HomeView extends StackedView<HomeViewModel> {
   }
 
   Widget _buildStatItem(
-      BuildContext context, String label, String value, IconData icon) {
+      BuildContext context, String label, String value, IconData icon,
+      {bool isLoading = false}) {
     return Column(
       children: [
         Icon(
@@ -509,12 +587,30 @@ class HomeView extends StackedView<HomeViewModel> {
           color: Theme.of(context).colorScheme.primary,
         ),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ) ??
-              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 200),
+          child: isLoading
+              ? Container(
+                  key: const ValueKey('loading'),
+                  width: 48,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceVariant
+                        .withValues(alpha: 0.4),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                )
+              : Text(
+                  value,
+                  key: const ValueKey('value'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ) ??
+                      const TextStyle(
+                          fontSize: 24, fontWeight: FontWeight.bold),
+                ),
         ),
         Text(
           label,
