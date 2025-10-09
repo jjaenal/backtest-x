@@ -286,13 +286,34 @@ class WorkspaceView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'export_results_csv',
                             child: Row(
                               children: [
                                 Icon(Icons.file_download, size: 20),
                                 SizedBox(width: 12),
                                 Text('Export Results CSV'),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'run_batch',
+                            enabled:
+                                !model.isRunningBatchQuickTest(strategy.id),
+                            child: Row(
+                              children: [
+                                if (model.isRunningBatchQuickTest(strategy.id))
+                                  const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                else
+                                  const Icon(Icons.playlist_play, size: 20),
+                                const SizedBox(width: 12),
+                                Text('Run Batch'),
                               ],
                             ),
                           ),
@@ -334,7 +355,10 @@ class WorkspaceView extends StatelessWidget {
                               model.exportStrategyTradesCsv(strategy);
                               break;
                             case 'export_results_csv':
-                              model.exportStrategyResultsCsv(strategy);
+                              model.exportFilteredStrategyResultsCsv(strategy);
+                              break;
+                            case 'run_batch':
+                              model.quickRunBacktestBatch(strategy);
                               break;
                             case 'edit':
                               model.navigateToEditStrategy(strategy);
@@ -380,6 +404,10 @@ class WorkspaceView extends StatelessWidget {
                               value: model.selectedDataId,
                               hint: const Text('Select market data'),
                               onChanged: (value) {
+                                // Disable changing data while quick/batch test is running
+                                final isDisabled = model.isRunningQuickTest(strategy.id) ||
+                                    model.isRunningBatchQuickTest(strategy.id);
+                                if (isDisabled) return;
                                 if (value != null) {
                                   model.setSelectedData(value);
                                 }
@@ -400,7 +428,8 @@ class WorkspaceView extends StatelessWidget {
                       const SizedBox(width: 8),
                       // Quick test button
                       ElevatedButton.icon(
-                        onPressed: model.isRunningQuickTest(strategy.id)
+                        onPressed: (model.isRunningQuickTest(strategy.id) ||
+                                model.isRunningBatchQuickTest(strategy.id))
                             ? null
                             : () => model.quickRunBacktest(strategy),
                         icon: model.isRunningQuickTest(strategy.id)
@@ -420,6 +449,7 @@ class WorkspaceView extends StatelessWidget {
                           ),
                         ),
                       ),
+                      // Run Batch moved to strategy action menu
                       if (hasResults) ...[
                         const SizedBox(width: 8),
                         IconButton(
@@ -664,12 +694,52 @@ class WorkspaceView extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Text(
-              'Backtest Results (${results.length})',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              children: [
+                Text(
+                  'Backtest Results (${results.length})',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                // Sort results
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<ResultSortKey>(
+                    value: model.getResultSortKey(strategy.id),
+                    onChanged: (key) {
+                      if (key != null) {
+                        model.setResultSortKey(strategy.id, key);
+                      }
+                    },
+                    items: ResultSortKey.values
+                        .map(
+                          (k) => DropdownMenuItem<ResultSortKey>(
+                            value: k,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(k.icon, size: 18),
+                                const SizedBox(width: 6),
+                                Text(k.label),
+                              ],
+                            ),
+                          ),
+                        )
+                        .toList(),
+                  ),
+                ),
+                Tooltip(
+                  message: 'Export filtered results (CSV)',
+                  child: IconButton(
+                    icon: const Icon(Icons.download),
+                    onPressed: results.isEmpty
+                        ? null
+                        : () => model.exportFilteredStrategyResultsCsv(strategy),
+                  ),
+                ),
+              ],
             ),
           ),
           // Filters
@@ -734,11 +804,59 @@ class WorkspaceView extends StatelessWidget {
                     onChanged: (val) => model.setSelectedTimeframeFilter(val),
                   ),
                 ),
+                // Start date picker
+                TextButton.icon(
+                  onPressed: () async {
+                    final initial = model.startDateFilter ?? DateTime.now();
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: initial,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now().add(const Duration(days: 3650)),
+                    );
+                    if (picked != null) {
+                      // Normalize to date-only
+                      final d = DateTime(picked.year, picked.month, picked.day);
+                      model.setStartDateFilter(d);
+                    }
+                  },
+                  icon: const Icon(Icons.calendar_today),
+                  label: Text(
+                    model.startDateFilter != null
+                        ? 'Start: ${DateFormat('MMM dd, yyyy').format(model.startDateFilter!)}'
+                        : 'Start Date',
+                  ),
+                ),
+                // End date picker
+                TextButton.icon(
+                  onPressed: () async {
+                    final baseInitial = model.startDateFilter ?? DateTime.now();
+                    final initial = model.endDateFilter ?? baseInitial;
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: initial,
+                      firstDate: DateTime(2000),
+                      lastDate: DateTime.now().add(const Duration(days: 3650)),
+                    );
+                    if (picked != null) {
+                      final d = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+                      model.setEndDateFilter(d);
+                    }
+                  },
+                  icon: const Icon(Icons.event),
+                  label: Text(
+                    model.endDateFilter != null
+                        ? 'End: ${DateFormat('MMM dd, yyyy').format(model.endDateFilter!)}'
+                        : 'End Date',
+                  ),
+                ),
                 if (model.filterProfitOnly ||
                     model.filterPfPositive ||
                     model.filterWinRateAbove50 ||
                     model.selectedSymbolFilter != null ||
-                    model.selectedTimeframeFilter != null)
+                    model.selectedTimeframeFilter != null ||
+                    model.startDateFilter != null ||
+                    model.endDateFilter != null)
                   TextButton.icon(
                     onPressed: model.clearFilters,
                     icon: const Icon(Icons.clear),

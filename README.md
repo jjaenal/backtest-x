@@ -47,7 +47,41 @@ flutter run
   - Export trades to CSV from Workspace results list
 - **Share Results**: Share backtest results with others
  - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
-- **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, and Timeframe
+- **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
+
+## 🧭 Usage - Workspace Filters
+
+Langkah menggunakan filter di `Workspace`:
+- Buka view `Workspace` dari menu utama.
+- Pada kartu strategi, scroll ke daftar `Results`.
+- Gunakan `FilterChip` untuk performa: `Profit Only`, `PF > 1`, `Win Rate > 50%`.
+- Pilih `Symbol` dan `Timeframe` lewat dropdown di atas daftar hasil.
+- Atur `Start Date` dan `End Date` untuk membatasi hasil berdasarkan tanggal eksekusi.
+- Klik `Clear Filters` untuk mengembalikan semua hasil.
+- Daftar hasil akan otomatis terfilter sesuai pilihan.
+
+Catatan:
+- Opsi `Symbol/Timeframe` diambil dari data hasil yang tersimpan untuk strategi tersebut.
+- Jika opsi kosong atau terbatas, jalankan backtest agar data tersedia.
+- Tombol `Export CSV` di header daftar hasil mengekspor ringkasan sesuai hasil terfilter (termasuk tanggal).
+
+Export CSV (filtered):
+- Gunakan tombol `Export CSV` di header daftar hasil untuk mengekspor ringkasan hasil yang sedang terfilter.
+- Atau, buka menu aksi (`⋮`) pada kartu strategi dan pilih `Export Results (CSV)` untuk hasil terfilter yang sama.
+- File berisi kolom: `Strategy`, `Symbol`, `Timeframe`, `Executed At`, `Total Trades`, `Win Rate %`, `Profit Factor`, `Total PnL`, `Total PnL %`, `Max Drawdown`, `Max DD %`, `Sharpe`.
+- Ekspor mengikuti semua filter aktif: performa, symbol, timeframe, dan rentang tanggal.
+
+## ⚡ Quick Test & Batch (Workspace)
+
+Gunakan aksi cepat di kartu strategi untuk menjalankan backtest tanpa meninggalkan Workspace:
+- Pilih `market data` dari dropdown di area Quick Actions.
+- Klik `Quick Test` untuk menjalankan satu backtest pada data terpilih.
+- Klik `Run Batch` untuk menjalankan backtest berturut pada semua data yang tersedia. Setiap hasil disimpan otomatis ke database dan muncul di daftar hasil.
+- Selama proses berjalan, tombol akan nonaktif dan menampilkan indikator progres (spinner) untuk mencegah aksi ganda.
+
+Catatan:
+- `Run Batch` menggunakan seluruh koleksi data yang tersedia di aplikasi. Jika ingin membatasi jumlah, opsi batas maksimum akan ditambahkan kemudian (planned).
+- Hasil batch langsung tersimpan dan akan ikut terfilter oleh pilihan aktif (Profit/PF/Win Rate, Symbol, Timeframe, Date Range) saat ditampilkan.
 
 ## 📁 Project Structure
 

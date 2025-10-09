@@ -98,11 +98,15 @@
 - [x] View historical results per strategy
 - [x] Compare results
 - [x] Quick run backtest
+ - [x] Quick batch backtest (Run Batch)
+ - [x] Disable quick actions while running (spinner/progress)
  - [x] Copy trades CSV from results list
  - [x] Copy summary from results list
  - [x] Export trades CSV from results list
  - [x] Filter results by Profit Only, PF > 1, Win Rate > 50%
  - [x] Filter results by Symbol and Timeframe
+ - [x] Filter results by Date Range (Start/End)
+ - [x] Export filtered results CSV from results list
 
 **Estimated Time:** 1-2 days
 

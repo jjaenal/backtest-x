@@ -61,6 +61,21 @@ class WorkspaceViewModel extends BaseViewModel {
   String? _selectedTimeframeFilter;
   String? get selectedTimeframeFilter => _selectedTimeframeFilter;
 
+  // Date range filters
+  DateTime? _startDateFilter;
+  DateTime? get startDateFilter => _startDateFilter;
+  DateTime? _endDateFilter;
+  DateTime? get endDateFilter => _endDateFilter;
+
+  // Result list sorting per strategy
+  final Map<String, ResultSortKey> _resultSortKeyByStrategy = {};
+  ResultSortKey getResultSortKey(String strategyId) =>
+      _resultSortKeyByStrategy[strategyId] ?? ResultSortKey.executedAtDesc;
+  void setResultSortKey(String strategyId, ResultSortKey key) {
+    _resultSortKeyByStrategy[strategyId] = key;
+    notifyListeners();
+  }
+
   void toggleFilterProfitOnly() {
     _filterProfitOnly = !_filterProfitOnly;
     notifyListeners();
@@ -82,6 +97,8 @@ class WorkspaceViewModel extends BaseViewModel {
     _filterWinRateAbove50 = false;
     _selectedSymbolFilter = null;
     _selectedTimeframeFilter = null;
+    _startDateFilter = null;
+    _endDateFilter = null;
     notifyListeners();
   }
   BacktestResult? getQuickResult(String strategyId) =>
@@ -90,6 +107,11 @@ class WorkspaceViewModel extends BaseViewModel {
   Map<String, bool> _isRunningQuickTest = {};
   bool isRunningQuickTest(String strategyId) =>
       _isRunningQuickTest[strategyId] ?? false;
+
+  // Batch quick test state per strategy
+  Map<String, bool> _isRunningBatchQuickTest = {};
+  bool isRunningBatchQuickTest(String strategyId) =>
+      _isRunningBatchQuickTest[strategyId] ?? false;
 
   // Comparison mode
   bool _isCompareMode = false;
@@ -234,7 +256,7 @@ class WorkspaceViewModel extends BaseViewModel {
   // Get filtered results for a strategy based on current filters
   List<BacktestResult> getFilteredResults(String strategyId) {
     final base = getResults(strategyId);
-    return base.where((r) {
+    final filtered = base.where((r) {
       final s = r.summary;
       final md = _dataManager.getData(r.marketDataId);
       if (_filterProfitOnly && s.totalPnl <= 0) return false;
@@ -244,8 +266,31 @@ class WorkspaceViewModel extends BaseViewModel {
           (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) return false;
       if (_selectedTimeframeFilter != null &&
           (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter) return false;
+      if (_startDateFilter != null && r.executedAt.isBefore(_startDateFilter!)) {
+        return false;
+      }
+      if (_endDateFilter != null && r.executedAt.isAfter(_endDateFilter!)) {
+        return false;
+      }
       return true;
     }).toList();
+
+    // Sort according to per-strategy result sort key
+    final sortKey = getResultSortKey(strategyId);
+    filtered.sort((a, b) {
+      switch (sortKey) {
+        case ResultSortKey.executedAtDesc:
+          return b.executedAt.compareTo(a.executedAt);
+        case ResultSortKey.pnlDesc:
+          return b.summary.totalPnl.compareTo(a.summary.totalPnl);
+        case ResultSortKey.winRateDesc:
+          return b.summary.winRate.compareTo(a.summary.winRate);
+        case ResultSortKey.profitFactorDesc:
+          return b.summary.profitFactor.compareTo(a.summary.profitFactor);
+      }
+    });
+
+    return filtered;
   }
 
   // Available filter options derived from results
@@ -278,6 +323,31 @@ class WorkspaceViewModel extends BaseViewModel {
 
   void setSelectedTimeframeFilter(String? timeframe) {
     _selectedTimeframeFilter = timeframe;
+    notifyListeners();
+  }
+
+  void setStartDateFilter(DateTime? date) {
+    _startDateFilter = date;
+    // Normalize order when both dates set
+    if (_startDateFilter != null && _endDateFilter != null) {
+      if (_startDateFilter!.isAfter(_endDateFilter!)) {
+        final tmp = _startDateFilter;
+        _startDateFilter = _endDateFilter;
+        _endDateFilter = tmp;
+      }
+    }
+    notifyListeners();
+  }
+
+  void setEndDateFilter(DateTime? date) {
+    _endDateFilter = date;
+    if (_startDateFilter != null && _endDateFilter != null) {
+      if (_startDateFilter!.isAfter(_endDateFilter!)) {
+        final tmp = _startDateFilter;
+        _startDateFilter = _endDateFilter;
+        _endDateFilter = tmp;
+      }
+    }
     notifyListeners();
   }
 
@@ -425,6 +495,76 @@ class WorkspaceViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> quickRunBacktestBatch(Strategy strategy,
+      {int? maxCount}) async {
+    // Ensure we have data
+    if (_availableData.isEmpty) {
+      _snackbarService.showSnackbar(
+        message: 'Please upload market data first',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    // Prevent parallel runs per strategy
+    if (isRunningBatchQuickTest(strategy.id)) {
+      _snackbarService.showSnackbar(
+        message: 'Batch already running for this strategy',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    _isRunningBatchQuickTest[strategy.id] = true;
+    notifyListeners();
+
+    try {
+      final list = List<MarketData>.from(_availableData);
+      final total = maxCount == null
+          ? list.length
+          : (maxCount.clamp(1, list.length));
+      int completed = 0;
+
+      for (int i = 0; i < total; i++) {
+        final marketData = list[i];
+        try {
+          final result = await _backtestEngineService.runBacktest(
+            strategy: strategy,
+            marketData: marketData,
+          );
+
+          // Save to DB
+          try {
+            final existing = await _storageService.getStrategy(strategy.id);
+            if (existing == null) {
+              await _storageService.saveStrategy(strategy);
+            }
+            await _storageService.saveBacktestResult(result);
+            completed++;
+
+            // Update in-memory results incrementally
+            _strategyResults[strategy.id] =
+                await _storageService.getBacktestResultsByStrategy(
+                    strategy.id);
+            notifyListeners();
+          } catch (e) {
+            debugPrint('Error saving batch result: $e');
+          }
+        } catch (e) {
+          debugPrint('Batch run error: $e');
+        }
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'Batch complete: $completed/$total saved',
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      _isRunningBatchQuickTest[strategy.id] = false;
+      notifyListeners();
+    }
+  }
+
   void viewQuickResult(String strategyId) {
     final result = _quickResults[strategyId];
     if (result != null) {
@@ -442,10 +582,10 @@ class WorkspaceViewModel extends BaseViewModel {
     );
   }
 
-  /// Export all backtest results (summary rows) for a strategy to CSV
-  Future<void> exportStrategyResultsCsv(Strategy strategy) async {
+  /// Export filtered backtest results (summary rows) for a strategy to CSV
+  Future<void> exportFilteredStrategyResultsCsv(Strategy strategy) async {
     try {
-      final results = getResults(strategy.id);
+      final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
           message: 'No results to export for this strategy',
@@ -520,6 +660,8 @@ class WorkspaceViewModel extends BaseViewModel {
       );
     }
   }
+
+  // removed alias for cleanliness; use exportFilteredStrategyResultsCsv
 
   /// Export ALL trades across all results for a strategy to a single CSV
   Future<void> exportStrategyTradesCsv(Strategy strategy) async {
@@ -708,7 +850,7 @@ class WorkspaceViewModel extends BaseViewModel {
       }
 
       _snackbarService.showSnackbar(
-        message: 'Results exported to CSV',
+        message: 'Filtered results exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
@@ -980,7 +1122,7 @@ extension SortTypeX on SortType {
         return 'Tests Run';
     }
   }
-
+ 
   IconData get icon {
     switch (this) {
       case SortType.name:
@@ -995,3 +1137,42 @@ extension SortTypeX on SortType {
     }
   }
 }
+
+// Result list sorting per strategy
+enum ResultSortKey {
+  executedAtDesc,
+  pnlDesc,
+  winRateDesc,
+  profitFactorDesc,
+}
+
+extension ResultSortKeyX on ResultSortKey {
+  String get label {
+    switch (this) {
+      case ResultSortKey.executedAtDesc:
+        return 'Latest';
+      case ResultSortKey.pnlDesc:
+        return 'P&L';
+      case ResultSortKey.winRateDesc:
+        return 'Win Rate';
+      case ResultSortKey.profitFactorDesc:
+        return 'Profit Factor';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case ResultSortKey.executedAtDesc:
+        return Icons.schedule;
+      case ResultSortKey.pnlDesc:
+        return Icons.attach_money;
+      case ResultSortKey.winRateDesc:
+        return Icons.percent;
+      case ResultSortKey.profitFactorDesc:
+        return Icons.trending_up;
+    }
+  }
+}
+
+// Store selected result sort key per strategy
+// Moved into WorkspaceViewModel class
