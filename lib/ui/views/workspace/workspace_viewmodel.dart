@@ -420,10 +420,19 @@ class WorkspaceViewModel extends BaseViewModel {
     final marketDataList = await _storageService.getAllMarketDataInfo();
 
     if (marketDataList.isEmpty) {
-      _snackbarService.showSnackbar(
-        message: 'Please upload market data first',
-        duration: const Duration(seconds: 2),
+      final response = await _bottomSheetService.showCustomSheet(
+        variant: BottomSheetType.notice,
+        title: 'Market Data Diperlukan',
+        description:
+            'Silakan unggah atau pilih data pasar terlebih dahulu sebelum menjalankan backtest.',
+        mainButtonTitle: 'Upload Data',
+        secondaryButtonTitle: 'Batal',
+        barrierDismissible: true,
+        isScrollControlled: true,
       );
+      if (response?.confirmed == true) {
+        _navigationService.navigateToDataUploadView();
+      }
       return;
     }
 
@@ -435,10 +444,19 @@ class WorkspaceViewModel extends BaseViewModel {
 
   Future<void> quickRunBacktest(Strategy strategy) async {
     if (_selectedDataId == null || _availableData.isEmpty) {
-      _snackbarService.showSnackbar(
-        message: 'Please select market data first',
-        duration: const Duration(seconds: 2),
+      final response = await _bottomSheetService.showCustomSheet(
+        variant: BottomSheetType.notice,
+        title: 'Data Pasar Belum Dipilih',
+        description:
+            'Pilih data pasar terlebih dahulu untuk menjalankan Quick Test.',
+        mainButtonTitle: 'Pilih/Upload Data',
+        secondaryButtonTitle: 'Nanti Saja',
+        barrierDismissible: true,
+        isScrollControlled: true,
       );
+      if (response?.confirmed == true) {
+        _navigationService.navigateToDataUploadView();
+      }
       return;
     }
 
@@ -450,9 +468,15 @@ class WorkspaceViewModel extends BaseViewModel {
       final marketData = _dataManager.getData(_selectedDataId!);
 
       if (marketData == null) {
-        _snackbarService.showSnackbar(
-          message: 'Selected market data is empty',
-          duration: const Duration(seconds: 2),
+        await _bottomSheetService.showCustomSheet(
+          variant: BottomSheetType.notice,
+          title: 'Data Tidak Ditemukan',
+          description:
+              'Data pasar yang dipilih kosong atau tidak tersedia. Coba pilih data lain atau upload baru.',
+          mainButtonTitle: 'Ke Upload Data',
+          secondaryButtonTitle: 'Tutup',
+          barrierDismissible: true,
+          isScrollControlled: true,
         );
         return;
       }

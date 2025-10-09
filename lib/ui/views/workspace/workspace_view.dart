@@ -4,6 +4,7 @@ import 'package:backtestx/models/trade.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
+import 'package:backtestx/ui/widgets/skeleton_loader.dart' as x_skeleton;
 import 'workspace_viewmodel.dart';
 
 class WorkspaceView extends StatelessWidget {
@@ -63,7 +64,7 @@ class WorkspaceView extends StatelessWidget {
         ),
 
         body: model.isBusy
-            ? const Center(child: CircularProgressIndicator())
+            ? _buildWorkspaceSkeleton(context)
             : Column(
                 children: [
                   // Search bar
@@ -109,6 +110,91 @@ class WorkspaceView extends StatelessWidget {
                 child: const Icon(Icons.add),
               ),
       ),
+    );
+  }
+
+  Widget _buildWorkspaceSkeleton(BuildContext context) {
+    return Column(
+      children: [
+        // Search bar skeleton
+        Container(
+          padding: const EdgeInsets.all(16),
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: x_skeleton.SkeletonLoader.bar(context, height: 44, radius: BorderRadius.circular(12)),
+        ),
+
+        // Optional compare banner skeleton space
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: x_skeleton.SkeletonLoader.bar(context, width: double.infinity, height: 36, radius: BorderRadius.circular(8)),
+        ),
+        const SizedBox(height: 8),
+
+        // Strategies list skeleton
+        Expanded(
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: 6,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Card(
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: x_skeleton.SkeletonLoader.bar(context, height: 18),
+                            ),
+                            const SizedBox(width: 12),
+                            x_skeleton.SkeletonLoader.circle(context, size: 24),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Stats row
+                        Row(
+                          children: [
+                            Expanded(
+                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: x_skeleton.SkeletonLoader.bar(context, height: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Action buttons
+                        Row(
+                          children: [
+                            x_skeleton.SkeletonLoader.bar(context, width: 90, height: 32, radius: BorderRadius.circular(20)),
+                            const SizedBox(width: 8),
+                            x_skeleton.SkeletonLoader.bar(context, width: 100, height: 32, radius: BorderRadius.circular(20)),
+                            const Spacer(),
+                            x_skeleton.SkeletonLoader.bar(context, width: 80, height: 32, radius: BorderRadius.circular(20)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

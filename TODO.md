@@ -154,7 +154,7 @@
 
 - [ ] Onboarding tutorial
 - [ ] Empty states
-- [ ] Loading skeletons
+ - [x] Loading skeletons
 - [ ] Error handling UI
 - [ ] Animations & transitions
 - [x] Dark/Light theme toggle
@@ -235,10 +235,10 @@
 ### Performance
 
 - [ ] Optimize backtest loop (use Isolate)
-- [ ] Database indexing
+ - [x] Database indexing
 - [ ] Lazy loading for large datasets
-- [ ] Memory optimization
-  - [ ] Chart rendering optimizations for >1000 candles
+ - [ ] Memory optimization
+   - [x] Chart rendering optimizations for >1000 candles
 
 ### Code Quality
 

@@ -354,6 +354,16 @@ void main() {
 - Comparison View improvements:
   - Show human-readable strategy names in cards and table
   - Add "Copy Summary" menu to copy comparison stats to clipboard
+ - Loading skeletons for smoother UX:
+   - Workspace results list and quick actions show skeletons on busy
+   - Backtest Result chart area uses AnimatedSwitcher to show skeleton while loading
+   - Busy states wired so skeletons appear on initial load and async actions
+ - Chart performance optimization:
+   - Downsample candles in Backtest Result when dataset is large (>1500 points)
+   - Cuts render jank on Flutter Web with big OHLC series
+ - Storage performance:
+   - Added SQLite index on `market_data.uploaded_at` for faster sorting
+   - Existing indexes on strategies and backtest_results retained
 - Backtest Result improvements:
   - Add "Copy Summary" button to copy backtest stats to clipboard
  - Workspace results quick actions:

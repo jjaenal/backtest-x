@@ -2,6 +2,7 @@ import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/ui/widgets/equity_curve_chart.dart';
 import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:backtestx/ui/widgets/skeleton_loader.dart' as x_skeleton;
 import 'package:stacked/stacked.dart';
 import 'backtest_result_viewmodel.dart';
 
@@ -50,7 +51,9 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: viewModel.isBusy
+          ? _buildResultSkeleton(context)
+          : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -120,16 +123,19 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                       ),
                       const SizedBox(height: 8),
                       Expanded(
-                        child: EquityCurveChart(
-                          equityCurve: result.equityCurve,
-                          initialCapital: (result.equityCurve.isNotEmpty &&
-                                  result.summary.totalPnl > 0)
-                              ? result.equityCurve.first.equity
-                              : 10000, // Fallback jika equityCurve kosong
-                          showDrawdown:
-                              viewModel.chartMode == ChartMode.drawdown,
-                          chartMode: viewModel.chartMode,
-                        ),
+                        child: result.equityCurve.isEmpty
+                            ? _buildEmptyChartState(context)
+                            : EquityCurveChart(
+                                equityCurve: result.equityCurve,
+                                initialCapital:
+                                    (result.equityCurve.isNotEmpty &&
+                                            result.summary.totalPnl > 0)
+                                        ? result.equityCurve.first.equity
+                                        : 10000,
+                                showDrawdown:
+                                    viewModel.chartMode == ChartMode.drawdown,
+                                chartMode: viewModel.chartMode,
+                              ),
                       ),
                     ],
                   ),
@@ -193,11 +199,20 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         // ),
                         // const SizedBox(height: 8),
                         Expanded(
-                          child: CandlestickChart(
-                            candles: viewModel.getCandles(),
-                            trades: result.trades,
-                            title: 'Price Action with Entry/Exit Points',
-                            showVolume: false,
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: viewModel.isBusy
+                                ? x_skeleton.SkeletonLoader.box(
+                                    context,
+                                    height: double.infinity,
+                                  )
+                                : CandlestickChart(
+                                    candles: viewModel.getCandles(),
+                                    trades: result.trades,
+                                    title:
+                                        'Price Action with Entry/Exit Points',
+                                    showVolume: false,
+                                  ),
                           ),
                         ),
                       ],
@@ -240,6 +255,209 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildResultSkeleton(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Skeleton for Equity/Drawdown chart card
+          SizedBox(
+            height: 450,
+            child: Card(
+              margin: const EdgeInsets.all(16),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        x_skeleton.SkeletonLoader.bar(context, width: 140, height: 20),
+                        Row(
+                          children: [
+                            x_skeleton.SkeletonLoader.bar(context,
+                                width: 70, height: 28, radius: BorderRadius.circular(20)),
+                            const SizedBox(width: 8),
+                            x_skeleton.SkeletonLoader.bar(context,
+                                width: 90, height: 28, radius: BorderRadius.circular(20)),
+                          ],
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: x_skeleton.SkeletonLoader.box(context,
+                          width: double.infinity, height: double.infinity, radius: BorderRadius.circular(12)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Skeleton for Price Chart card
+          SizedBox(
+            height: 450,
+            child: Card(
+              margin: const EdgeInsets.all(16),
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    x_skeleton.SkeletonLoader.bar(context, width: 220, height: 20),
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: x_skeleton.SkeletonLoader.box(context,
+                          width: double.infinity, height: double.infinity, radius: BorderRadius.circular(12)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // Skeleton for Performance Summary & Trade History
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Section title skeleton
+                x_skeleton.SkeletonLoader.bar(context, width: 180, height: 22),
+                const SizedBox(height: 12),
+                // Metrics grid skeleton
+                Row(
+                  children: [
+                    Expanded(
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              x_skeleton.SkeletonLoader.bar(context, width: 120, height: 16),
+                              const SizedBox(height: 8),
+                              x_skeleton.SkeletonLoader.bar(context, width: 160, height: 16),
+                              const SizedBox(height: 8),
+                              x_skeleton.SkeletonLoader.bar(context, width: 100, height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Card(
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              x_skeleton.SkeletonLoader.bar(context, width: 120, height: 16),
+                              const SizedBox(height: 8),
+                              x_skeleton.SkeletonLoader.bar(context, width: 160, height: 16),
+                              const SizedBox(height: 8),
+                              x_skeleton.SkeletonLoader.bar(context, width: 100, height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 24),
+                // Trade History section skeleton
+                x_skeleton.SkeletonLoader.bar(context, width: 160, height: 22),
+                const SizedBox(height: 12),
+                Card(
+                  elevation: 1,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      children: List.generate(5, (index) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Row(
+                            children: [
+                              x_skeleton.SkeletonLoader.circle(context, size: 28),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    x_skeleton.SkeletonLoader.bar(context, width: double.infinity, height: 12),
+                                    const SizedBox(height: 6),
+                                    x_skeleton.SkeletonLoader.bar(context, width: 180, height: 12),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              x_skeleton.SkeletonLoader.bar(context, width: 60, height: 16),
+                            ],
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                )
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyChartState(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.show_chart,
+            size: 80,
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.35),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No equity data available',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Run backtest or adjust your strategy settings',
+            style: TextStyle(
+              fontSize: 13,
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -556,10 +774,39 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       return Card(
         elevation: 1,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: const Padding(
-          padding: EdgeInsets.all(32),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
           child: Center(
-            child: Text('No closed trades'),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.receipt_long,
+                  size: 64,
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.35),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'No closed trades yet',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Try different parameters or timeframe to generate trades',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -929,6 +1176,17 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   @override
   BacktestResultViewModel viewModelBuilder(BuildContext context) =>
       BacktestResultViewModel(result);
+
+  @override
+  void onViewModelReady(BacktestResultViewModel viewModel) {
+    // Trigger a brief busy state on initial load so skeleton appears
+    viewModel.runBusyFuture(
+      Future<void>.delayed(const Duration(milliseconds: 200), () {
+        // Touch candles to ensure any synchronous preparation happens
+        viewModel.getCandles();
+      }),
+    );
+  }
 
   String _metricTooltip(String label) {
     switch (label) {
