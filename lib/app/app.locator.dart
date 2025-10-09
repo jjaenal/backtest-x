@@ -18,6 +18,7 @@ import '../services/data_parser_service.dart';
 import '../services/data_validation_service.dart';
 import '../services/indicator_service.dart';
 import '../services/storage_service.dart';
+import '../services/theme_service.dart';
 
 final locator = StackedLocator.instance;
 
@@ -40,4 +41,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => StorageService());
   locator.registerLazySingleton(() => DataValidationService());
   locator.registerLazySingleton(() => DataManager());
+  locator.registerLazySingleton(() => ThemeService());
 }

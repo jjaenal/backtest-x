@@ -1,4 +1,5 @@
 import 'package:backtestx/models/candle.dart';
+import 'package:backtestx/models/trade.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -7,6 +8,7 @@ class CandlestickChart extends StatefulWidget {
   final List<double?>? sma;
   final List<double?>? ema;
   final Map<String, List<double?>>? bollingerBands;
+  final List<Trade>? trades;
   final bool showVolume;
   final String? title;
   final Function(int startIndex, int endIndex)? onRangeChanged;
@@ -17,6 +19,7 @@ class CandlestickChart extends StatefulWidget {
     this.sma,
     this.ema,
     this.bollingerBands,
+    this.trades,
     this.showVolume = true,
     this.title,
     this.onRangeChanged,
@@ -30,6 +33,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
   double _startIndex = 0;
   double _endIndex = 100;
   int? _hoveredIndex;
+  double _chartWidth = 0;
 
   @override
   void initState() {
@@ -69,31 +73,73 @@ class _CandlestickChartState extends State<CandlestickChart> {
           _buildCandleInfo(widget.candles[_hoveredIndex!]),
         Expanded(
           flex: widget.showVolume ? 7 : 10,
-          child: GestureDetector(
-            onHorizontalDragUpdate: (details) {
-              setState(() {
-                final delta = -details.delta.dx;
-                final range = _endIndex - _startIndex;
-                final shift = (delta / 300) * range;
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              _chartWidth = constraints.maxWidth;
+              const labelWidth = 70.0; // keep in sync with painter
+              return MouseRegion(
+                onHover: (event) {
+                  final visibleCount = (_endIndex - _startIndex).toInt().clamp(1, widget.candles.length);
+                  final candleWidth = ((_chartWidth - labelWidth) / visibleCount).clamp(1, _chartWidth);
+                  final localX = event.localPosition.dx.clamp(0, _chartWidth - labelWidth);
+                  final localIndex = (localX / candleWidth).floor();
+                  final globalIndex = (_startIndex.toInt() + localIndex).clamp(0, widget.candles.length - 1);
+                  setState(() {
+                    _hoveredIndex = globalIndex;
+                  });
+                },
+                onExit: (_) {
+                  setState(() {
+                    _hoveredIndex = null;
+                  });
+                },
+                child: GestureDetector(
+                  onTapDown: (details) {
+                    final visibleCount = (_endIndex - _startIndex).toInt().clamp(1, widget.candles.length);
+                    final candleWidth = ((_chartWidth - labelWidth) / visibleCount).clamp(1, _chartWidth);
+                    final localX = details.localPosition.dx.clamp(0, _chartWidth - labelWidth);
+                    final localIndex = (localX / candleWidth).floor();
+                    final globalIndex = (_startIndex.toInt() + localIndex).clamp(0, widget.candles.length - 1);
+                    setState(() {
+                      _hoveredIndex = globalIndex;
+                    });
+                  },
+                  onHorizontalDragUpdate: (details) {
+                    setState(() {
+                      final delta = -details.delta.dx;
+                      final range = _endIndex - _startIndex;
+                      final shift = (delta / 300) * range;
 
-                _startIndex = (_startIndex + shift)
-                    .clamp(0, widget.candles.length - range);
-                _endIndex = _startIndex + range;
-                _notifyRangeChange();
-              });
+                      _startIndex = (_startIndex + shift)
+                          .clamp(0, widget.candles.length - range);
+                      _endIndex = _startIndex + range;
+                      _notifyRangeChange();
+                    });
+                  },
+                  child: CustomPaint(
+                    painter: CandlestickPainter(
+                      candles: widget.candles,
+                      startIndex: _startIndex.toInt(),
+                      endIndex: _endIndex.toInt(),
+                      sma: widget.sma,
+                      ema: widget.ema,
+                      bollingerBands: widget.bollingerBands,
+                      trades: widget.trades,
+                      hoveredIndex: _hoveredIndex,
+                      labelColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.8),
+                      gridColor: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withValues(alpha: 0.4),
+                    ),
+                    child: Container(),
+                  ),
+                ),
+              );
             },
-            child: CustomPaint(
-              painter: CandlestickPainter(
-                candles: widget.candles,
-                startIndex: _startIndex.toInt(),
-                endIndex: _endIndex.toInt(),
-                sma: widget.sma,
-                ema: widget.ema,
-                bollingerBands: widget.bollingerBands,
-                hoveredIndex: _hoveredIndex,
-              ),
-              child: Container(),
-            ),
           ),
         ),
         if (widget.showVolume && widget.candles.any((c) => c.volume > 0))
@@ -114,7 +160,10 @@ class _CandlestickChartState extends State<CandlestickChart> {
       padding: const EdgeInsets.all(12),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceVariant
+            .withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -135,7 +184,16 @@ class _CandlestickChartState extends State<CandlestickChart> {
       {bool isBold = false, bool isVolume = false}) {
     return Column(
       children: [
-        Text(label, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context)
+                .colorScheme
+                .onSurface
+                .withValues(alpha: 0.7),
+          ),
+        ),
         const SizedBox(height: 2),
         Text(
           isVolume ? value.toStringAsFixed(0) : value.toStringAsFixed(4),
@@ -284,8 +342,11 @@ class CandlestickPainter extends CustomPainter {
   final List<double?>? sma;
   final List<double?>? ema;
   final Map<String, List<double?>>? bollingerBands;
+  final List<Trade>? trades;
   final int? hoveredIndex;
   final double chartWidth;
+  final Color labelColor;
+  final Color gridColor;
 
   CandlestickPainter({
     required this.candles,
@@ -294,8 +355,11 @@ class CandlestickPainter extends CustomPainter {
     this.sma,
     this.ema,
     this.bollingerBands,
+    this.trades,
     this.hoveredIndex,
     this.chartWidth = 0,
+    required this.labelColor,
+    required this.gridColor,
   });
 
   @override
@@ -370,14 +434,25 @@ class CandlestickPainter extends CustomPainter {
           canvas, candle, x, bodyWidth, chartArea.height, minPrice, maxPrice);
     }
 
+    // Draw entry/exit markers
+    if (trades != null) {
+      _drawTradeMarkers(
+          canvas, chartArea, visibleCandles, minPrice, maxPrice, candleWidth);
+    }
+
     // Draw price labels (on the right side)
     _drawPriceLabels(canvas, size, chartArea, minPrice, maxPrice, labelWidth);
+
+    // Draw hover crosshair and tooltip
+    if (hoveredIndex != null && hoveredIndex! >= startIndex && hoveredIndex! < endIndex) {
+      _drawHoverOverlay(canvas, chartArea, visibleCandles, minPrice, maxPrice, candleWidth, labelWidth);
+    }
   }
 
   void _drawGrid(
       Canvas canvas, Size chartArea, double minPrice, double maxPrice) {
     final paint = Paint()
-      ..color = Colors.grey[300]!
+      ..color = gridColor
       ..strokeWidth = 1;
 
     // final priceStep = (maxPrice - minPrice) / 5;
@@ -529,17 +604,193 @@ class CandlestickPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: price.toStringAsFixed(4),
-        style: const TextStyle(color: Colors.black, fontSize: 10),
+        style: TextStyle(color: labelColor, fontSize: 10),
       );
       textPainter.layout();
       textPainter.paint(canvas, Offset(fullSize.width - 60, y - 6));
     }
   }
 
+  void _drawTradeMarkers(
+      Canvas canvas,
+      Size chartArea,
+      List<Candle> visibleCandles,
+      double minPrice,
+      double maxPrice,
+      double candleWidth) {
+    if (trades == null || trades!.isEmpty) return;
+
+    final priceRange = maxPrice - minPrice;
+
+    for (final trade in trades!) {
+      // Find entry marker
+      final entryIndex = _findCandleIndex(visibleCandles, trade.entryTime);
+      if (entryIndex != -1) {
+        final x = (entryIndex + 0.5) * candleWidth;
+        final y = chartArea.height -
+            ((trade.entryPrice - minPrice) / priceRange * chartArea.height);
+
+        _drawMarker(
+            canvas,
+            x,
+            y,
+            trade.direction == TradeDirection.buy ? Colors.green : Colors.red,
+            trade.direction == TradeDirection.buy ? '▲' : '▼',
+            true);
+      }
+
+      // Find exit marker (if trade is closed)
+      if (trade.status == TradeStatus.closed &&
+          trade.exitTime != null &&
+          trade.exitPrice != null) {
+        final exitIndex = _findCandleIndex(visibleCandles, trade.exitTime!);
+        if (exitIndex != -1) {
+          final x = (exitIndex + 0.5) * candleWidth;
+          final y = chartArea.height -
+              ((trade.exitPrice! - minPrice) / priceRange * chartArea.height);
+
+          _drawMarker(
+              canvas,
+              x,
+              y,
+              trade.direction == TradeDirection.buy ? Colors.red : Colors.green,
+              trade.direction == TradeDirection.buy ? '▼' : '▲',
+              false);
+        }
+      }
+    }
+  }
+
+  int _findCandleIndex(List<Candle> visibleCandles, DateTime timestamp) {
+    for (int i = 0; i < visibleCandles.length; i++) {
+      if (visibleCandles[i].timestamp.isAtSameMomentAs(timestamp) ||
+          (i > 0 &&
+              visibleCandles[i - 1].timestamp.isBefore(timestamp) &&
+              visibleCandles[i].timestamp.isAfter(timestamp))) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  void _drawMarker(Canvas canvas, double x, double y, Color color,
+      String symbol, bool isEntry) {
+    // Draw circle background
+    final circlePaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    canvas.drawCircle(Offset(x, y), 8, circlePaint);
+
+    // Draw border
+    final borderPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+
+    canvas.drawCircle(Offset(x, y), 8, borderPaint);
+
+    // Draw symbol
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: symbol,
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+
+    textPainter.layout();
+    textPainter.paint(
+        canvas, Offset(x - textPainter.width / 2, y - textPainter.height / 2));
+  }
+
   @override
   bool shouldRepaint(CandlestickPainter oldDelegate) {
     return oldDelegate.startIndex != startIndex ||
         oldDelegate.endIndex != endIndex ||
-        oldDelegate.hoveredIndex != hoveredIndex;
+        oldDelegate.hoveredIndex != hoveredIndex ||
+        oldDelegate.trades != trades;
+  }
+
+  void _drawHoverOverlay(
+    Canvas canvas,
+    Size chartArea,
+    List<Candle> visibleCandles,
+    double minPrice,
+    double maxPrice,
+    double candleWidth,
+    double labelWidth,
+  ) {
+    final priceRange = maxPrice - minPrice;
+    final localIndex = hoveredIndex! - startIndex;
+    if (localIndex < 0 || localIndex >= visibleCandles.length) return;
+    final candle = visibleCandles[localIndex];
+
+    // Vertical line at hovered candle
+    final x = (localIndex + 0.5) * candleWidth;
+    final vPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.15)
+      ..strokeWidth = 1;
+    canvas.drawLine(Offset(x, 0), Offset(x, chartArea.height), vPaint);
+
+    // Tooltip box near top-left of hovered candle
+    final closeY = chartArea.height - ((candle.close - minPrice) / priceRange * chartArea.height);
+    final tooltipX = (x + 10).clamp(10, chartArea.width - labelWidth - 160);
+    final tooltipY = (closeY - 10).clamp(10, chartArea.height - 110);
+    final rect = Rect.fromLTWH(tooltipX.toDouble(), tooltipY.toDouble(), 150, 100);
+
+    final bgPaint = Paint()
+      ..color = Colors.black.withValues(alpha: 0.7)
+      ..style = PaintingStyle.fill;
+    canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(6)), bgPaint);
+
+    // Compose text lines: time and OHLC
+    final lines = <String>[
+      _formatTimestamp(candle.timestamp),
+      'O ${candle.open.toStringAsFixed(4)}',
+      'H ${candle.high.toStringAsFixed(4)}',
+      'L ${candle.low.toStringAsFixed(4)}',
+      'C ${candle.close.toStringAsFixed(4)}',
+    ];
+
+    // Trade info if available at this candle
+    if (trades != null && trades!.isNotEmpty) {
+      for (final t in trades!) {
+        if (t.entryTime.isAtSameMomentAs(candle.timestamp)) {
+          lines.add(t.direction == TradeDirection.buy ? 'Entry ▲ ${t.entryPrice.toStringAsFixed(4)}' : 'Entry ▼ ${t.entryPrice.toStringAsFixed(4)}');
+        }
+        if (t.status == TradeStatus.closed && t.exitTime != null && t.exitTime!.isAtSameMomentAs(candle.timestamp)) {
+          lines.add(t.direction == TradeDirection.buy ? 'Exit ▼ ${t.exitPrice!.toStringAsFixed(4)}' : 'Exit ▲ ${t.exitPrice!.toStringAsFixed(4)}');
+        }
+      }
+    }
+
+    final textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
+    double dy = rect.top + 8;
+    for (int i = 0; i < lines.length && i < 6; i++) {
+      textPainter.text = TextSpan(
+        text: lines[i],
+        style: const TextStyle(color: Colors.white, fontSize: 11),
+      );
+      textPainter.layout(maxWidth: rect.width - 12);
+      textPainter.paint(canvas, Offset(rect.left + 6, dy));
+      dy += textPainter.height + 2;
+    }
+  }
+
+  String _formatTimestamp(DateTime dt) {
+    // Simple date formatting without intl
+    final y = dt.year.toString().padLeft(4, '0');
+    final m = dt.month.toString().padLeft(2, '0');
+    final d = dt.day.toString().padLeft(2, '0');
+    final hh = dt.hour.toString().padLeft(2, '0');
+    final mm = dt.minute.toString().padLeft(2, '0');
+    return '$y-$m-$d $hh:$mm';
   }
 }

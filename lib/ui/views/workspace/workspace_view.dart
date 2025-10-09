@@ -131,7 +131,10 @@ class WorkspaceView extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: Theme.of(context)
+              .colorScheme
+              .surfaceVariant
+              .withValues(alpha: 0.3),
         ),
       ),
     );
@@ -147,7 +150,7 @@ class WorkspaceView extends StatelessWidget {
         children: [
           Icon(
             Icons.info_outline,
-            color: Theme.of(context).primaryColor,
+            color: Theme.of(context).colorScheme.primary,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -155,7 +158,7 @@ class WorkspaceView extends StatelessWidget {
             child: Text(
               'Select 2-4 results to compare (${model.selectedCount}/4 selected)',
               style: TextStyle(
-                color: Theme.of(context).primaryColor,
+                color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -180,7 +183,8 @@ class WorkspaceView extends StatelessWidget {
           Icon(
             isEmpty ? Icons.folder_open : Icons.search_off,
             size: 80,
-            color: Colors.grey[400],
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -196,7 +200,10 @@ class WorkspaceView extends StatelessWidget {
                 ? 'Create your first trading strategy'
                 : 'Try a different search term',
             style: TextStyle(
-              color: Colors.grey[600],
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),
@@ -336,7 +343,9 @@ class WorkspaceView extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.grey[300]!),
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: DropdownButtonHideUnderline(
@@ -420,13 +429,15 @@ class WorkspaceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color:
+            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           Expanded(
             child: _buildStatItem(
+              context,
               'Tests',
               '${stats.totalBacktests}',
               Icons.analytics_outlined,
@@ -435,6 +446,7 @@ class WorkspaceView extends StatelessWidget {
           ),
           Expanded(
             child: _buildStatItem(
+              context,
               'Avg P&L',
               stats.formatAvgPnlPercent(),
               Icons.trending_up,
@@ -443,6 +455,7 @@ class WorkspaceView extends StatelessWidget {
           ),
           Expanded(
             child: _buildStatItem(
+              context,
               'Win Rate',
               stats.formatWinRate(),
               Icons.check_circle_outline,
@@ -454,8 +467,8 @@ class WorkspaceView extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildStatItem(BuildContext context, String label, String value,
+      IconData icon, Color color) {
     return Column(
       children: [
         Icon(icon, color: color, size: 20),
@@ -472,7 +485,8 @@ class WorkspaceView extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey[600],
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
       ],
@@ -483,17 +497,26 @@ class WorkspaceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color:
+            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
+          Icon(
+            Icons.info_outline,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Text(
             'No backtest results yet',
             style: TextStyle(
-              color: Colors.grey[600],
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
               fontSize: 14,
             ),
           ),
@@ -516,10 +539,14 @@ class WorkspaceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceVariant
+            .withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isProfitable ? Colors.green[300]! : Colors.red[300]!,
+          color:
+              isProfitable ? Colors.green.withValues(alpha: 0.6) : Colors.red,
         ),
       ),
       child: Column(
@@ -552,6 +579,7 @@ class WorkspaceView extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildStatItem(
+                  context,
                   'Win Rate',
                   '${(summary.winRate).toStringAsFixed(1)}%',
                   Icons.check_circle_outline,
@@ -560,6 +588,7 @@ class WorkspaceView extends StatelessWidget {
               ),
               Expanded(
                 child: _buildStatItem(
+                  context,
                   'P&L',
                   summary.totalPnl.toStringAsFixed(2),
                   Icons.trending_up,
@@ -568,6 +597,7 @@ class WorkspaceView extends StatelessWidget {
               ),
               Expanded(
                 child: _buildStatItem(
+                  context,
                   'Trades',
                   '${summary.totalTrades}',
                   Icons.swap_horiz,
@@ -590,7 +620,10 @@ class WorkspaceView extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceVariant
+            .withValues(alpha: 0.06),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
       ),
       child: Column(
@@ -634,11 +667,12 @@ class WorkspaceView extends StatelessWidget {
       decoration: BoxDecoration(
         color: isSelected
             ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-            : Colors.white,
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color:
-              isSelected ? Theme.of(context).primaryColor : Colors.grey[300]!,
+          color: isSelected
+              ? Theme.of(context).primaryColor
+              : Theme.of(context).colorScheme.outline,
           width: isSelected ? 2 : 1,
         ),
       ),
@@ -671,14 +705,20 @@ class WorkspaceView extends StatelessWidget {
                         Icon(
                           Icons.calendar_today,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withValues(alpha: 0.6),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           _formatDateTime(result.executedAt),
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.grey[700],
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.8),
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -690,6 +730,7 @@ class WorkspaceView extends StatelessWidget {
                     Row(
                       children: [
                         _buildResultMetric(
+                          context,
                           'P&L',
                           _formatPnL(result.summary.totalPnl),
                           _formatPnLPercent(result.summary.totalPnlPercentage),
@@ -699,6 +740,7 @@ class WorkspaceView extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         _buildResultMetric(
+                          context,
                           'Win Rate',
                           '${result.summary.winRate.toStringAsFixed(1)}%',
                           '${result.summary.winningTrades}/${result.summary.totalTrades}',
@@ -706,6 +748,7 @@ class WorkspaceView extends StatelessWidget {
                         ),
                         const SizedBox(width: 16),
                         _buildResultMetric(
+                          context,
                           'PF',
                           result.summary.profitFactor.toStringAsFixed(2),
                           null,
@@ -741,6 +784,7 @@ class WorkspaceView extends StatelessWidget {
   }
 
   Widget _buildResultMetric(
+    BuildContext context,
     String label,
     String value,
     String? subtitle,
@@ -753,7 +797,8 @@ class WorkspaceView extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey[600],
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 2),
@@ -770,7 +815,10 @@ class WorkspaceView extends StatelessWidget {
             subtitle,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.grey[500],
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
           ),
       ],

@@ -31,9 +31,10 @@ class EquityCurveChart extends StatelessWidget {
       children: [
         if (!shouldShowOnlyDrawdown) _buildStatsRow(),
         if (!shouldShowOnlyDrawdown) const SizedBox(height: 16),
-        
+
         // Tampilkan equity chart jika mode equity atau mode default dengan showDrawdown
-        if (shouldShowOnlyEquity || (!shouldShowOnlyDrawdown && !shouldShowOnlyEquity))
+        if (shouldShowOnlyEquity ||
+            (!shouldShowOnlyDrawdown && !shouldShowOnlyEquity))
           Expanded(
             flex: (shouldShowOnlyEquity || !showDrawdown) ? 10 : 7,
             child: Padding(
@@ -41,13 +42,14 @@ class EquityCurveChart extends StatelessWidget {
               child: LineChart(_buildEquityChartData()),
             ),
           ),
-        
+
         // Tampilkan drawdown chart jika mode drawdown atau mode default dengan showDrawdown
         if (shouldShowOnlyDrawdown || (showDrawdown && !shouldShowOnlyEquity))
           Expanded(
             flex: shouldShowOnlyDrawdown ? 10 : 3,
             child: Padding(
-              padding: EdgeInsets.only(right: 16, top: shouldShowOnlyDrawdown ? 8 : 16),
+              padding: EdgeInsets.only(
+                  right: 16, top: shouldShowOnlyDrawdown ? 8 : 16),
               child: LineChart(_buildDrawdownChartData()),
             ),
           ),
@@ -168,7 +170,7 @@ class EquityCurveChart extends StatelessWidget {
           if ((value - initialCapital).abs() < (maxEquity - minEquity) * 0.02) {
             return FlLine(
               color: Colors.blue.withValues(alpha: 0.5),
-              strokeWidth: 2,
+              strokeWidth: 1,
               dashArray: [5, 5],
             );
           }

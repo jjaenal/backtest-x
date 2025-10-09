@@ -50,12 +50,20 @@ class IndicatorPanel extends StatelessWidget {
                       histogram: additionalLine2,
                       startIndex: startIndex,
                       endIndex: endIndex,
+                      labelColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.8),
                     )
                   : OscillatorPainter(
                       values: values,
                       type: type,
                       startIndex: startIndex,
                       endIndex: endIndex,
+                      labelColor: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.8),
                     ),
               child: Container(),
             ),
@@ -96,12 +104,14 @@ class OscillatorPainter extends CustomPainter {
   final IndicatorType type;
   final int startIndex;
   final int endIndex;
+  final Color labelColor;
 
   OscillatorPainter({
     required this.values,
     required this.type,
     required this.startIndex,
     required this.endIndex,
+    required this.labelColor,
   });
 
   @override
@@ -254,7 +264,7 @@ class OscillatorPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: value.toStringAsFixed(type == IndicatorType.rsi ? 0 : 2),
-        style: const TextStyle(color: Colors.black, fontSize: 10),
+        style: TextStyle(color: labelColor, fontSize: 10),
       );
       textPainter.layout();
       textPainter.paint(canvas, Offset(size.width - 50, y - 6));
@@ -299,6 +309,7 @@ class MACDPainter extends CustomPainter {
   final List<double?>? histogram;
   final int startIndex;
   final int endIndex;
+  final Color labelColor;
 
   MACDPainter({
     required this.macdLine,
@@ -306,6 +317,7 @@ class MACDPainter extends CustomPainter {
     this.histogram,
     required this.startIndex,
     required this.endIndex,
+    required this.labelColor,
   });
 
   @override
@@ -482,7 +494,7 @@ class MACDPainter extends CustomPainter {
 
       textPainter.text = TextSpan(
         text: value.toStringAsFixed(4),
-        style: const TextStyle(color: Colors.black, fontSize: 10),
+        style: TextStyle(color: labelColor, fontSize: 10),
       );
       textPainter.layout();
       textPainter.paint(canvas, Offset(size.width - 55, y - 6));

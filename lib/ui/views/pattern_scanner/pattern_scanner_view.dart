@@ -59,7 +59,8 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.grey[100],
+      color:
+          Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -81,7 +82,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -152,7 +153,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.search,
+            size: 80,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+          ),
           const SizedBox(height: 16),
           const Text(
             'Select market data to scan',
@@ -161,7 +167,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           const SizedBox(height: 8),
           Text(
             'Choose a market data from dropdown above',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
+            ),
           ),
         ],
       ),
@@ -173,7 +184,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.check_circle_outline, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.check_circle_outline,
+            size: 80,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+          ),
           const SizedBox(height: 16),
           const Text(
             'No patterns found',
@@ -182,7 +198,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           const SizedBox(height: 8),
           Text(
             'Try adjusting your filters',
-            style: TextStyle(color: Colors.grey[600]),
+            style: TextStyle(
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
+            ),
           ),
         ],
       ),
@@ -288,17 +309,18 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               children: [
                 Expanded(
                   child: _buildCandleDetail(
+                      context,
                       'Time',
                       DateFormat('MMM dd, HH:mm')
                           .format(pattern.candle.timestamp)),
                 ),
                 Expanded(
                   child: _buildCandleDetail(
-                      'Open', pattern.candle.open.toStringAsFixed(4)),
+                      context, 'Open', pattern.candle.open.toStringAsFixed(4)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(
-                      'Close', pattern.candle.close.toStringAsFixed(4)),
+                  child: _buildCandleDetail(context, 'Close',
+                      pattern.candle.close.toStringAsFixed(4)),
                 ),
               ],
             ),
@@ -309,14 +331,14 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               children: [
                 Expanded(
                   child: _buildCandleDetail(
-                      'High', pattern.candle.high.toStringAsFixed(4)),
+                      context, 'High', pattern.candle.high.toStringAsFixed(4)),
                 ),
                 Expanded(
                   child: _buildCandleDetail(
-                      'Low', pattern.candle.low.toStringAsFixed(4)),
+                      context, 'Low', pattern.candle.low.toStringAsFixed(4)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail('Body',
+                  child: _buildCandleDetail(context, 'Body',
                       '${pattern.candle.bodyPercentage.toStringAsFixed(1)}%'),
                 ),
               ],
@@ -328,20 +350,33 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceVariant
+                    .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, size: 16, color: Colors.grey[600]),
+                  Icon(
+                    Icons.info_outline,
+                    size: 16,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       pattern.description,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[700],
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.8),
                         height: 1.4,
                       ),
                     ),
@@ -355,7 +390,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
     );
   }
 
-  Widget _buildCandleDetail(String label, String value) {
+  Widget _buildCandleDetail(BuildContext context, String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -363,7 +398,8 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey[600],
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
           ),
         ),
         const SizedBox(height: 2),

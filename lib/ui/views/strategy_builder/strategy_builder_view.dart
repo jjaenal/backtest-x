@@ -176,7 +176,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   IconButton(
                                     icon: const Icon(Icons.add_circle),
                                     onPressed: viewModel.addEntryRule,
-                                    color: Colors.blue,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ],
                               ),
@@ -188,18 +188,28 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     child: Column(
                                       children: [
                                         Icon(Icons.add_box,
-                                            size: 48, color: Colors.grey[400]),
+                                            size: 48,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.4)),
                                         const SizedBox(height: 8),
                                         Text(
                                           'No entry rules yet',
                                           style: TextStyle(
-                                              color: Colors.grey[600]),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.6)),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Tap + to add a rule',
                                           style: TextStyle(
-                                              color: Colors.grey[500],
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.5),
                                               fontSize: 12),
                                         ),
                                       ],
@@ -245,7 +255,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   IconButton(
                                     icon: const Icon(Icons.add_circle),
                                     onPressed: viewModel.addExitRule,
-                                    color: Colors.green,
+                                    color: Theme.of(context).colorScheme.primary,
                                   ),
                                 ],
                               ),
@@ -257,18 +267,28 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     child: Column(
                                       children: [
                                         Icon(Icons.add_box,
-                                            size: 48, color: Colors.grey[400]),
+                                            size: 48,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface
+                                                .withValues(alpha: 0.4)),
                                         const SizedBox(height: 8),
                                         Text(
                                           'No exit rules yet',
                                           style: TextStyle(
-                                              color: Colors.grey[600]),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.6)),
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
                                           'Tap + to add a rule',
                                           style: TextStyle(
-                                              color: Colors.grey[500],
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurface
+                                                  .withValues(alpha: 0.5),
                                               fontSize: 12),
                                         ),
                                       ],
@@ -481,7 +501,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
   ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isEntry ? Colors.white70 : Colors.white70,
+      color: Theme.of(context).colorScheme.surface,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
@@ -503,7 +523,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       viewModel.removeExitRule(index);
                     }
                   },
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                 ),
               ],
             ),

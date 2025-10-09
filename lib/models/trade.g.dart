@@ -55,6 +55,7 @@ _$BacktestResultImpl _$$BacktestResultImplFromJson(Map<String, dynamic> json) =>
     _$BacktestResultImpl(
       id: json['id'] as String,
       strategyId: json['strategyId'] as String,
+      marketDataId: json['marketDataId'] as String,
       executedAt: DateTime.parse(json['executedAt'] as String),
       trades: (json['trades'] as List<dynamic>)
           .map((e) => Trade.fromJson(e as Map<String, dynamic>))
@@ -71,6 +72,7 @@ Map<String, dynamic> _$$BacktestResultImplToJson(
     <String, dynamic>{
       'id': instance.id,
       'strategyId': instance.strategyId,
+      'marketDataId': instance.marketDataId,
       'executedAt': instance.executedAt.toIso8601String(),
       'trades': instance.trades,
       'summary': instance.summary,

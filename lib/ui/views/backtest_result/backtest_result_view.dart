@@ -1,5 +1,6 @@
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/ui/widgets/equity_curve_chart.dart';
+import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'backtest_result_viewmodel.dart';
@@ -56,8 +57,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            viewModel.chartMode == ChartMode.equity 
-                                ? 'Equity Curve' 
+                            viewModel.chartMode == ChartMode.equity
+                                ? 'Equity Curve'
                                 : 'Drawdown Chart',
                             style: const TextStyle(
                               fontSize: 18,
@@ -66,8 +67,17 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           ),
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceVariant
+                                  .withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(25),
+                              border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .outline
+                                    .withValues(alpha: 0.3),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -77,14 +87,16 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                   'Equity',
                                   ChartMode.equity,
                                   viewModel.chartMode == ChartMode.equity,
-                                  () => viewModel.setChartMode(ChartMode.equity),
+                                  () =>
+                                      viewModel.setChartMode(ChartMode.equity),
                                 ),
                                 _buildModeButton(
                                   context,
                                   'Drawdown',
                                   ChartMode.drawdown,
                                   viewModel.chartMode == ChartMode.drawdown,
-                                  () => viewModel.setChartMode(ChartMode.drawdown),
+                                  () => viewModel
+                                      .setChartMode(ChartMode.drawdown),
                                 ),
                               ],
                             ),
@@ -95,10 +107,12 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                       Expanded(
                         child: EquityCurveChart(
                           equityCurve: result.equityCurve,
-                          initialCapital: result.summary.totalPnl > 0
+                          initialCapital: (result.equityCurve.isNotEmpty &&
+                                  result.summary.totalPnl > 0)
                               ? result.equityCurve.first.equity
-                              : 10000, // Default initial capital
-                          showDrawdown: viewModel.chartMode == ChartMode.drawdown,
+                              : 10000, // Fallback jika equityCurve kosong
+                          showDrawdown:
+                              viewModel.chartMode == ChartMode.drawdown,
                           chartMode: viewModel.chartMode,
                         ),
                       ),
@@ -107,6 +121,75 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 ),
               ),
             ),
+
+            // Price Chart with Entry/Exit Markers
+            if (result.trades.isNotEmpty)
+              SizedBox(
+                height: 450,
+                child: Card(
+                  margin: const EdgeInsets.all(16),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Wrap(
+                        //   alignment: WrapAlignment.start,
+                        //   runSpacing: 8,
+                        //   children: [
+                        //     const Text(
+                        //       'Price Chart with Trade Markers',
+                        //       style: TextStyle(
+                        //         fontSize: 18,
+                        //         fontWeight: FontWeight.bold,
+                        //       ),
+                        //     ),
+                        //     const Spacer(),
+                        //     Container(
+                        //       padding: const EdgeInsets.symmetric(
+                        //           horizontal: 12, vertical: 6),
+                        //       decoration: BoxDecoration(
+                        //         color: Colors.blue[50],
+                        //         borderRadius: BorderRadius.circular(20),
+                        //         border: Border.all(color: Colors.blue[200]!),
+                        //       ),
+                        //       child: Row(
+                        //         mainAxisSize: MainAxisSize.min,
+                        //         children: [
+                        //           Icon(Icons.info_outline,
+                        //               size: 16, color: Colors.blue[700]),
+                        //           const SizedBox(width: 4),
+                        //           Text(
+                        //             '${result.trades.length} trades',
+                        //             style: TextStyle(
+                        //               fontSize: 12,
+                        //               color: Colors.blue[700],
+                        //               fontWeight: FontWeight.w500,
+                        //             ),
+                        //           ),
+                        //         ],
+                        //       ),
+                        //     ),
+                        //   ],
+                        // ),
+                        // const SizedBox(height: 8),
+                        Expanded(
+                          child: CandlestickChart(
+                            candles: viewModel.getCandles(),
+                            trades: result.trades,
+                            title: 'Price Action with Entry/Exit Points',
+                            showVolume: false,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
             // Performance Summary
             Padding(
@@ -155,6 +238,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           children: [
             Expanded(
               child: _buildMetricCard(
+                context,
                 'Total P&L',
                 '\$${summary.totalPnl.toStringAsFixed(2)}',
                 '${summary.totalPnlPercentage >= 0 ? '+' : ''}${summary.totalPnlPercentage.toStringAsFixed(2)}%',
@@ -165,6 +249,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildMetricCard(
+                context,
                 'Win Rate',
                 '${summary.winRate.toStringAsFixed(1)}%',
                 '${summary.winningTrades}/${summary.totalTrades} wins',
@@ -179,6 +264,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           children: [
             Expanded(
               child: _buildMetricCard(
+                context,
                 'Profit Factor',
                 summary.profitFactor.toStringAsFixed(2),
                 summary.profitFactor >= 1 ? 'Good' : 'Poor',
@@ -189,6 +275,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             const SizedBox(width: 12),
             Expanded(
               child: _buildMetricCard(
+                context,
                 'Sharpe Ratio',
                 summary.sharpeRatio.toStringAsFixed(2),
                 summary.sharpeRatio > 1 ? 'Excellent' : 'Fair',
@@ -203,6 +290,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   }
 
   Widget _buildMetricCard(
+    BuildContext context,
     String title,
     String value,
     String subtitle,
@@ -237,7 +325,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     title,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[700],
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.8),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -258,7 +349,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               subtitle,
               style: TextStyle(
                 fontSize: 11,
-                color: Colors.grey[600],
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
               ),
             ),
           ],
@@ -373,7 +467,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceVariant
+                  .withValues(alpha: 0.2),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -432,7 +529,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                             Text(
                               trade.entryPrice.toStringAsFixed(4),
                               style: TextStyle(
-                                  fontSize: 10, color: Colors.grey[600]),
+                                  fontSize: 10,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.7)),
                             ),
                           ],
                         ),
@@ -450,7 +551,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                             Text(
                               trade.exitPrice?.toStringAsFixed(4) ?? '-',
                               style: TextStyle(
-                                  fontSize: 10, color: Colors.grey[600]),
+                                  fontSize: 10,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withValues(alpha: 0.7)),
                             ),
                           ],
                         ),
@@ -506,7 +611,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: Theme.of(context)
+                    .colorScheme
+                    .surfaceVariant
+                    .withValues(alpha: 0.12),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),
                   bottomRight: Radius.circular(12),
@@ -517,7 +625,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   '+ ${closedTrades.length - 10} more trades',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -573,26 +684,28 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     const SizedBox(height: 24),
 
                     // Trade info
-                    _buildDetailRow('Direction',
+                    _buildDetailRow(context, 'Direction',
                         trade.direction == TradeDirection.buy ? 'BUY' : 'SELL'),
-                    _buildDetailRow('Entry Time', '${trade.entryTime}'),
                     _buildDetailRow(
-                        'Entry Price', trade.entryPrice.toStringAsFixed(4)),
-                    _buildDetailRow(
-                        'Exit Time', '${trade.exitTime ?? "Still Open"}'),
-                    _buildDetailRow('Exit Price',
+                        context, 'Entry Time', '${trade.entryTime}'),
+                    _buildDetailRow(context, 'Entry Price',
+                        trade.entryPrice.toStringAsFixed(4)),
+                    _buildDetailRow(context, 'Exit Time',
+                        '${trade.exitTime ?? "Still Open"}'),
+                    _buildDetailRow(context, 'Exit Price',
                         trade.exitPrice?.toStringAsFixed(4) ?? '-'),
                     _buildDetailRow(
-                        'Lot Size', trade.lotSize.toStringAsFixed(2)),
-                    _buildDetailRow(
-                        'Stop Loss', trade.stopLoss?.toStringAsFixed(4) ?? '-'),
-                    _buildDetailRow('Take Profit',
+                        context, 'Lot Size', trade.lotSize.toStringAsFixed(2)),
+                    _buildDetailRow(context, 'Stop Loss',
+                        trade.stopLoss?.toStringAsFixed(4) ?? '-'),
+                    _buildDetailRow(context, 'Take Profit',
                         trade.takeProfit?.toStringAsFixed(4) ?? '-'),
-                    _buildDetailRow(
-                        'P&L', '\$${(trade.pnl ?? 0).toStringAsFixed(2)}'),
-                    _buildDetailRow('P&L %',
+                    _buildDetailRow(context, 'P&L',
+                        '\$${(trade.pnl ?? 0).toStringAsFixed(2)}'),
+                    _buildDetailRow(context, 'P&L %',
                         '${(trade.pnlPercentage ?? 0).toStringAsFixed(2)}%'),
-                    _buildDetailRow('Exit Reason', trade.exitReason ?? '-'),
+                    _buildDetailRow(
+                        context, 'Exit Reason', trade.exitReason ?? '-'),
 
                     const SizedBox(height: 24),
                     SizedBox(
@@ -612,7 +725,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -622,7 +735,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             label,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
             ),
           ),
           Text(
@@ -669,7 +785,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          color:
+              isSelected ? Theme.of(context).primaryColor : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -677,7 +794,12 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w600,
-            color: isSelected ? Colors.white : Colors.grey[600],
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
           ),
         ),
       ),

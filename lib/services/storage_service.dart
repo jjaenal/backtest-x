@@ -43,11 +43,12 @@ class StorageService {
       )
     ''');
 
-    // Backtest results table - Store summary only, not full trades
+    // Backtest results table - Optimized (no full trade storage)
     await db.execute('''
       CREATE TABLE backtest_results (
         id TEXT PRIMARY KEY,
         strategy_id TEXT NOT NULL,
+        market_data_id TEXT NOT NULL,
         summary TEXT NOT NULL,
         trades_count INTEGER NOT NULL,
         created_at INTEGER NOT NULL,
@@ -170,6 +171,7 @@ class StorageService {
       {
         'id': result.id,
         'strategy_id': result.strategyId,
+        'market_data_id': result.marketDataId,
         'summary': jsonEncode(result.summary.toJson()),
         'trades_count': result.trades.length,
         'created_at': result.executedAt.millisecondsSinceEpoch,
@@ -189,9 +191,10 @@ class StorageService {
 
   Future<List<BacktestResult>> getBacktestResultsByStrategy(
       String strategyId) async {
-    // Check cache first
-    if (_resultCache.containsKey(strategyId)) {
-      return _resultCache[strategyId]!;
+    // Check cache first (only return if non-empty, otherwise load from DB)
+    final cached = _resultCache[strategyId];
+    if (cached != null && cached.isNotEmpty) {
+      return cached;
     }
 
     final db = await database;
@@ -203,10 +206,34 @@ class StorageService {
       limit: 20, // Limit for performance
     );
 
+    // Lightweight migration: ensure market_data_id is non-null/non-empty
+    for (final map in maps) {
+      final rawMarketId = map['market_data_id'] as String?;
+      if (rawMarketId == null || rawMarketId.trim().isEmpty) {
+        // Update DB to keep data consistent going forward
+        try {
+          await db.update(
+            'backtest_results',
+            {'market_data_id': 'unknown'},
+            where: 'id = ?',
+            whereArgs: [map['id']],
+          );
+        } catch (_) {
+          // Safe fallback if update fails; proceed with in-memory default
+        }
+      }
+    }
+
     final results = maps.map((map) {
+      final rawMarketId = map['market_data_id'] as String?;
+      final normalizedMarketId =
+          (rawMarketId == null || rawMarketId.trim().isEmpty)
+              ? 'unknown'
+              : rawMarketId;
       return BacktestResult(
         id: map['id'] as String,
         strategyId: map['strategy_id'] as String,
+        marketDataId: normalizedMarketId,
         executedAt:
             DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
         summary: BacktestSummary.fromJson(jsonDecode(map['summary'] as String)),
@@ -230,9 +257,28 @@ class StorageService {
     if (maps.isEmpty) return null;
 
     final map = maps.first;
+    // Lightweight migration: ensure market_data_id is non-null/non-empty
+    final rawMarketId = map['market_data_id'] as String?;
+    if (rawMarketId == null || rawMarketId.trim().isEmpty) {
+      try {
+        await db.update(
+          'backtest_results',
+          {'market_data_id': 'unknown'},
+          where: 'id = ?',
+          whereArgs: [map['id']],
+        );
+      } catch (_) {
+        // Ignore migration failure; continue with default value
+      }
+    }
+    final normalizedMarketId =
+        (rawMarketId == null || rawMarketId.trim().isEmpty)
+            ? 'unknown'
+            : rawMarketId;
     return BacktestResult(
       id: map['id'] as String,
       strategyId: map['strategy_id'] as String,
+      marketDataId: normalizedMarketId,
       executedAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       summary: BacktestSummary.fromJson(jsonDecode(map['summary'] as String)),
       trades: [], // Trades not stored anymore for performance

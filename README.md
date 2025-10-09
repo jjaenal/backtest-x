@@ -291,7 +291,7 @@ void main() {
 - [ ] Save/load strategies
 - [ ] Multi-timeframe analysis
 - [ ] UI/UX improvements
-- [ ] Dark/Light theme toggle
+- [x] Dark/Light theme toggle
 - [x] Advanced charts (candlestick with indicators)
 
 ### Phase 3 - Premium (6-12 months)

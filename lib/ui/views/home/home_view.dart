@@ -1,3 +1,5 @@
+import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/services/theme_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'home_viewmodel.dart';
@@ -17,6 +19,13 @@ class HomeView extends StackedView<HomeViewModel> {
         centerTitle: true,
         actions: [
           IconButton(
+            icon: const Icon(Icons.brightness_6),
+            onPressed: () {
+              locator<ThemeService>().toggleTheme();
+            },
+            tooltip: 'Toggle Theme',
+          ),
+          IconButton(
             icon: const Icon(Icons.workspace_premium),
             onPressed: () {},
           ),
@@ -30,7 +39,7 @@ class HomeView extends StackedView<HomeViewModel> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Quick Stats Card
-                _buildStatsCard(viewModel),
+                _buildStatsCard(context, viewModel),
                 const SizedBox(height: 24),
 
                 // Action Buttons
@@ -139,7 +148,7 @@ class HomeView extends StackedView<HomeViewModel> {
     );
   }
 
-  Widget _buildStatsCard(HomeViewModel viewModel) {
+  Widget _buildStatsCard(BuildContext context, HomeViewModel viewModel) {
     return Card(
       elevation: 2,
       child: Padding(
@@ -150,16 +159,19 @@ class HomeView extends StackedView<HomeViewModel> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildStatItem(
+                  context,
                   'Strategies',
                   '${viewModel.strategiesCount}',
                   Icons.psychology,
                 ),
                 _buildStatItem(
+                  context,
                   'Data Sets',
                   '${viewModel.dataSetsCount}',
                   Icons.storage,
                 ),
                 _buildStatItem(
+                  context,
                   'Tests Run',
                   '${viewModel.testsCount}',
                   Icons.speed,
@@ -172,24 +184,32 @@ class HomeView extends StackedView<HomeViewModel> {
     );
   }
 
-  Widget _buildStatItem(String label, String value, IconData icon) {
+  Widget _buildStatItem(
+      BuildContext context, String label, String value, IconData icon) {
     return Column(
       children: [
-        Icon(icon, size: 32, color: Colors.blue),
+        Icon(
+          icon,
+          size: 32,
+          color: Theme.of(context).colorScheme.primary,
+        ),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ) ??
+              const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
+                  ) ??
+              const TextStyle(fontSize: 12),
         ),
       ],
     );
@@ -216,14 +236,25 @@ class HomeView extends StackedView<HomeViewModel> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: enabled
-                      ? Colors.blue.withValues(alpha: 0.1)
-                      : Colors.grey.withValues(alpha: 0.1),
+                      ? Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.12)
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   icon,
                   size: 32,
-                  color: enabled ? Colors.blue : Colors.grey,
+                  color: enabled
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.6),
                 ),
               ),
               const SizedBox(width: 16),
@@ -236,7 +267,12 @@ class HomeView extends StackedView<HomeViewModel> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: enabled ? Colors.black : Colors.grey,
+                        color: enabled
+                            ? Theme.of(context).textTheme.titleMedium?.color
+                            : Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.6),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -244,7 +280,9 @@ class HomeView extends StackedView<HomeViewModel> {
                       subtitle,
                       style: TextStyle(
                         fontSize: 14,
-                        color: enabled ? Colors.grey[600] : Colors.grey[400],
+                        color: (Theme.of(context).textTheme.bodySmall?.color ??
+                                Theme.of(context).colorScheme.onSurface)
+                            .withValues(alpha: enabled ? 0.7 : 0.5),
                       ),
                     ),
                   ],
@@ -253,7 +291,10 @@ class HomeView extends StackedView<HomeViewModel> {
               Icon(
                 Icons.arrow_forward_ios,
                 size: 16,
-                color: enabled ? Colors.grey : Colors.grey[300],
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: enabled ? 0.6 : 0.3),
               ),
             ],
           ),

@@ -58,7 +58,10 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.grey[100],
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceVariant
+          .withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -77,7 +80,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
@@ -106,7 +109,12 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.analytics_outlined, size: 80, color: Colors.grey[400]),
+          Icon(
+            Icons.analytics_outlined,
+            size: 80,
+            color:
+                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
+          ),
           const SizedBox(height: 16),
           const Text(
             'Select market to analyze',
@@ -267,7 +275,12 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
             const SizedBox(height: 8),
             Text(
               data.dateRange,
-              style: TextStyle(color: Colors.grey[600]),
+              style: TextStyle(
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.7),
+              ),
             ),
             const SizedBox(height: 20),
             Row(
@@ -396,7 +409,10 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                     'Strength: ${data.trendStrength}',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.7),
                     ),
                   ),
                 ],

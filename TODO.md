@@ -109,9 +109,9 @@
 
 - [x] Basic candlestick chart
 - [x] Zoom & pan
-- [ ] Show entry/exit markers
+- [x] Show entry/exit markers
 - [x] Overlay indicators (SMA, EMA)
-- [ ] Tooltip on hover
+- [x] Tooltip on hover
 
 **Library:** Use `candlesticks` or `fl_chart`
 
@@ -145,7 +145,7 @@
 - [ ] Loading skeletons
 - [ ] Error handling UI
 - [ ] Animations & transitions
-- [ ] Dark/Light theme toggle
+- [x] Dark/Light theme toggle
 
 ### Data Management
 

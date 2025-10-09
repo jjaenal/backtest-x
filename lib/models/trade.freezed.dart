@@ -434,6 +434,8 @@ BacktestResult _$BacktestResultFromJson(Map<String, dynamic> json) {
 mixin _$BacktestResult {
   String get id => throw _privateConstructorUsedError;
   String get strategyId => throw _privateConstructorUsedError;
+  String get marketDataId =>
+      throw _privateConstructorUsedError; // Add market data ID
   DateTime get executedAt => throw _privateConstructorUsedError;
   List<Trade> get trades => throw _privateConstructorUsedError;
   BacktestSummary get summary => throw _privateConstructorUsedError;
@@ -458,6 +460,7 @@ abstract class $BacktestResultCopyWith<$Res> {
   $Res call(
       {String id,
       String strategyId,
+      String marketDataId,
       DateTime executedAt,
       List<Trade> trades,
       BacktestSummary summary,
@@ -483,6 +486,7 @@ class _$BacktestResultCopyWithImpl<$Res, $Val extends BacktestResult>
   $Res call({
     Object? id = null,
     Object? strategyId = null,
+    Object? marketDataId = null,
     Object? executedAt = null,
     Object? trades = null,
     Object? summary = null,
@@ -496,6 +500,10 @@ class _$BacktestResultCopyWithImpl<$Res, $Val extends BacktestResult>
       strategyId: null == strategyId
           ? _value.strategyId
           : strategyId // ignore: cast_nullable_to_non_nullable
+              as String,
+      marketDataId: null == marketDataId
+          ? _value.marketDataId
+          : marketDataId // ignore: cast_nullable_to_non_nullable
               as String,
       executedAt: null == executedAt
           ? _value.executedAt
@@ -538,6 +546,7 @@ abstract class _$$BacktestResultImplCopyWith<$Res>
   $Res call(
       {String id,
       String strategyId,
+      String marketDataId,
       DateTime executedAt,
       List<Trade> trades,
       BacktestSummary summary,
@@ -562,6 +571,7 @@ class __$$BacktestResultImplCopyWithImpl<$Res>
   $Res call({
     Object? id = null,
     Object? strategyId = null,
+    Object? marketDataId = null,
     Object? executedAt = null,
     Object? trades = null,
     Object? summary = null,
@@ -575,6 +585,10 @@ class __$$BacktestResultImplCopyWithImpl<$Res>
       strategyId: null == strategyId
           ? _value.strategyId
           : strategyId // ignore: cast_nullable_to_non_nullable
+              as String,
+      marketDataId: null == marketDataId
+          ? _value.marketDataId
+          : marketDataId // ignore: cast_nullable_to_non_nullable
               as String,
       executedAt: null == executedAt
           ? _value.executedAt
@@ -602,6 +616,7 @@ class _$BacktestResultImpl implements _BacktestResult {
   const _$BacktestResultImpl(
       {required this.id,
       required this.strategyId,
+      required this.marketDataId,
       required this.executedAt,
       required final List<Trade> trades,
       required this.summary,
@@ -616,6 +631,9 @@ class _$BacktestResultImpl implements _BacktestResult {
   final String id;
   @override
   final String strategyId;
+  @override
+  final String marketDataId;
+// Add market data ID
   @override
   final DateTime executedAt;
   final List<Trade> _trades;
@@ -638,7 +656,7 @@ class _$BacktestResultImpl implements _BacktestResult {
 
   @override
   String toString() {
-    return 'BacktestResult(id: $id, strategyId: $strategyId, executedAt: $executedAt, trades: $trades, summary: $summary, equityCurve: $equityCurve)';
+    return 'BacktestResult(id: $id, strategyId: $strategyId, marketDataId: $marketDataId, executedAt: $executedAt, trades: $trades, summary: $summary, equityCurve: $equityCurve)';
   }
 
   @override
@@ -649,6 +667,8 @@ class _$BacktestResultImpl implements _BacktestResult {
             (identical(other.id, id) || other.id == id) &&
             (identical(other.strategyId, strategyId) ||
                 other.strategyId == strategyId) &&
+            (identical(other.marketDataId, marketDataId) ||
+                other.marketDataId == marketDataId) &&
             (identical(other.executedAt, executedAt) ||
                 other.executedAt == executedAt) &&
             const DeepCollectionEquality().equals(other._trades, _trades) &&
@@ -663,6 +683,7 @@ class _$BacktestResultImpl implements _BacktestResult {
       runtimeType,
       id,
       strategyId,
+      marketDataId,
       executedAt,
       const DeepCollectionEquality().hash(_trades),
       summary,
@@ -689,6 +710,7 @@ abstract class _BacktestResult implements BacktestResult {
   const factory _BacktestResult(
       {required final String id,
       required final String strategyId,
+      required final String marketDataId,
       required final DateTime executedAt,
       required final List<Trade> trades,
       required final BacktestSummary summary,
@@ -701,6 +723,8 @@ abstract class _BacktestResult implements BacktestResult {
   String get id;
   @override
   String get strategyId;
+  @override
+  String get marketDataId; // Add market data ID
   @override
   DateTime get executedAt;
   @override

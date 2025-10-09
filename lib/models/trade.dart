@@ -39,6 +39,7 @@ class BacktestResult with _$BacktestResult {
   const factory BacktestResult({
     required String id,
     required String strategyId,
+    required String marketDataId, // Add market data ID
     required DateTime executedAt,
     required List<Trade> trades,
     required BacktestSummary summary,

@@ -142,6 +142,7 @@ class BacktestEngineService {
     return BacktestResult(
       id: _uuid.v4(),
       strategyId: strategy.id,
+      marketDataId: marketData.id,
       executedAt: DateTime.now(),
       trades: trades,
       summary: summary,
