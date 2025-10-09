@@ -292,8 +292,7 @@ class StorageService {
       id: map['id'] as String,
       strategyId: map['strategy_id'] as String,
       marketDataId: normalizedMarketId,
-      executedAt:
-          DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      executedAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
       summary: BacktestSummary.fromJson(
         jsonDecode(map['summary'] as String),
       ),

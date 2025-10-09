@@ -81,7 +81,8 @@ class DataManager {
 
       // If still not available, skip safely
       if (_cacheDir == null) {
-        debugPrint('⚠️  Cache directory unavailable, skipping disk save for ${data.id}');
+        debugPrint(
+            '⚠️  Cache directory unavailable, skipping disk save for ${data.id}');
         return;
       }
 
@@ -172,7 +173,8 @@ class DataManager {
     if (original.timeframe.toUpperCase() == targetTimeframe.toUpperCase()) {
       return original;
     }
-    debugPrint('🔁 Resampling ${original.symbol} ${original.timeframe} -> $targetTimeframe');
+    debugPrint(
+        '🔁 Resampling ${original.symbol} ${original.timeframe} -> $targetTimeframe');
     final resampled = resampleMarketDataToTimeframe(original, targetTimeframe);
     return resampled;
   }
@@ -302,7 +304,8 @@ class DataManager {
     debugPrint('\n🔍 DEBUG: DataManager Cache State');
     debugPrint('   Instance: ${identityHashCode(this)}');
     debugPrint('   Memory cache size: ${_memoryCache.length}');
-    debugPrint('   Cache directory: ${kIsWeb ? "web: disabled" : (_cacheDir?.path ?? "not initialized")}');
+    debugPrint(
+        '   Cache directory: ${kIsWeb ? "web: disabled" : (_cacheDir?.path ?? "not initialized")}');
     debugPrint('   Memory keys: ${_memoryCache.keys.join(", ")}');
     for (final entry in _memoryCache.entries) {
       debugPrint(

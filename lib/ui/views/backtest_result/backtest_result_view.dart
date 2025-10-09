@@ -267,11 +267,13 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 final wins = (s['wins'] ?? 0).toInt();
                 final winRate = (s['winRate'] ?? 0).toDouble();
                 return Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+                    border:
+                        Border.all(color: theme.dividerColor.withOpacity(0.3)),
                   ),
                   child: Wrap(
                     spacing: 8,
@@ -280,12 +282,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     children: [
                       Text(
                         tf,
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
                       ),
                       _statChip(context, 'Signals', signals.toString()),
                       _statChip(context, 'Trades', trades.toString()),
                       _statChip(context, 'Wins', wins.toString()),
-                      _statChip(context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
+                      _statChip(
+                          context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
                     ],
                   ),
                 );
@@ -902,8 +906,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color:
-                Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
           ),
         ),
         child: Text(

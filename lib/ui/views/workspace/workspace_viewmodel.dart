@@ -1,4 +1,5 @@
 import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/helpers/strategy_stats_helper.dart';
@@ -25,6 +26,7 @@ class WorkspaceViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
   final _snackbarService = locator<SnackbarService>();
+  final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = locator<DataManager>();
   final _backtestEngineService = locator<BacktestEngineService>();
   final _dataValidationService = locator<DataValidationService>();
@@ -103,6 +105,7 @@ class WorkspaceViewModel extends BaseViewModel {
     _endDateFilter = null;
     notifyListeners();
   }
+
   BacktestResult? getQuickResult(String strategyId) =>
       _quickResults[strategyId];
 
@@ -267,8 +270,10 @@ class WorkspaceViewModel extends BaseViewModel {
       if (_selectedSymbolFilter != null &&
           (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) return false;
       if (_selectedTimeframeFilter != null &&
-          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter) return false;
-      if (_startDateFilter != null && r.executedAt.isBefore(_startDateFilter!)) {
+          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter)
+        return false;
+      if (_startDateFilter != null &&
+          r.executedAt.isBefore(_startDateFilter!)) {
         return false;
       }
       if (_endDateFilter != null && r.executedAt.isAfter(_endDateFilter!)) {
@@ -456,9 +461,15 @@ class WorkspaceViewModel extends BaseViewModel {
       final isValid = _dataValidationService.quickValidate(marketData);
       if (!isValid) {
         final report = _dataValidationService.validateMarketData(marketData);
-        _snackbarService.showSnackbar(
-          message: 'Market data tidak valid: ${report.summary}',
-          duration: const Duration(seconds: 3),
+        await _bottomSheetService.showCustomSheet(
+          variant: BottomSheetType.validationReport,
+          title: 'Data Validation Report',
+          description: report.summary,
+          data: {
+            'errors': report.errors.map((i) => i.message).toList(),
+            'warningsIssues': report.warningsIssues.map((i) => i.message).toList(),
+            'warningsText': report.warnings,
+          },
         );
         return;
       }
@@ -508,8 +519,7 @@ class WorkspaceViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> quickRunBacktestBatch(Strategy strategy,
-      {int? maxCount}) async {
+  Future<void> quickRunBacktestBatch(Strategy strategy, {int? maxCount}) async {
     // Ensure we have data
     if (_availableData.isEmpty) {
       _snackbarService.showSnackbar(
@@ -533,9 +543,8 @@ class WorkspaceViewModel extends BaseViewModel {
 
     try {
       final list = List<MarketData>.from(_availableData);
-      final total = maxCount == null
-          ? list.length
-          : (maxCount.clamp(1, list.length));
+      final total =
+          maxCount == null ? list.length : (maxCount.clamp(1, list.length));
       int completed = 0;
       int skipped = 0;
 
@@ -564,8 +573,7 @@ class WorkspaceViewModel extends BaseViewModel {
 
             // Update in-memory results incrementally
             _strategyResults[strategy.id] =
-                await _storageService.getBacktestResultsByStrategy(
-                    strategy.id);
+                await _storageService.getBacktestResultsByStrategy(strategy.id);
             notifyListeners();
           } catch (e) {
             debugPrint('Error saving batch result: $e');
@@ -669,7 +677,8 @@ class WorkspaceViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Results Summary');
+        await Share.shareXFiles([XFile(path)],
+            text: 'BacktestX Results Summary');
       }
 
       _snackbarService.showSnackbar(
@@ -903,7 +912,8 @@ class WorkspaceViewModel extends BaseViewModel {
       buffer.writeln('');
       buffer.writeln('Total Trades: ${summary.totalTrades}');
       buffer.writeln('Win Rate: ${summary.winRate.toStringAsFixed(2)}%');
-      buffer.writeln('Profit Factor: ${summary.profitFactor.toStringAsFixed(2)}');
+      buffer
+          .writeln('Profit Factor: ${summary.profitFactor.toStringAsFixed(2)}');
       buffer.writeln('Total PnL: ${summary.totalPnl.toStringAsFixed(2)}');
       buffer.writeln(
           'Total PnL %: ${summary.totalPnlPercentage.toStringAsFixed(2)}%');
@@ -1145,7 +1155,7 @@ extension SortTypeX on SortType {
         return 'Tests Run';
     }
   }
- 
+
   IconData get icon {
     switch (this) {
       case SortType.name:

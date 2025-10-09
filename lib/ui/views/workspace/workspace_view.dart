@@ -405,7 +405,8 @@ class WorkspaceView extends StatelessWidget {
                               hint: const Text('Select market data'),
                               onChanged: (value) {
                                 // Disable changing data while quick/batch test is running
-                                final isDisabled = model.isRunningQuickTest(strategy.id) ||
+                                final isDisabled = model
+                                        .isRunningQuickTest(strategy.id) ||
                                     model.isRunningBatchQuickTest(strategy.id);
                                 if (isDisabled) return;
                                 if (value != null) {
@@ -736,7 +737,8 @@ class WorkspaceView extends StatelessWidget {
                     icon: const Icon(Icons.download),
                     onPressed: results.isEmpty
                         ? null
-                        : () => model.exportFilteredStrategyResultsCsv(strategy),
+                        : () =>
+                            model.exportFilteredStrategyResultsCsv(strategy),
                   ),
                 ),
               ],
@@ -839,7 +841,8 @@ class WorkspaceView extends StatelessWidget {
                       lastDate: DateTime.now().add(const Duration(days: 3650)),
                     );
                     if (picked != null) {
-                      final d = DateTime(picked.year, picked.month, picked.day, 23, 59, 59);
+                      final d = DateTime(
+                          picked.year, picked.month, picked.day, 23, 59, 59);
                       model.setEndDateFilter(d);
                     }
                   },

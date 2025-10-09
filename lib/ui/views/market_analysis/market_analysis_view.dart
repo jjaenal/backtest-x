@@ -58,10 +58,8 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Theme.of(context)
-          .colorScheme
-          .surfaceVariant
-          .withValues(alpha: 0.3),
+      color:
+          Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

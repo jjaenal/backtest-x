@@ -548,13 +548,68 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   Widget builder(
       BuildContext context, ComparisonViewModel model, Widget? child) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('Compare Results'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.download),
-              tooltip: 'Export Comparison CSV',
-              onPressed: () async {
+      appBar: AppBar(
+        title: const Text('Compare Results'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.download),
+            tooltip: 'Export Comparison CSV',
+            onPressed: () async {
+              final ok = await model.exportComparisonCsv();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok
+                        ? 'Ekspor comparison CSV berhasil'
+                        : 'Ekspor comparison CSV gagal',
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy),
+            tooltip: 'Copy Comparison Summary',
+            onPressed: () async {
+              final ok = await model.copySummaryToClipboard();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    ok
+                        ? 'Ringkasan comparison disalin ke clipboard'
+                        : 'Gagal menyalin ringkasan ke clipboard',
+                  ),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
+          ),
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.download, size: 20),
+                    SizedBox(width: 12),
+                    Text('Export Comparison'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'copy',
+                child: Row(
+                  children: [
+                    Icon(Icons.copy, size: 20),
+                    SizedBox(width: 12),
+                    Text('Copy Summary'),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) async {
+              if (value == 'export') {
                 final ok = await model.exportComparisonCsv();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -565,12 +620,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     ),
                   ),
                 );
-              },
-            ),
-            IconButton(
-              icon: const Icon(Icons.copy),
-              tooltip: 'Copy Comparison Summary',
-              onPressed: () async {
+              } else if (value == 'copy') {
                 final ok = await model.copySummaryToClipboard();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -582,61 +632,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     duration: const Duration(seconds: 2),
                   ),
                 );
-              },
-            ),
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'export',
-                  child: Row(
-                    children: [
-                      Icon(Icons.download, size: 20),
-                      SizedBox(width: 12),
-                      Text('Export Comparison'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'copy',
-                  child: Row(
-                    children: [
-                      Icon(Icons.copy, size: 20),
-                      SizedBox(width: 12),
-                      Text('Copy Summary'),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (value) async {
-                if (value == 'export') {
-                  final ok = await model.exportComparisonCsv();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        ok
-                            ? 'Ekspor comparison CSV berhasil'
-                            : 'Ekspor comparison CSV gagal',
-                      ),
-                    ),
-                  );
-                } else if (value == 'copy') {
-                  final ok = await model.copySummaryToClipboard();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        ok
-                            ? 'Ringkasan comparison disalin ke clipboard'
-                            : 'Gagal menyalin ringkasan ke clipboard',
-                      ),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+              }
+            },
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -765,8 +765,8 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         children: [
           Text(
             tf,
-            style:
-                theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
           _statChip(context, 'Signals', signals.toString()),
           _statChip(context, 'Trades', trades.toString()),

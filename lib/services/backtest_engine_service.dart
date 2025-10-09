@@ -123,6 +123,7 @@ class BacktestEngineService {
         }
         return null;
       }
+
       final mapList = List<int?>.filled(candles.length, null);
       for (var i = 0; i < candles.length; i++) {
         final bucketTs = floorToTimeframe(candles[i].timestamp, tf);
@@ -180,7 +181,8 @@ class BacktestEngineService {
           trades.add(closedTrade);
           currentEquity += closedTrade.pnl!;
           // Update per‑TF trade/win stats for this closed trade
-          final contributing = _tradeEntryTfs[closedTrade.id] ?? {baseTimeframe};
+          final contributing =
+              _tradeEntryTfs[closedTrade.id] ?? {baseTimeframe};
           final isWin = (closedTrade.pnl ?? 0) > 0;
           for (final tf in contributing) {
             _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
@@ -242,9 +244,8 @@ class BacktestEngineService {
             currentEquity: currentEquity,
           );
           // Tie contributing TFs to this open trade
-          _tradeEntryTfs[openTrade.id] = contributingTfs.isEmpty
-              ? {baseTimeframe}
-              : contributingTfs;
+          _tradeEntryTfs[openTrade.id] =
+              contributingTfs.isEmpty ? {baseTimeframe} : contributingTfs;
         }
       }
 

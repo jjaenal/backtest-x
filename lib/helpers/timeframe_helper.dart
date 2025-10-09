@@ -22,7 +22,8 @@ DateTime _floorToPeriod(DateTime time, Duration period) {
 }
 
 // Public helpers for other modules
-int parseTimeframeToMinutes(String timeframe) => _parseTimeframeToMinutes(timeframe);
+int parseTimeframeToMinutes(String timeframe) =>
+    _parseTimeframeToMinutes(timeframe);
 
 DateTime floorToTimeframe(DateTime time, String timeframe) {
   final minutes = _parseTimeframeToMinutes(timeframe);

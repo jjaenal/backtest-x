@@ -39,8 +39,7 @@ class CandlestickPatternGuideSheet
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Icon(Icons.candlestick_chart,
-                    size: 24,
-                    color: Theme.of(context).colorScheme.primary),
+                    size: 24, color: Theme.of(context).colorScheme.primary),
                 const Text(
                   'Candlestick Patterns Guide',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -119,8 +118,10 @@ class CandlestickPatternGuideSheet
             description,
             style: TextStyle(
               fontSize: 12,
-              color:
-                  Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.8),
               height: 1.4,
             ),
           ),

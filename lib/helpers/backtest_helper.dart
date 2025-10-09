@@ -46,7 +46,8 @@ class BacktestHelper {
     if (data == null) {
       debugPrint('❌ No data found for $symbol ($targetTimeframe)');
     } else {
-      debugPrint('📦 Using data: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
+      debugPrint(
+          '📦 Using data: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
     }
     return data;
   }
@@ -62,7 +63,8 @@ class BacktestHelper {
     } else if (data.timeframe.toUpperCase() != targetTimeframe.toUpperCase()) {
       debugPrint('⚠️  Unexpected timeframe after resample: ${data.timeframe}');
     } else {
-      debugPrint('🔁 Prepared resampled data ${data.symbol} -> ${data.timeframe}');
+      debugPrint(
+          '🔁 Prepared resampled data ${data.symbol} -> ${data.timeframe}');
     }
     return data;
   }

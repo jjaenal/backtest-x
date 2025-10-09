@@ -378,9 +378,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       child: Tooltip(
                                         message: (() {
                                           if (viewModel.hasFatalErrors) {
-                                            final errs = viewModel.getAllFatalErrors();
-                                            final shown = errs.take(2).join('\n• ');
-                                            return 'Perbaiki error sebelum testing:\n• ' + shown + (errs.length > 2 ? '...' : '');
+                                            final errs =
+                                                viewModel.getAllFatalErrors();
+                                            final shown =
+                                                errs.take(2).join('\n• ');
+                                            return 'Perbaiki error sebelum testing:\n• ' +
+                                                shown +
+                                                (errs.length > 2 ? '...' : '');
                                           }
                                           if (viewModel.isRunningPreview) {
                                             return 'Preview sedang berjalan';
@@ -388,7 +392,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                           return 'Jalankan quick test';
                                         })(),
                                         child: ElevatedButton.icon(
-                                          onPressed: (viewModel.isRunningPreview || viewModel.hasFatalErrors)
+                                          onPressed: (viewModel
+                                                      .isRunningPreview ||
+                                                  viewModel.hasFatalErrors)
                                               ? null
                                               : viewModel.quickPreviewBacktest,
                                           icon: viewModel.isRunningPreview
@@ -428,48 +434,64 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       // Base TF vs Rule TF badges
                                       Builder(builder: (context) {
                                         final baseData = viewModel.availableData
-                                            .where((d) => d.id == viewModel.selectedDataId)
+                                            .where((d) =>
+                                                d.id ==
+                                                viewModel.selectedDataId)
                                             .toList();
                                         final String? baseTf =
-                                            baseData.isNotEmpty ? baseData.first.timeframe : null;
+                                            baseData.isNotEmpty
+                                                ? baseData.first.timeframe
+                                                : null;
 
-                                        final entryRuleTfs = viewModel.entryRules
+                                        final entryRuleTfs = viewModel
+                                            .entryRules
                                             .asMap()
                                             .entries
-                                            .where((e) => e.value.timeframe != null)
+                                            .where((e) =>
+                                                e.value.timeframe != null)
                                             .map((e) => (
                                                   tf: e.value.timeframe!,
                                                   warn: viewModel
-                                                      .getRuleWarningsFor(e.key, true)
-                                                      .any((w) => w.contains('Timeframe rule lebih kecil')),
+                                                      .getRuleWarningsFor(
+                                                          e.key, true)
+                                                      .any((w) => w.contains(
+                                                          'Timeframe rule lebih kecil')),
                                                 ))
                                             .toList();
                                         final exitRuleTfs = viewModel.exitRules
                                             .asMap()
                                             .entries
-                                            .where((e) => e.value.timeframe != null)
+                                            .where((e) =>
+                                                e.value.timeframe != null)
                                             .map((e) => (
                                                   tf: e.value.timeframe!,
                                                   warn: viewModel
-                                                      .getRuleWarningsFor(e.key, false)
-                                                      .any((w) => w.contains('Timeframe rule lebih kecil')),
+                                                      .getRuleWarningsFor(
+                                                          e.key, false)
+                                                      .any((w) => w.contains(
+                                                          'Timeframe rule lebih kecil')),
                                                 ))
                                             .toList();
 
                                         final chips = <Widget>[];
                                         if (baseTf != null) {
-                                          chips.add(_buildTfChip(context, 'Base: $baseTf', false));
+                                          chips.add(_buildTfChip(
+                                              context, 'Base: $baseTf', false));
                                         }
                                         for (final r in entryRuleTfs) {
-                                          chips.add(_buildTfChip(context, 'Entry TF: ${r.tf}', r.warn));
+                                          chips.add(_buildTfChip(context,
+                                              'Entry TF: ${r.tf}', r.warn));
                                         }
                                         for (final r in exitRuleTfs) {
-                                          chips.add(_buildTfChip(context, 'Exit TF: ${r.tf}', r.warn));
+                                          chips.add(_buildTfChip(context,
+                                              'Exit TF: ${r.tf}', r.warn));
                                         }
 
-                                        if (chips.isEmpty) return const SizedBox();
+                                        if (chips.isEmpty)
+                                          return const SizedBox();
                                         return Padding(
-                                          padding: const EdgeInsets.only(bottom: 8.0),
+                                          padding: const EdgeInsets.only(
+                                              bottom: 8.0),
                                           child: Wrap(
                                             spacing: 8,
                                             runSpacing: 8,
@@ -481,14 +503,23 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       // Per‑timeframe counts (entry vs exit rules per TF)
                                       Builder(builder: (context) {
                                         String _resolveBaseTf() {
-                                          final baseData = viewModel.availableData
-                                              .where((d) => d.id == viewModel.selectedDataId)
+                                          final baseData = viewModel
+                                              .availableData
+                                              .where((d) =>
+                                                  d.id ==
+                                                  viewModel.selectedDataId)
                                               .toList();
-                                          return baseData.isNotEmpty ? baseData.first.timeframe : '';
+                                          return baseData.isNotEmpty
+                                              ? baseData.first.timeframe
+                                              : '';
                                         }
 
-                                        String _resolveRuleTf(String? tfRaw, String baseTf) {
-                                          return (tfRaw == null || tfRaw.isEmpty) ? baseTf : tfRaw;
+                                        String _resolveRuleTf(
+                                            String? tfRaw, String baseTf) {
+                                          return (tfRaw == null ||
+                                                  tfRaw.isEmpty)
+                                              ? baseTf
+                                              : tfRaw;
                                         }
 
                                         final baseTf = _resolveBaseTf();
@@ -496,35 +527,51 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         final exitTfCounts = <String, int>{};
 
                                         for (final r in viewModel.entryRules) {
-                                          final tf = _resolveRuleTf(r.timeframe, baseTf);
+                                          final tf = _resolveRuleTf(
+                                              r.timeframe, baseTf);
                                           if (tf.isNotEmpty) {
-                                            entryTfCounts[tf] = (entryTfCounts[tf] ?? 0) + 1;
+                                            entryTfCounts[tf] =
+                                                (entryTfCounts[tf] ?? 0) + 1;
                                           }
                                         }
                                         for (final r in viewModel.exitRules) {
-                                          final tf = _resolveRuleTf(r.timeframe, baseTf);
+                                          final tf = _resolveRuleTf(
+                                              r.timeframe, baseTf);
                                           if (tf.isNotEmpty) {
-                                            exitTfCounts[tf] = (exitTfCounts[tf] ?? 0) + 1;
+                                            exitTfCounts[tf] =
+                                                (exitTfCounts[tf] ?? 0) + 1;
                                           }
                                         }
 
-                                        if (entryTfCounts.isEmpty && exitTfCounts.isEmpty) {
+                                        if (entryTfCounts.isEmpty &&
+                                            exitTfCounts.isEmpty) {
                                           return const SizedBox.shrink();
                                         }
 
                                         Chip _tfChip(String tf, int count) {
                                           bool warn = false;
                                           if (baseTf.isNotEmpty) {
-                                            final baseMin = tfHelper.parseTimeframeToMinutes(baseTf);
-                                            final tfMin = tfHelper.parseTimeframeToMinutes(tf);
+                                            final baseMin = tfHelper
+                                                .parseTimeframeToMinutes(
+                                                    baseTf);
+                                            final tfMin = tfHelper
+                                                .parseTimeframeToMinutes(tf);
                                             warn = tfMin < baseMin;
                                           }
                                           final bg = warn
-                                              ? Theme.of(context).colorScheme.errorContainer
-                                              : Theme.of(context).colorScheme.secondaryContainer;
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .errorContainer
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .secondaryContainer;
                                           final fg = warn
-                                              ? Theme.of(context).colorScheme.onErrorContainer
-                                              : Theme.of(context).colorScheme.onSecondaryContainer;
+                                              ? Theme.of(context)
+                                                  .colorScheme
+                                                  .onErrorContainer
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .onSecondaryContainer;
                                           return Chip(
                                             backgroundColor: bg,
                                             label: Text(
@@ -535,34 +582,45 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         }
 
                                         return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             const SizedBox(height: 8),
                                             Text(
                                               'Per‑Timeframe Rule Counts',
-                                              style: Theme.of(context).textTheme.bodyMedium,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium,
                                             ),
                                             const SizedBox(height: 6),
                                             if (entryTfCounts.isNotEmpty) ...[
-                                              Text('Entry Rules', style: Theme.of(context).textTheme.bodySmall),
+                                              Text('Entry Rules',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall),
                                               const SizedBox(height: 4),
                                               Wrap(
                                                 spacing: 8,
                                                 runSpacing: 8,
                                                 children: entryTfCounts.entries
-                                                    .map((e) => _tfChip(e.key, e.value))
+                                                    .map((e) =>
+                                                        _tfChip(e.key, e.value))
                                                     .toList(),
                                               ),
                                             ],
                                             if (exitTfCounts.isNotEmpty) ...[
                                               const SizedBox(height: 8),
-                                              Text('Exit Rules', style: Theme.of(context).textTheme.bodySmall),
+                                              Text('Exit Rules',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall),
                                               const SizedBox(height: 4),
                                               Wrap(
                                                 spacing: 8,
                                                 runSpacing: 8,
                                                 children: exitTfCounts.entries
-                                                    .map((e) => _tfChip(e.key, e.value))
+                                                    .map((e) =>
+                                                        _tfChip(e.key, e.value))
                                                     .toList(),
                                               ),
                                             ],
@@ -614,36 +672,85 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       // Per‑TF signals & performance (from preview)
                                       Builder(builder: (context) {
                                         final stats = viewModel.previewTfStats;
-                                        if (stats.isEmpty) return const SizedBox.shrink();
+                                        if (stats.isEmpty)
+                                          return const SizedBox.shrink();
 
-                                        Widget _statChip(String tf, Map<String, num> s) {
-                                          final bg = Theme.of(context).colorScheme.surfaceVariant;
-                                          final fg = Theme.of(context).colorScheme.onSurfaceVariant;
-                                          final winRate = (s['winRate'] ?? 0).toDouble();
+                                        Widget _statChip(
+                                            String tf, Map<String, num> s) {
+                                          final bg = Theme.of(context)
+                                              .colorScheme
+                                              .surfaceVariant;
+                                          final fg = Theme.of(context)
+                                              .colorScheme
+                                              .onSurfaceVariant;
+                                          final winRate =
+                                              (s['winRate'] ?? 0).toDouble();
                                           return Card(
                                             color: bg,
                                             child: Padding(
-                                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8,
+                                                      horizontal: 12),
                                               child: Column(
                                                 mainAxisSize: MainAxisSize.min,
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  Text(tf, style: Theme.of(context).textTheme.bodyMedium!.copyWith(color: fg, fontWeight: FontWeight.w600)),
+                                                  Text(tf,
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium!
+                                                          .copyWith(
+                                                              color: fg,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w600)),
                                                   const SizedBox(height: 4),
                                                   Wrap(
                                                     spacing: 8,
                                                     runSpacing: 6,
-                                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                                    crossAxisAlignment:
+                                                        WrapCrossAlignment
+                                                            .center,
                                                     children: [
-                                                      Text('Signals: ${s['signals'] ?? 0}', style: Theme.of(context).textTheme.bodySmall),
+                                                      Text(
+                                                          'Signals: ${s['signals'] ?? 0}',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodySmall),
                                                       const SizedBox(width: 12),
-                                                      Text('Trades: ${s['trades'] ?? 0}', style: Theme.of(context).textTheme.bodySmall),
+                                                      Text(
+                                                          'Trades: ${s['trades'] ?? 0}',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodySmall),
                                                       const SizedBox(width: 12),
-                                                      Text('Wins: ${s['wins'] ?? 0}', style: Theme.of(context).textTheme.bodySmall),
+                                                      Text(
+                                                          'Wins: ${s['wins'] ?? 0}',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodySmall),
                                                       const SizedBox(width: 12),
-                                                      Text('WinRate: ${winRate.toStringAsFixed(1)}%', style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                                        color: winRate >= 50 ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
-                                                      )),
+                                                      Text(
+                                                          'WinRate: ${winRate.toStringAsFixed(1)}%',
+                                                          style:
+                                                              Theme.of(context)
+                                                                  .textTheme
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                    color: winRate >=
+                                                                            50
+                                                                        ? Theme.of(context)
+                                                                            .colorScheme
+                                                                            .primary
+                                                                        : Theme.of(context)
+                                                                            .colorScheme
+                                                                            .error,
+                                                                  )),
                                                     ],
                                                   ),
                                                 ],
@@ -653,16 +760,22 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         }
 
                                         return Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             const SizedBox(height: 12),
-                                            Text('Per‑Timeframe Signals & Performance', style: Theme.of(context).textTheme.bodyMedium),
+                                            Text(
+                                                'Per‑Timeframe Signals & Performance',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium),
                                             const SizedBox(height: 6),
                                             Wrap(
                                               spacing: 8,
                                               runSpacing: 8,
                                               children: stats.entries
-                                                  .map((e) => _statChip(e.key, e.value))
+                                                  .map((e) =>
+                                                      _statChip(e.key, e.value))
                                                   .toList(),
                                             ),
                                           ],
@@ -702,7 +815,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           if (viewModel.hasFatalErrors) {
                             final errs = viewModel.getAllFatalErrors();
                             final shown = errs.take(2).join('\n• ');
-                            return 'Perbaiki error sebelum menyimpan:\n• ' + shown + (errs.length > 2 ? '...' : '');
+                            return 'Perbaiki error sebelum menyimpan:\n• ' +
+                                shown +
+                                (errs.length > 2 ? '...' : '');
                           }
                           if (!viewModel.canSave) {
                             return 'Lengkapi nama, modal awal, dan entry rules';
@@ -713,7 +828,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           return 'Simpan strategi';
                         })(),
                         child: ElevatedButton(
-                          onPressed: (viewModel.canSave && !viewModel.isBusy && !viewModel.hasFatalErrors)
+                          onPressed: (viewModel.canSave &&
+                                  !viewModel.isBusy &&
+                                  !viewModel.hasFatalErrors)
                               ? () => viewModel.saveStrategy(context)
                               : null,
                           style: ElevatedButton.styleFrom(
@@ -779,18 +896,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     RuleBuilder rule,
     bool isEntry,
   ) {
-    final hasRuleErrors =
-        viewModel.getRuleErrorsFor(index, isEntry).isNotEmpty;
+    final hasRuleErrors = viewModel.getRuleErrorsFor(index, isEntry).isNotEmpty;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       color: Theme.of(context).colorScheme.surface,
       shape: hasRuleErrors
           ? RoundedRectangleBorder(
               side: BorderSide(
-                color: Theme.of(context)
-                    .colorScheme
-                    .error
-                    .withValues(alpha: 0.25),
+                color:
+                    Theme.of(context).colorScheme.error.withValues(alpha: 0.25),
               ),
               borderRadius: BorderRadius.circular(8),
             )
@@ -913,8 +1027,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       ButtonSegment(
                         value: true,
                         label: const Text('Number'),
-                        enabled: !(rule.operator == ComparisonOperator.crossAbove ||
-                            rule.operator == ComparisonOperator.crossBelow),
+                        enabled:
+                            !(rule.operator == ComparisonOperator.crossAbove ||
+                                rule.operator == ComparisonOperator.crossBelow),
                       ),
                       const ButtonSegment(
                         value: false,
@@ -996,9 +1111,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                         labelText: 'Period',
                         hintText: '14',
                         isDense: true,
-                        errorText: (rule.period == null || (rule.period ?? 0) <= 0)
-                            ? 'Harus > 0'
-                            : null,
+                        errorText:
+                            (rule.period == null || (rule.period ?? 0) <= 0)
+                                ? 'Harus > 0'
+                                : null,
                       ),
                       keyboardType: TextInputType.number,
                       onChanged: (value) =>
@@ -1049,7 +1165,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                         style: Theme.of(context)
                             .textTheme
                             .labelMedium!
-                            .copyWith(color: Theme.of(context).colorScheme.tertiary),
+                            .copyWith(
+                                color: Theme.of(context).colorScheme.tertiary),
                       ),
                       const SizedBox(height: 6),
                       ...warnings.map((w) => Row(
@@ -1057,18 +1174,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             children: [
                               Icon(Icons.info_outline,
                                   size: 16,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .tertiary),
+                                  color:
+                                      Theme.of(context).colorScheme.tertiary),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   w,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .tertiary,
+                                    color:
+                                        Theme.of(context).colorScheme.tertiary,
                                   ),
                                 ),
                               ),
@@ -1082,7 +1197,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                         style: Theme.of(context)
                             .textTheme
                             .labelMedium!
-                            .copyWith(color: Theme.of(context).colorScheme.error),
+                            .copyWith(
+                                color: Theme.of(context).colorScheme.error),
                       ),
                       const SizedBox(height: 6),
                       ...errors.map((e) => Row(
@@ -1090,17 +1206,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             children: [
                               Icon(Icons.error_outline,
                                   size: 16,
-                                  color:
-                                      Theme.of(context).colorScheme.error),
+                                  color: Theme.of(context).colorScheme.error),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   e,
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .error,
+                                    color: Theme.of(context).colorScheme.error,
                                   ),
                                 ),
                               ),
@@ -1192,7 +1305,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
   Widget _buildTfChip(BuildContext context, String label, bool isWarn) {
     final bg = isWarn
         ? Theme.of(context).colorScheme.error.withValues(alpha: 0.12)
-        : Theme.of(context).colorScheme.secondaryContainer.withValues(alpha: 0.18);
+        : Theme.of(context)
+            .colorScheme
+            .secondaryContainer
+            .withValues(alpha: 0.18);
     final border = isWarn
         ? Theme.of(context).colorScheme.error
         : Theme.of(context).colorScheme.outline;
