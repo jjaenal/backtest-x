@@ -46,6 +46,44 @@ class WorkspaceViewModel extends BaseViewModel {
   String? get selectedDataId => _selectedDataId;
 
   Map<String, BacktestResult?> _quickResults = {};
+
+  // Result filters
+  bool _filterProfitOnly = false;
+  bool get filterProfitOnly => _filterProfitOnly;
+  bool _filterPfPositive = false; // PF > 1
+  bool get filterPfPositive => _filterPfPositive;
+  bool _filterWinRateAbove50 = false; // Win Rate > 50%
+  bool get filterWinRateAbove50 => _filterWinRateAbove50;
+
+  // Symbol/Timeframe filters
+  String? _selectedSymbolFilter;
+  String? get selectedSymbolFilter => _selectedSymbolFilter;
+  String? _selectedTimeframeFilter;
+  String? get selectedTimeframeFilter => _selectedTimeframeFilter;
+
+  void toggleFilterProfitOnly() {
+    _filterProfitOnly = !_filterProfitOnly;
+    notifyListeners();
+  }
+
+  void toggleFilterPfPositive() {
+    _filterPfPositive = !_filterPfPositive;
+    notifyListeners();
+  }
+
+  void toggleFilterWinRate50() {
+    _filterWinRateAbove50 = !_filterWinRateAbove50;
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _filterProfitOnly = false;
+    _filterPfPositive = false;
+    _filterWinRateAbove50 = false;
+    _selectedSymbolFilter = null;
+    _selectedTimeframeFilter = null;
+    notifyListeners();
+  }
   BacktestResult? getQuickResult(String strategyId) =>
       _quickResults[strategyId];
 
@@ -192,6 +230,56 @@ class WorkspaceViewModel extends BaseViewModel {
   // Get strategy data
   List<BacktestResult> getResults(String strategyId) =>
       _strategyResults[strategyId] ?? [];
+
+  // Get filtered results for a strategy based on current filters
+  List<BacktestResult> getFilteredResults(String strategyId) {
+    final base = getResults(strategyId);
+    return base.where((r) {
+      final s = r.summary;
+      final md = _dataManager.getData(r.marketDataId);
+      if (_filterProfitOnly && s.totalPnl <= 0) return false;
+      if (_filterPfPositive && s.profitFactor <= 1) return false;
+      if (_filterWinRateAbove50 && s.winRate <= 50) return false;
+      if (_selectedSymbolFilter != null &&
+          (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) return false;
+      if (_selectedTimeframeFilter != null &&
+          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter) return false;
+      return true;
+    }).toList();
+  }
+
+  // Available filter options derived from results
+  List<String> getAvailableSymbols(String strategyId) {
+    final set = <String>{};
+    for (final r in getResults(strategyId)) {
+      final md = _dataManager.getData(r.marketDataId);
+      final sym = md?.symbol;
+      if (sym != null && sym.isNotEmpty) set.add(sym);
+    }
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  List<String> getAvailableTimeframes(String strategyId) {
+    final set = <String>{};
+    for (final r in getResults(strategyId)) {
+      final md = _dataManager.getData(r.marketDataId);
+      final tf = md?.timeframe;
+      if (tf != null && tf.isNotEmpty) set.add(tf);
+    }
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  void setSelectedSymbolFilter(String? symbol) {
+    _selectedSymbolFilter = symbol;
+    notifyListeners();
+  }
+
+  void setSelectedTimeframeFilter(String? timeframe) {
+    _selectedTimeframeFilter = timeframe;
+    notifyListeners();
+  }
 
   bool hasResults(String strategyId) {
     final results = getResults(strategyId);
@@ -352,6 +440,198 @@ class WorkspaceViewModel extends BaseViewModel {
       Routes.backtestResultView,
       arguments: BacktestResultViewArguments(result: result),
     );
+  }
+
+  /// Export all backtest results (summary rows) for a strategy to CSV
+  Future<void> exportStrategyResultsCsv(Strategy strategy) async {
+    try {
+      final results = getResults(strategy.id);
+      if (results.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'No results to export for this strategy',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final List<List<dynamic>> rows = [];
+      rows.add([
+        'Strategy',
+        'Symbol',
+        'Timeframe',
+        'Executed At',
+        'Total Trades',
+        'Win Rate %',
+        'Profit Factor',
+        'Total PnL',
+        'Total PnL %',
+        'Max Drawdown',
+        'Max DD %',
+        'Sharpe',
+      ]);
+
+      for (final result in results) {
+        final marketData = _dataManager.getData(result.marketDataId);
+        final summary = result.summary;
+        rows.add([
+          strategy.name,
+          marketData?.symbol ?? '-',
+          marketData?.timeframe ?? '-',
+          result.executedAt.toIso8601String(),
+          summary.totalTrades,
+          summary.winRate.toStringAsFixed(2),
+          summary.profitFactor.toStringAsFixed(2),
+          summary.totalPnl.toStringAsFixed(2),
+          summary.totalPnlPercentage.toStringAsFixed(2),
+          summary.maxDrawdown.toStringAsFixed(2),
+          summary.maxDrawdownPercentage.toStringAsFixed(2),
+          summary.sharpeRatio.toStringAsFixed(2),
+        ]);
+      }
+
+      final csv = const ListToCsvConverter().convert(rows);
+      final fileName = '${strategy.name}_results_summary.csv';
+
+      if (kIsWeb) {
+        final blob = html.Blob([csv], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csv);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Results Summary');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'Strategy results exported to CSV',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Export ALL trades across all results for a strategy to a single CSV
+  Future<void> exportStrategyTradesCsv(Strategy strategy) async {
+    try {
+      final results = getResults(strategy.id);
+      if (results.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'No results to export for this strategy',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final List<List<dynamic>> rows = [];
+      rows.add([
+        'Strategy',
+        'Symbol',
+        'Timeframe',
+        'Executed At',
+        'Direction',
+        'Entry Date',
+        'Exit Date',
+        'Entry Price',
+        'Exit Price',
+        'Lot Size',
+        'Stop Loss',
+        'Take Profit',
+        'PnL',
+        'PnL %',
+        'Duration',
+      ]);
+
+      int tradeCount = 0;
+      for (final r in results) {
+        final marketData = _dataManager.getData(r.marketDataId);
+        if (marketData == null) {
+          // Skip if data not available in cache
+          continue;
+        }
+
+        // Re-run backtest to get full trades (DB stores summary only)
+        final reResult = await _backtestEngineService.runBacktest(
+          marketData: marketData,
+          strategy: strategy,
+        );
+
+        for (final trade in reResult.trades) {
+          String duration = '-';
+          if (trade.exitTime != null) {
+            final diff = trade.exitTime!.difference(trade.entryTime).inHours;
+            duration = '${diff ~/ 24}d ${diff % 24}h';
+          }
+
+          rows.add([
+            strategy.name,
+            marketData.symbol,
+            marketData.timeframe,
+            r.executedAt.toIso8601String(),
+            trade.direction == TradeDirection.buy ? 'BUY' : 'SELL',
+            trade.entryTime.toIso8601String(),
+            trade.exitTime?.toIso8601String() ?? '-',
+            trade.entryPrice.toStringAsFixed(4),
+            trade.exitPrice?.toStringAsFixed(4) ?? '-',
+            trade.lotSize.toStringAsFixed(2),
+            trade.stopLoss?.toStringAsFixed(4) ?? '-',
+            trade.takeProfit?.toStringAsFixed(4) ?? '-',
+            trade.pnl?.toStringAsFixed(2) ?? '-',
+            trade.pnlPercentage?.toStringAsFixed(2) ?? '-',
+            duration,
+          ]);
+          tradeCount++;
+        }
+      }
+
+      if (tradeCount == 0) {
+        _snackbarService.showSnackbar(
+          message: 'No trades found or data missing in cache',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      final csv = const ListToCsvConverter().convert(rows);
+      final fileName = '${strategy.name}_all_trades.csv';
+
+      if (kIsWeb) {
+        final blob = html.Blob([csv], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csv);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Trades Export');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'All trades exported to CSV',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   /// Export single backtest result trades to CSV (web/mobile/desktop)

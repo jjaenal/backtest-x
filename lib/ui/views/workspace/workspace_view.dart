@@ -277,6 +277,26 @@ class WorkspaceView extends StatelessWidget {
                         icon: const Icon(Icons.more_vert),
                         itemBuilder: (context) => [
                           const PopupMenuItem(
+                            value: 'export_trades_all',
+                            child: Row(
+                              children: [
+                                Icon(Icons.table_view, size: 20),
+                                SizedBox(width: 12),
+                                Text('Export All Trades CSV'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
+                            value: 'export_results_csv',
+                            child: Row(
+                              children: [
+                                Icon(Icons.file_download, size: 20),
+                                SizedBox(width: 12),
+                                Text('Export Results CSV'),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
@@ -310,6 +330,12 @@ class WorkspaceView extends StatelessWidget {
                         ],
                         onSelected: (value) {
                           switch (value) {
+                            case 'export_trades_all':
+                              model.exportStrategyTradesCsv(strategy);
+                              break;
+                            case 'export_results_csv':
+                              model.exportStrategyResultsCsv(strategy);
+                              break;
                             case 'edit':
                               model.navigateToEditStrategy(strategy);
                               break;
@@ -623,7 +649,7 @@ class WorkspaceView extends StatelessWidget {
     WorkspaceViewModel model,
     Strategy strategy,
   ) {
-    final results = model.getResults(strategy.id);
+    final results = model.getFilteredResults(strategy.id);
 
     return Container(
       decoration: BoxDecoration(
@@ -644,6 +670,81 @@ class WorkspaceView extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ),
+          // Filters
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilterChip(
+                  selected: model.filterProfitOnly,
+                  label: const Text('Profit Only'),
+                  onSelected: (_) => model.toggleFilterProfitOnly(),
+                ),
+                FilterChip(
+                  selected: model.filterPfPositive,
+                  label: const Text('PF > 1'),
+                  onSelected: (_) => model.toggleFilterPfPositive(),
+                ),
+                FilterChip(
+                  selected: model.filterWinRateAbove50,
+                  label: const Text('Win Rate > 50%'),
+                  onSelected: (_) => model.toggleFilterWinRate50(),
+                ),
+                // Symbol dropdown
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String?>(
+                    value: model.selectedSymbolFilter,
+                    hint: const Text('All Symbols'),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('All Symbols'),
+                      ),
+                      ...model.getAvailableSymbols(strategy.id).map(
+                            (s) => DropdownMenuItem<String?>(
+                              value: s,
+                              child: Text(s),
+                            ),
+                          ),
+                    ],
+                    onChanged: (val) => model.setSelectedSymbolFilter(val),
+                  ),
+                ),
+                // Timeframe dropdown
+                DropdownButtonHideUnderline(
+                  child: DropdownButton<String?>(
+                    value: model.selectedTimeframeFilter,
+                    hint: const Text('All TFs'),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('All TFs'),
+                      ),
+                      ...model.getAvailableTimeframes(strategy.id).map(
+                            (tf) => DropdownMenuItem<String?>(
+                              value: tf,
+                              child: Text(tf),
+                            ),
+                          ),
+                    ],
+                    onChanged: (val) => model.setSelectedTimeframeFilter(val),
+                  ),
+                ),
+                if (model.filterProfitOnly ||
+                    model.filterPfPositive ||
+                    model.filterWinRateAbove50 ||
+                    model.selectedSymbolFilter != null ||
+                    model.selectedTimeframeFilter != null)
+                  TextButton.icon(
+                    onPressed: model.clearFilters,
+                    icon: const Icon(Icons.clear),
+                    label: const Text('Clear Filters'),
+                  ),
+              ],
             ),
           ),
           ListView.separated(

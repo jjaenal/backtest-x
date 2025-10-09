@@ -47,6 +47,7 @@ flutter run
   - Export trades to CSV from Workspace results list
 - **Share Results**: Share backtest results with others
  - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
+- **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, and Timeframe
 
 ## 📁 Project Structure
 
@@ -334,8 +335,13 @@ void main() {
      - Error-highlighted rule cards with red border for visibility
      - Per-rule timeframe dropdown connected; warning if Rule TF < Base TF
      - Cross operators (crossAbove/crossBelow): auto-switch Value ke Indicator; Number dimatikan dengan hint
-     - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
+   - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
    - Verified on Flutter web preview without browser errors
+
+- Workspace results filters:
+  - Added Symbol and Timeframe dropdowns in the results list
+  - Added FilterChips: Profit Only, PF > 1, Win Rate > 50%
+  - Rendering uses filtered list via ViewModel state
 
 ## 💡 Implementation Insights
 

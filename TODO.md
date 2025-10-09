@@ -101,6 +101,8 @@
  - [x] Copy trades CSV from results list
  - [x] Copy summary from results list
  - [x] Export trades CSV from results list
+ - [x] Filter results by Profit Only, PF > 1, Win Rate > 50%
+ - [x] Filter results by Symbol and Timeframe
 
 **Estimated Time:** 1-2 days
 
