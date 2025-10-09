@@ -146,6 +146,11 @@
 - [ ] Error handling UI
 - [ ] Animations & transitions
 - [x] Dark/Light theme toggle
+- [x] Dark theme consistency across views (workspace, backtest result, strategy builder)
+- [x] Themed chart labels/grid and info panels
+- [x] Themed bottom sheets (pattern guide, indicator settings)
+- [ ] Add Theming Guide docs for contributors
+- [ ] UI tests for dark mode components (toggle, sheets, chart labels)
 
 ### Data Management
 
@@ -153,6 +158,7 @@
 - [ ] Import from MetaTrader
 - [ ] Connect to Binance API
 - [ ] Data refresh/update
+  - [ ] Add sample adapters and validation paths
 
 ---
 
@@ -203,6 +209,7 @@
 - [ ] User guide
 - [ ] Video tutorials
 - [ ] FAQ
+- [ ] Theming Guide (usage of colorScheme, opacity rationale)
 
 ### Performance
 
@@ -210,6 +217,7 @@
 - [ ] Database indexing
 - [ ] Lazy loading for large datasets
 - [ ] Memory optimization
+  - [ ] Chart rendering optimizations for >1000 candles
 
 ### Code Quality
 
@@ -245,6 +253,7 @@
 3. Bug fixes
 4. UI polish
 5. Prepare for initial release
+6. Ensure dark theme tests pass (toggle, chart labels, bottom sheets)
 
 ### Day 7: Documentation & Release
 
@@ -303,7 +312,7 @@
 ### Low Priority
 
 - [ ] Animation: Jank on slow devices
-- [ ] Theme: Some colors don't match in dark mode
+- [x] Theme: Some colors don't match in dark mode
 - [ ] Keyboard: Doesn't dismiss on submit
 
 ---
@@ -342,6 +351,7 @@
 - [ ] PWA configuration
 - [ ] IndexedDB for storage
 - [ ] File download/upload
+ - [ ] Address web init warnings (service worker token, FlutterLoader.load)
 
 ---
 

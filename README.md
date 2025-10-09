@@ -294,6 +294,43 @@ void main() {
 - [x] Dark/Light theme toggle
 - [x] Advanced charts (candlestick with indicators)
 
+## ✅ Recent Progress
+
+- Dark theme consistency pass across key screens:
+  - Workspace view, Backtest Result view
+  - Strategy Builder entry/exit rules
+  - Candlestick chart labels and grid
+  - Pattern Scanner candlestick guide sheet
+  - Market Analysis indicator settings sheet
+- Equity/Drawdown toggle UI refined (themed background + outline)
+- Chart info panel and price labels made theme-aware
+
+## 💡 Implementation Insights
+
+- Prefer `Theme.of(context).colorScheme` over `Colors.*` to ensure dark/light consistency.
+- Use `withOpacity(...)` or `withValues(alpha: ...)` for subtle emphasis on `onSurface` text.
+- For semantic signals (bullish/bearish/warn), keep color semantics but apply low-opacity backgrounds and outlined borders.
+- Bottom sheets should use `colorScheme.surface` and `colorScheme.outline` for borders/dividers.
+- When a helper widget needs theme, pass `BuildContext` rather than hardcoding colors.
+
+## 🔧 Follow-ups / Next Steps
+
+- Replace any remaining hardcoded colors in views/widgets with `colorScheme` tokens.
+- Add a short Theming Guide in docs to standardize usage across new components.
+- Address web initialization warnings:
+  - Update `web/index.html` to use `{{flutter_service_worker_version}}` token.
+  - Migrate from `FlutterLoader.loadEntrypoint` to `FlutterLoader.load`.
+- Add UI tests focusing on dark mode: equity toggle, candlestick labels, bottom sheets.
+
+## 🧭 Theming Guide (Quick Reference)
+
+- Text primary: `colorScheme.onSurface`
+- Muted text: `onSurface` with `0.6–0.8` opacity
+- Icons: `onSurface` or `primary` when active
+- Card/sheet backgrounds: `colorScheme.surface` or `surfaceVariant`
+- Outlines/dividers: `colorScheme.outline`
+- Success/Error/Warning: `colorScheme.primary/tertiary/error` with low-opacity fills
+
 ### Phase 3 - Premium (6-12 months)
 
 - [ ] Walk-forward analysis
