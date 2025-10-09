@@ -625,7 +625,9 @@ mixin _$StrategyRule {
   IndicatorType get indicator => throw _privateConstructorUsedError;
   ComparisonOperator get operator => throw _privateConstructorUsedError;
   ConditionValue get value => throw _privateConstructorUsedError;
-  LogicalOperator? get logicalOperator => throw _privateConstructorUsedError;
+  LogicalOperator? get logicalOperator =>
+      throw _privateConstructorUsedError; // AND/OR untuk chain rules
+  String? get timeframe => throw _privateConstructorUsedError;
 
   /// Serializes this StrategyRule to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -647,7 +649,8 @@ abstract class $StrategyRuleCopyWith<$Res> {
       {IndicatorType indicator,
       ComparisonOperator operator,
       ConditionValue value,
-      LogicalOperator? logicalOperator});
+      LogicalOperator? logicalOperator,
+      String? timeframe});
 
   $ConditionValueCopyWith<$Res> get value;
 }
@@ -671,6 +674,7 @@ class _$StrategyRuleCopyWithImpl<$Res, $Val extends StrategyRule>
     Object? operator = null,
     Object? value = null,
     Object? logicalOperator = freezed,
+    Object? timeframe = freezed,
   }) {
     return _then(_value.copyWith(
       indicator: null == indicator
@@ -689,6 +693,10 @@ class _$StrategyRuleCopyWithImpl<$Res, $Val extends StrategyRule>
           ? _value.logicalOperator
           : logicalOperator // ignore: cast_nullable_to_non_nullable
               as LogicalOperator?,
+      timeframe: freezed == timeframe
+          ? _value.timeframe
+          : timeframe // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 
@@ -715,7 +723,8 @@ abstract class _$$StrategyRuleImplCopyWith<$Res>
       {IndicatorType indicator,
       ComparisonOperator operator,
       ConditionValue value,
-      LogicalOperator? logicalOperator});
+      LogicalOperator? logicalOperator,
+      String? timeframe});
 
   @override
   $ConditionValueCopyWith<$Res> get value;
@@ -738,6 +747,7 @@ class __$$StrategyRuleImplCopyWithImpl<$Res>
     Object? operator = null,
     Object? value = null,
     Object? logicalOperator = freezed,
+    Object? timeframe = freezed,
   }) {
     return _then(_$StrategyRuleImpl(
       indicator: null == indicator
@@ -756,6 +766,10 @@ class __$$StrategyRuleImplCopyWithImpl<$Res>
           ? _value.logicalOperator
           : logicalOperator // ignore: cast_nullable_to_non_nullable
               as LogicalOperator?,
+      timeframe: freezed == timeframe
+          ? _value.timeframe
+          : timeframe // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -767,7 +781,8 @@ class _$StrategyRuleImpl implements _StrategyRule {
       {required this.indicator,
       required this.operator,
       required this.value,
-      this.logicalOperator});
+      this.logicalOperator,
+      this.timeframe});
 
   factory _$StrategyRuleImpl.fromJson(Map<String, dynamic> json) =>
       _$$StrategyRuleImplFromJson(json);
@@ -780,10 +795,13 @@ class _$StrategyRuleImpl implements _StrategyRule {
   final ConditionValue value;
   @override
   final LogicalOperator? logicalOperator;
+// AND/OR untuk chain rules
+  @override
+  final String? timeframe;
 
   @override
   String toString() {
-    return 'StrategyRule(indicator: $indicator, operator: $operator, value: $value, logicalOperator: $logicalOperator)';
+    return 'StrategyRule(indicator: $indicator, operator: $operator, value: $value, logicalOperator: $logicalOperator, timeframe: $timeframe)';
   }
 
   @override
@@ -797,13 +815,15 @@ class _$StrategyRuleImpl implements _StrategyRule {
                 other.operator == operator) &&
             (identical(other.value, value) || other.value == value) &&
             (identical(other.logicalOperator, logicalOperator) ||
-                other.logicalOperator == logicalOperator));
+                other.logicalOperator == logicalOperator) &&
+            (identical(other.timeframe, timeframe) ||
+                other.timeframe == timeframe));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, indicator, operator, value, logicalOperator);
+  int get hashCode => Object.hash(
+      runtimeType, indicator, operator, value, logicalOperator, timeframe);
 
   /// Create a copy of StrategyRule
   /// with the given fields replaced by the non-null parameter values.
@@ -826,7 +846,8 @@ abstract class _StrategyRule implements StrategyRule {
       {required final IndicatorType indicator,
       required final ComparisonOperator operator,
       required final ConditionValue value,
-      final LogicalOperator? logicalOperator}) = _$StrategyRuleImpl;
+      final LogicalOperator? logicalOperator,
+      final String? timeframe}) = _$StrategyRuleImpl;
 
   factory _StrategyRule.fromJson(Map<String, dynamic> json) =
       _$StrategyRuleImpl.fromJson;
@@ -838,7 +859,9 @@ abstract class _StrategyRule implements StrategyRule {
   @override
   ConditionValue get value;
   @override
-  LogicalOperator? get logicalOperator;
+  LogicalOperator? get logicalOperator; // AND/OR untuk chain rules
+  @override
+  String? get timeframe;
 
   /// Create a copy of StrategyRule
   /// with the given fields replaced by the non-null parameter values.

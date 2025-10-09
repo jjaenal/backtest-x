@@ -47,6 +47,7 @@ class StrategyRule with _$StrategyRule {
     required ComparisonOperator operator,
     required ConditionValue value,
     LogicalOperator? logicalOperator, // AND/OR untuk chain rules
+    String? timeframe, // Opsional: timeframe khusus untuk rule ini (mis. "H1")
   }) = _StrategyRule;
 
   factory StrategyRule.fromJson(Map<String, dynamic> json) =>

@@ -4,12 +4,32 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/indicator_service.dart';
+import 'package:backtestx/helpers/timeframe_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
 class BacktestEngineService {
   final _indicatorService = locator<IndicatorService>();
   final _uuid = const Uuid();
+  // Last-run per-timeframe stats (preview-friendly, not persisted)
+  Map<String, int> _lastTfSignals = {};
+  Map<String, int> _lastTfTrades = {};
+  Map<String, int> _lastTfWins = {};
+  Map<String, double> _lastTfWinRate = {};
+
+  Map<String, Map<String, num>> get lastTfStats => {
+        for (final tf in {
+          ..._lastTfSignals.keys,
+          ..._lastTfTrades.keys,
+          ..._lastTfWins.keys,
+        })
+          tf: {
+            'signals': (_lastTfSignals[tf] ?? 0),
+            'trades': (_lastTfTrades[tf] ?? 0),
+            'wins': (_lastTfWins[tf] ?? 0),
+            'winRate': (_lastTfWinRate[tf] ?? 0.0),
+          }
+      };
 
   /// Run backtest
   Future<BacktestResult> runBacktest({
@@ -17,15 +37,85 @@ class BacktestEngineService {
     required Strategy strategy,
     bool debug = false, // Add debug flag
   }) async {
+    // Reset last-run per‑TF stats
+    _lastTfSignals = {};
+    _lastTfTrades = {};
+    _lastTfWins = {};
+    _lastTfWinRate = {};
     final trades = <Trade>[];
     final candles = marketData.candles;
+    final baseTimeframe = marketData.timeframe;
 
-    // Pre-calculate indicators
-    final indicators = _precalculateIndicators(candles, strategy);
+    // Prepare multi-timeframe context
+    final ruleTimeframes = <String>{};
+    for (final r in [...strategy.entryRules, ...strategy.exitRules]) {
+      if (r.timeframe != null && r.timeframe!.isNotEmpty) {
+        ruleTimeframes.add(r.timeframe!);
+      }
+    }
+
+    final tfCandles = <String, List<Candle>>{baseTimeframe: candles};
+    for (final tf in ruleTimeframes) {
+      if (tf != baseTimeframe) {
+        tfCandles[tf] = resampleCandlesToTimeframe(candles, tf);
+      }
+    }
+
+    // Pre-calculate indicators per timeframe
+    final tfIndicators = <String, Map<String, List<double?>>>{};
+    tfIndicators[baseTimeframe] =
+        _precalculateIndicators(tfCandles[baseTimeframe]!, strategy);
+    for (final tf in ruleTimeframes) {
+      tfIndicators[tf] = _precalculateIndicators(tfCandles[tf]!, strategy);
+    }
+
+    // Map base index to index in each timeframe
+    final tfIndexMap = <String, List<int?>>{};
+    tfIndexMap[baseTimeframe] = List<int?>.generate(candles.length, (i) => i);
+    for (final tf in ruleTimeframes) {
+      final target = tfCandles[tf]!;
+      final tsToIdx = <DateTime, int>{};
+      for (var j = 0; j < target.length; j++) {
+        tsToIdx[target[j].timestamp] = j;
+      }
+      // Prepare sorted timestamps for fallback lookup
+      final tsKeys = tsToIdx.keys.toList()..sort((a, b) => a.compareTo(b));
+      int? _findIndexAtOrBefore(DateTime t) {
+        // Binary search for the last timestamp <= t
+        int lo = 0, hi = tsKeys.length - 1;
+        int ans = -1;
+        while (lo <= hi) {
+          final mid = (lo + hi) >> 1;
+          final midTs = tsKeys[mid];
+          if (midTs.isBefore(t) || midTs.isAtSameMomentAs(t)) {
+            ans = mid;
+            lo = mid + 1;
+          } else {
+            hi = mid - 1;
+          }
+        }
+        if (ans >= 0) {
+          return tsToIdx[tsKeys[ans]];
+        }
+        return null;
+      }
+      final mapList = List<int?>.filled(candles.length, null);
+      for (var i = 0; i < candles.length; i++) {
+        final bucketTs = floorToTimeframe(candles[i].timestamp, tf);
+        mapList[i] = tsToIdx[bucketTs] ?? _findIndexAtOrBefore(bucketTs);
+      }
+      tfIndexMap[tf] = mapList;
+    }
 
     if (debug) {
       debugPrint('\n🔍 Debug Mode - First 100 candles:');
-      debugPrint('Precalculated indicators: ${indicators.keys.join(", ")}');
+      final indKeys = tfIndicators[baseTimeframe]!.keys.join(", ");
+      debugPrint('Precalculated indicators (base TF=$baseTimeframe): $indKeys');
+      if (ruleTimeframes.isNotEmpty) {
+        for (final tf in ruleTimeframes) {
+          debugPrint('TF $tf indicators: ${tfIndicators[tf]!.keys.join(", ")}');
+        }
+      }
     }
 
     Trade? openTrade;
@@ -35,6 +125,8 @@ class BacktestEngineService {
 
     int entryChecks = 0;
     int entrySignals = 0;
+    // Map trade ID → contributing timeframes on entry
+    final Map<String, Set<String>> _tradeEntryTfs = {};
 
     for (var i = 0; i < candles.length; i++) {
       final candle = candles[i];
@@ -44,8 +136,10 @@ class BacktestEngineService {
         final exitResult = _checkExit(
           openTrade,
           candle,
-          indicators,
+          tfIndicators,
+          tfIndexMap,
           i,
+          baseTimeframe,
           strategy,
         );
 
@@ -61,25 +155,60 @@ class BacktestEngineService {
 
           trades.add(closedTrade);
           currentEquity += closedTrade.pnl!;
+          // Update per‑TF trade/win stats for this closed trade
+          final contributing = _tradeEntryTfs[closedTrade.id] ?? {baseTimeframe};
+          final isWin = (closedTrade.pnl ?? 0) > 0;
+          for (final tf in contributing) {
+            _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
+            if (isWin) {
+              _lastTfWins[tf] = (_lastTfWins[tf] ?? 0) + 1;
+            }
+          }
           openTrade = null;
         }
       }
 
       // Check entry if no open trade
       if (openTrade == null) {
-        final shouldEnter = _checkEntry(candle, indicators, i, strategy);
+        final shouldEnter = _checkEntryMTF(
+          candle,
+          tfIndicators,
+          tfIndexMap,
+          i,
+          baseTimeframe,
+          strategy,
+        );
         entryChecks++;
 
         if (shouldEnter) {
           entrySignals++;
+          // Count signals per timeframe based on contributing rules at this index
+          final contributingTfs = <String>{};
+          for (final rule in strategy.entryRules) {
+            final tf = (rule.timeframe == null || rule.timeframe!.isEmpty)
+                ? baseTimeframe
+                : rule.timeframe!;
+            // Re-evaluate rule to determine contribution
+            final ok = _evaluateRuleMTF(
+              rule,
+              tfIndicators,
+              tfIndexMap,
+              i,
+              baseTimeframe,
+            );
+            if (ok) contributingTfs.add(tf);
+          }
+          for (final tf in contributingTfs) {
+            _lastTfSignals[tf] = (_lastTfSignals[tf] ?? 0) + 1;
+          }
 
           if (debug && entrySignals <= 5) {
             debugPrint('Entry signal #$entrySignals at index $i:');
             debugPrint('  Time: ${candle.timestamp}');
             debugPrint('  Close: ${candle.close}');
             // Print indicator values at this point
-            for (final key in indicators.keys) {
-              debugPrint('  $key: ${indicators[key]![i]}');
+            for (final key in tfIndicators[baseTimeframe]!.keys) {
+              debugPrint('  $key: ${tfIndicators[baseTimeframe]![key]![i]}');
             }
           }
 
@@ -88,6 +217,10 @@ class BacktestEngineService {
             strategy: strategy,
             currentEquity: currentEquity,
           );
+          // Tie contributing TFs to this open trade
+          _tradeEntryTfs[openTrade.id] = contributingTfs.isEmpty
+              ? {baseTimeframe}
+              : contributingTfs;
         }
       }
 
@@ -135,9 +268,34 @@ class BacktestEngineService {
         pnlPercentage: (exitPnl / openTrade.entryPrice) * 100,
         exitReason: 'End of Data',
       ));
+      // Update per‑TF trade/win stats for forced close at end of data
+      final isWinForced = exitPnl > 0;
+      final contributing = _tradeEntryTfs[openTrade.id] ?? {baseTimeframe};
+      for (final tf in contributing) {
+        _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
+        if (isWinForced) {
+          _lastTfWins[tf] = (_lastTfWins[tf] ?? 0) + 1;
+        }
+      }
     }
 
-    final summary = _calculateSummary(trades, strategy.initialCapital);
+    // Calculate per‑TF win rates
+    final tfSet = {
+      ..._lastTfTrades.keys,
+      ..._lastTfWins.keys,
+      ..._lastTfSignals.keys,
+    };
+    for (final tf in tfSet) {
+      final t = _lastTfTrades[tf] ?? 0;
+      final w = _lastTfWins[tf] ?? 0;
+      _lastTfWinRate[tf] = t > 0 ? (w / t) * 100.0 : 0.0;
+    }
+
+    final summary = _calculateSummary(
+      trades,
+      strategy.initialCapital,
+      tfStats: lastTfStats,
+    );
 
     return BacktestResult(
       id: _uuid.v4(),
@@ -269,21 +427,35 @@ class BacktestEngineService {
   }
 
   /// Check entry conditions
-  bool _checkEntry(
+  bool _checkEntryMTF(
     Candle candle,
-    Map<String, List<double?>> indicators,
-    int index,
+    Map<String, Map<String, List<double?>>> tfIndicators,
+    Map<String, List<int?>> tfIndexMap,
+    int baseIndex,
+    String baseTimeframe,
     Strategy strategy,
   ) {
     if (strategy.entryRules.isEmpty) return false;
 
     // Start with first rule result
-    bool result = _evaluateRule(strategy.entryRules[0], indicators, index);
+    bool result = _evaluateRuleMTF(
+      strategy.entryRules[0],
+      tfIndicators,
+      tfIndexMap,
+      baseIndex,
+      baseTimeframe,
+    );
 
     // Apply subsequent rules with their logical operators
     for (var i = 1; i < strategy.entryRules.length; i++) {
       final rule = strategy.entryRules[i];
-      final ruleResult = _evaluateRule(rule, indicators, index);
+      final ruleResult = _evaluateRuleMTF(
+        rule,
+        tfIndicators,
+        tfIndexMap,
+        baseIndex,
+        baseTimeframe,
+      );
 
       // Get the logical operator from PREVIOUS rule (connects to current)
       final prevOperator = strategy.entryRules[i - 1].logicalOperator;
@@ -302,22 +474,35 @@ class BacktestEngineService {
   }
 
   /// Evaluate single rule
-  bool _evaluateRule(
+  bool _evaluateRuleMTF(
     StrategyRule rule,
-    Map<String, List<double?>> indicators,
-    int index,
+    Map<String, Map<String, List<double?>>> tfIndicators,
+    Map<String, List<int?>> tfIndexMap,
+    int baseIndex,
+    String baseTimeframe,
   ) {
+    // Use rule timeframe if provided, otherwise fall back to base timeframe
+    final tf = (rule.timeframe == null || rule.timeframe!.isEmpty)
+        ? baseTimeframe
+        : rule.timeframe!;
+
     // Get main indicator key
     final mainKey = _getIndicatorKeyForType(rule.indicator, 14);
+    final indicators = tfIndicators[tf];
+    if (indicators == null) return false;
     final indicatorValues = indicators[mainKey];
 
+    final tfIndex =
+        tf == baseTimeframe ? baseIndex : (tfIndexMap[tf]?[baseIndex] ?? -1);
+    if (tfIndex < 0) return false;
+
     if (indicatorValues == null ||
-        index >= indicatorValues.length ||
-        indicatorValues[index] == null) {
+        tfIndex >= indicatorValues.length ||
+        indicatorValues[tfIndex] == null) {
       return false;
     }
 
-    final currentValue = indicatorValues[index]!;
+    final currentValue = indicatorValues[tfIndex]!;
 
     // Check if we're comparing against an indicator or a number
     bool isIndicatorComparison = false;
@@ -334,11 +519,11 @@ class BacktestEngineService {
             _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
         final compareIndicator = indicators[compareKey];
         if (compareIndicator == null ||
-            index >= compareIndicator.length ||
-            compareIndicator[index] == null) {
+            tfIndex >= compareIndicator.length ||
+            compareIndicator[tfIndex] == null) {
           return double.nan;
         }
-        return compareIndicator[index]!;
+        return compareIndicator[tfIndex]!;
       },
     );
 
@@ -359,8 +544,8 @@ class BacktestEngineService {
       case ComparisonOperator.equals:
         return (currentValue - compareValue).abs() < 0.0001;
       case ComparisonOperator.crossAbove:
-        if (index == 0) return false;
-        final prevValue = indicatorValues[index - 1];
+        if (tfIndex == 0) return false;
+        final prevValue = indicatorValues[tfIndex - 1];
         if (prevValue == null) return false;
 
         // For crossAbove with indicator comparison
@@ -371,11 +556,11 @@ class BacktestEngineService {
                 type, period ?? _getDefaultPeriod(type)),
           );
           final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || index >= compareIndicator.length) {
+          if (compareIndicator == null || tfIndex >= compareIndicator.length) {
             return false;
           }
-          final prevCompare = compareIndicator[index - 1];
-          final currCompare = compareIndicator[index];
+          final prevCompare = compareIndicator[tfIndex - 1];
+          final currCompare = compareIndicator[tfIndex];
           if (prevCompare == null || currCompare == null) return false;
           return prevValue <= prevCompare && currentValue > currCompare;
         }
@@ -383,8 +568,8 @@ class BacktestEngineService {
         return prevValue <= compareValue && currentValue > compareValue;
 
       case ComparisonOperator.crossBelow:
-        if (index == 0) return false;
-        final prevValue = indicatorValues[index - 1];
+        if (tfIndex == 0) return false;
+        final prevValue = indicatorValues[tfIndex - 1];
         if (prevValue == null) return false;
 
         // For crossBelow with indicator comparison
@@ -395,11 +580,11 @@ class BacktestEngineService {
                 type, period ?? _getDefaultPeriod(type)),
           );
           final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || index >= compareIndicator.length) {
+          if (compareIndicator == null || tfIndex >= compareIndicator.length) {
             return false;
           }
-          final prevCompare = compareIndicator[index - 1];
-          final currCompare = compareIndicator[index];
+          final prevCompare = compareIndicator[tfIndex - 1];
+          final currCompare = compareIndicator[tfIndex];
           if (prevCompare == null || currCompare == null) return false;
           return prevValue >= prevCompare && currentValue < currCompare;
         }
@@ -412,8 +597,10 @@ class BacktestEngineService {
   Map<String, dynamic>? _checkExit(
     Trade trade,
     Candle candle,
-    Map<String, List<double?>> indicators,
-    int index,
+    Map<String, Map<String, List<double?>>> tfIndicators,
+    Map<String, List<int?>> tfIndexMap,
+    int baseIndex,
+    String baseTimeframe,
     Strategy strategy,
   ) {
     // Check SL/TP first
@@ -471,7 +658,13 @@ class BacktestEngineService {
       LogicalOperator? prevOperator;
 
       for (final rule in strategy.exitRules) {
-        final conditionMet = _evaluateRule(rule, indicators, index);
+        final conditionMet = _evaluateRuleMTF(
+          rule,
+          tfIndicators,
+          tfIndexMap,
+          baseIndex,
+          baseTimeframe,
+        );
 
         if (prevOperator == null) {
           shouldExit = conditionMet;
@@ -628,7 +821,11 @@ class BacktestEngineService {
   }
 
   /// Calculate summary statistics
-  BacktestSummary _calculateSummary(List<Trade> trades, double initialCapital) {
+  BacktestSummary _calculateSummary(
+    List<Trade> trades,
+    double initialCapital, {
+    Map<String, Map<String, num>>? tfStats,
+  }) {
     if (trades.isEmpty) {
       return const BacktestSummary(
         totalTrades: 0,
@@ -646,6 +843,7 @@ class BacktestEngineService {
         largestWin: 0,
         largestLoss: 0,
         expectancy: 0,
+        tfStats: null,
       );
     }
 
@@ -722,6 +920,7 @@ class BacktestEngineService {
       largestWin: largestWin,
       largestLoss: largestLoss,
       expectancy: expectancy,
+      tfStats: tfStats,
     );
   }
 }

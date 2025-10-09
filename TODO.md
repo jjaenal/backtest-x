@@ -155,6 +155,15 @@
 - [x] Dark theme consistency across views (workspace, backtest result, strategy builder)
 - [x] Themed chart labels/grid and info panels
 - [x] Themed bottom sheets (pattern guide, indicator settings)
+- [x] Strategy Builder: per-rule validation messages on rule cards
+- [x] Disable Save/Test buttons when fatal errors; show tooltips
+- [x] Inline errorText on problematic fields (Value, Compare With, Period)
+- [x] Red border highlight on rule cards with errors
+ - [x] Operator-specific validation for crossAbove/crossBelow
+ - [ ] Add Base TF vs Rule TF badge in preview results
+ - [x] Tooltip for timeframe dropdown explaining correction behavior
+ - [x] Auto-switch Value ke Indicator untuk operator crossAbove/crossBelow
+ - [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
 - [ ] Add Theming Guide docs for contributors
 - [ ] UI tests for dark mode components (toggle, sheets, chart labels)
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
+import 'package:backtestx/helpers/timeframe_helper.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 
@@ -158,6 +159,39 @@ class DataManager {
       return _memoryCache.values.firstWhere(
         (data) => data.symbol == symbol && data.timeframe == timeframe,
       );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Get data by ID resampled to target timeframe (in-memory only)
+  /// If the original timeframe already matches, returns the original.
+  MarketData? getDataResampled(String id, String targetTimeframe) {
+    final original = getData(id);
+    if (original == null) return null;
+    if (original.timeframe.toUpperCase() == targetTimeframe.toUpperCase()) {
+      return original;
+    }
+    debugPrint('🔁 Resampling ${original.symbol} ${original.timeframe} -> $targetTimeframe');
+    final resampled = resampleMarketDataToTimeframe(original, targetTimeframe);
+    return resampled;
+  }
+
+  /// Find data by symbol with desired timeframe.
+  /// If exact timeframe not cached, try any symbol dataset and resample.
+  MarketData? findOrResample(String symbol, String targetTimeframe) {
+    // Try exact match first
+    final exact = findData(symbol, targetTimeframe);
+    if (exact != null) return exact;
+
+    // Find any dataset for the symbol
+    try {
+      final any = _memoryCache.values.firstWhere((d) => d.symbol == symbol);
+      if (any.timeframe.toUpperCase() == targetTimeframe.toUpperCase()) {
+        return any;
+      }
+      debugPrint('🔁 Resampling $symbol ${any.timeframe} -> $targetTimeframe');
+      return resampleMarketDataToTimeframe(any, targetTimeframe);
     } catch (e) {
       return null;
     }

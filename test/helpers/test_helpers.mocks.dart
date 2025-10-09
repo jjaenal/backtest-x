@@ -5,15 +5,16 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i9;
 import 'dart:io' as _i11;
+import 'dart:typed_data' as _i12;
 import 'dart:ui' as _i10;
 
 import 'package:backtestx/models/candle.dart' as _i2;
-import 'package:backtestx/models/strategy.dart' as _i14;
+import 'package:backtestx/models/strategy.dart' as _i15;
 import 'package:backtestx/models/trade.dart' as _i4;
-import 'package:backtestx/services/backtest_engine_service.dart' as _i13;
+import 'package:backtestx/services/backtest_engine_service.dart' as _i14;
 import 'package:backtestx/services/data_parser_service.dart' as _i3;
-import 'package:backtestx/services/indicator_service.dart' as _i12;
-import 'package:backtestx/services/storage_service.dart' as _i15;
+import 'package:backtestx/services/indicator_service.dart' as _i13;
+import 'package:backtestx/services/storage_service.dart' as _i16;
 import 'package:flutter/material.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:mockito/src/dummies.dart' as _i7;
@@ -783,6 +784,49 @@ class MockDataParserService extends _i1.Mock implements _i3.DataParserService {
       ) as _i9.Future<_i2.MarketData>);
 
   @override
+  _i9.Future<_i2.MarketData> parseCsvBytes({
+    required _i12.Uint8List? bytes,
+    required String? symbol,
+    required String? timeframe,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #parseCsvBytes,
+          [],
+          {
+            #bytes: bytes,
+            #symbol: symbol,
+            #timeframe: timeframe,
+          },
+        ),
+        returnValue: _i9.Future<_i2.MarketData>.value(_FakeMarketData_0(
+          this,
+          Invocation.method(
+            #parseCsvBytes,
+            [],
+            {
+              #bytes: bytes,
+              #symbol: symbol,
+              #timeframe: timeframe,
+            },
+          ),
+        )),
+        returnValueForMissingStub:
+            _i9.Future<_i2.MarketData>.value(_FakeMarketData_0(
+          this,
+          Invocation.method(
+            #parseCsvBytes,
+            [],
+            {
+              #bytes: bytes,
+              #symbol: symbol,
+              #timeframe: timeframe,
+            },
+          ),
+        )),
+      ) as _i9.Future<_i2.MarketData>);
+
+  @override
   _i3.ValidationResult validateCandles(List<_i2.Candle>? candles) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -809,7 +853,7 @@ class MockDataParserService extends _i1.Mock implements _i3.DataParserService {
 /// A class which mocks [IndicatorService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockIndicatorService extends _i1.Mock implements _i12.IndicatorService {
+class MockIndicatorService extends _i1.Mock implements _i13.IndicatorService {
   @override
   List<double?> calculateSMA(
     List<_i2.Candle>? candles,
@@ -923,11 +967,18 @@ class MockIndicatorService extends _i1.Mock implements _i12.IndicatorService {
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockBacktestEngineService extends _i1.Mock
-    implements _i13.BacktestEngineService {
+    implements _i14.BacktestEngineService {
+  @override
+  Map<String, Map<String, num>> get lastTfStats => (super.noSuchMethod(
+        Invocation.getter(#lastTfStats),
+        returnValue: <String, Map<String, num>>{},
+        returnValueForMissingStub: <String, Map<String, num>>{},
+      ) as Map<String, Map<String, num>>);
+
   @override
   _i9.Future<_i4.BacktestResult> runBacktest({
     required _i2.MarketData? marketData,
-    required _i14.Strategy? strategy,
+    required _i15.Strategy? strategy,
     bool? debug = false,
   }) =>
       (super.noSuchMethod(
@@ -971,7 +1022,7 @@ class MockBacktestEngineService extends _i1.Mock
 /// A class which mocks [StorageService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockStorageService extends _i1.Mock implements _i15.StorageService {
+class MockStorageService extends _i1.Mock implements _i16.StorageService {
   @override
   _i9.Future<_i5.Database> get database => (super.noSuchMethod(
         Invocation.getter(#database),
@@ -987,7 +1038,7 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
       ) as _i9.Future<_i5.Database>);
 
   @override
-  _i9.Future<void> saveStrategy(_i14.Strategy? strategy) => (super.noSuchMethod(
+  _i9.Future<void> saveStrategy(_i15.Strategy? strategy) => (super.noSuchMethod(
         Invocation.method(
           #saveStrategy,
           [strategy],
@@ -997,25 +1048,25 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
       ) as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i14.Strategy>> getAllStrategies() => (super.noSuchMethod(
+  _i9.Future<List<_i15.Strategy>> getAllStrategies() => (super.noSuchMethod(
         Invocation.method(
           #getAllStrategies,
           [],
         ),
-        returnValue: _i9.Future<List<_i14.Strategy>>.value(<_i14.Strategy>[]),
+        returnValue: _i9.Future<List<_i15.Strategy>>.value(<_i15.Strategy>[]),
         returnValueForMissingStub:
-            _i9.Future<List<_i14.Strategy>>.value(<_i14.Strategy>[]),
-      ) as _i9.Future<List<_i14.Strategy>>);
+            _i9.Future<List<_i15.Strategy>>.value(<_i15.Strategy>[]),
+      ) as _i9.Future<List<_i15.Strategy>>);
 
   @override
-  _i9.Future<_i14.Strategy?> getStrategy(String? id) => (super.noSuchMethod(
+  _i9.Future<_i15.Strategy?> getStrategy(String? id) => (super.noSuchMethod(
         Invocation.method(
           #getStrategy,
           [id],
         ),
-        returnValue: _i9.Future<_i14.Strategy?>.value(),
-        returnValueForMissingStub: _i9.Future<_i14.Strategy?>.value(),
-      ) as _i9.Future<_i14.Strategy?>);
+        returnValue: _i9.Future<_i15.Strategy?>.value(),
+        returnValueForMissingStub: _i9.Future<_i15.Strategy?>.value(),
+      ) as _i9.Future<_i15.Strategy?>);
 
   @override
   _i9.Future<void> deleteStrategy(String? id) => (super.noSuchMethod(
@@ -1037,6 +1088,17 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
+
+  @override
+  _i9.Future<_i4.BacktestResult?> getLatestBacktestResult() =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getLatestBacktestResult,
+          [],
+        ),
+        returnValue: _i9.Future<_i4.BacktestResult?>.value(),
+        returnValueForMissingStub: _i9.Future<_i4.BacktestResult?>.value(),
+      ) as _i9.Future<_i4.BacktestResult?>);
 
   @override
   _i9.Future<List<_i4.BacktestResult>> getBacktestResultsByStrategy(
@@ -1084,17 +1146,17 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
       ) as _i9.Future<void>);
 
   @override
-  _i9.Future<List<_i15.MarketDataInfo>> getAllMarketDataInfo() =>
+  _i9.Future<List<_i16.MarketDataInfo>> getAllMarketDataInfo() =>
       (super.noSuchMethod(
         Invocation.method(
           #getAllMarketDataInfo,
           [],
         ),
-        returnValue: _i9.Future<List<_i15.MarketDataInfo>>.value(
-            <_i15.MarketDataInfo>[]),
-        returnValueForMissingStub: _i9.Future<List<_i15.MarketDataInfo>>.value(
-            <_i15.MarketDataInfo>[]),
-      ) as _i9.Future<List<_i15.MarketDataInfo>>);
+        returnValue: _i9.Future<List<_i16.MarketDataInfo>>.value(
+            <_i16.MarketDataInfo>[]),
+        returnValueForMissingStub: _i9.Future<List<_i16.MarketDataInfo>>.value(
+            <_i16.MarketDataInfo>[]),
+      ) as _i9.Future<List<_i16.MarketDataInfo>>);
 
   @override
   _i9.Future<void> deleteMarketData(String? id) => (super.noSuchMethod(
@@ -1124,4 +1186,46 @@ class MockStorageService extends _i1.Mock implements _i15.StorageService {
         ),
         returnValueForMissingStub: null,
       );
+
+  @override
+  _i9.Future<void> saveStrategyDraft({
+    String? strategyId,
+    required Map<String, dynamic>? draftJson,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #saveStrategyDraft,
+          [],
+          {
+            #strategyId: strategyId,
+            #draftJson: draftJson,
+          },
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+
+  @override
+  _i9.Future<Map<String, dynamic>?> getStrategyDraft({String? strategyId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getStrategyDraft,
+          [],
+          {#strategyId: strategyId},
+        ),
+        returnValue: _i9.Future<Map<String, dynamic>?>.value(),
+        returnValueForMissingStub: _i9.Future<Map<String, dynamic>?>.value(),
+      ) as _i9.Future<Map<String, dynamic>?>);
+
+  @override
+  _i9.Future<void> clearStrategyDraft({String? strategyId}) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #clearStrategyDraft,
+          [],
+          {#strategyId: strategyId},
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 }

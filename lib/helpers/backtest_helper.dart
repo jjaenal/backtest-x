@@ -36,6 +36,37 @@ class BacktestHelper {
   final _dataManager = locator<DataManager>();
   final _validationService = locator<DataValidationService>();
 
+  /// Get market data for a symbol with desired timeframe.
+  /// If exact timeframe not cached, resample from any available dataset of the symbol.
+  MarketData? getDataForTimeframe({
+    required String symbol,
+    required String targetTimeframe,
+  }) {
+    final data = _dataManager.findOrResample(symbol, targetTimeframe);
+    if (data == null) {
+      debugPrint('❌ No data found for $symbol ($targetTimeframe)');
+    } else {
+      debugPrint('📦 Using data: ${data.symbol} ${data.timeframe} (${data.candles.length} candles)');
+    }
+    return data;
+  }
+
+  /// Get market data by ID resampled to target timeframe.
+  MarketData? getDataResampledById({
+    required String marketDataId,
+    required String targetTimeframe,
+  }) {
+    final data = _dataManager.getDataResampled(marketDataId, targetTimeframe);
+    if (data == null) {
+      debugPrint('❌ Market data not found: $marketDataId');
+    } else if (data.timeframe.toUpperCase() != targetTimeframe.toUpperCase()) {
+      debugPrint('⚠️  Unexpected timeframe after resample: ${data.timeframe}');
+    } else {
+      debugPrint('🔁 Prepared resampled data ${data.symbol} -> ${data.timeframe}');
+    }
+    return data;
+  }
+
   /// Run backtest with cached market data
   Future<BacktestResult?> runBacktestWithCachedData({
     required String marketDataId,

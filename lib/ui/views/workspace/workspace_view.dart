@@ -691,6 +691,7 @@ class WorkspaceView extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Checkbox for compare mode
               if (isCompareMode)
@@ -718,86 +719,81 @@ class WorkspaceView extends StatelessWidget {
                               .withValues(alpha: 0.6),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          _formatDateTime(result.executedAt),
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w500,
+                        Expanded(
+                          child: Text(
+                            _formatDateTime(result.executedAt),
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
+                        if (!isCompareMode)
+                          SizedBox(
+                            width: 84,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: _buildResultActions(
+                                context,
+                                model,
+                                result,
+                                isCompareMode,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: 8),
 
-                    // Performance metrics
-                    Row(
-                      children: [
-                        _buildResultMetric(
-                          context,
-                          'P&L',
-                          _formatPnL(result.summary.totalPnl),
-                          _formatPnLPercent(result.summary.totalPnlPercentage),
-                          result.summary.totalPnl >= 0
-                              ? Colors.green
-                              : Colors.red,
-                        ),
-                        const SizedBox(width: 16),
-                        _buildResultMetric(
-                          context,
-                          'Win Rate',
-                          '${result.summary.winRate.toStringAsFixed(1)}%',
-                          '${result.summary.winningTrades}/${result.summary.totalTrades}',
-                          Theme.of(context).colorScheme.tertiary,
-                        ),
-                        const SizedBox(width: 16),
-                        _buildResultMetric(
-                          context,
-                          'PF',
-                          result.summary.profitFactor.toStringAsFixed(2),
-                          null,
-                          result.summary.profitFactor > 1
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).colorScheme.error,
-                        ),
-                      ],
+                    // Performance metrics (responsive: wrap on small widths)
+                    LayoutBuilder(
+                      builder: (context, c) {
+                        return Wrap(
+                          spacing: 32,
+                          runSpacing: 6,
+                          alignment: WrapAlignment.start,
+                          crossAxisAlignment: WrapCrossAlignment.start,
+                          children: [
+                            _buildResultMetric(
+                              context,
+                              'P&L',
+                              _formatPnL(result.summary.totalPnl),
+                              _formatPnLPercent(
+                                  result.summary.totalPnlPercentage),
+                              result.summary.totalPnl >= 0
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                            _buildResultMetric(
+                              context,
+                              'Win Rate',
+                              '${result.summary.winRate.toStringAsFixed(1)}%',
+                              '${result.summary.winningTrades}/${result.summary.totalTrades}',
+                              Theme.of(context).colorScheme.tertiary,
+                            ),
+                            _buildResultMetric(
+                              context,
+                              'PF',
+                              result.summary.profitFactor.toStringAsFixed(2),
+                              null,
+                              result.summary.profitFactor > 1
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.error,
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ],
                 ),
               ),
 
-              // Action buttons (only when not in compare mode)
-              if (!isCompareMode) ...[
-                IconButton(
-                  icon: const Icon(Icons.table_chart, size: 20),
-                  onPressed: () => model.copyTradesCsvToClipboard(result),
-                  tooltip: 'Copy Trades CSV',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.copy, size: 20),
-                  onPressed: () => model.copyResultSummaryToClipboard(result),
-                  tooltip: 'Copy Summary',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.download, size: 20),
-                  onPressed: () => model.exportResultCsv(result),
-                  tooltip: 'Export CSV',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.chevron_right, size: 20),
-                  onPressed: () => model.viewResult(result),
-                  tooltip: 'View Details',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  color: Theme.of(context).colorScheme.error,
-                  onPressed: () => model.deleteResult(result),
-                  tooltip: 'Delete',
-                ),
-              ],
+              // Action buttons moved into header row above to align with date
             ],
           ),
         ),
@@ -894,5 +890,149 @@ class WorkspaceView extends StatelessWidget {
   String _formatPnLPercent(double percent) {
     final sign = percent >= 0 ? '+' : '';
     return '$sign${percent.toStringAsFixed(2)}%';
+  }
+
+  // Responsive actions for result item to avoid icon overflow on small screens
+  Widget _buildResultActions(
+    BuildContext context,
+    WorkspaceViewModel model,
+    BacktestResult result,
+    bool isCompareMode,
+  ) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final isCompact = constraints.maxWidth < 400;
+      if (isCompact) {
+        // Compact: show View Details + overflow menu
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_right, size: 18),
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+              onPressed: () => model.viewResult(result),
+              tooltip: 'View Details',
+            ),
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: PopupMenuButton<int>(
+                icon: const Icon(Icons.more_horiz, size: 18),
+                tooltip: 'More',
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 0,
+                    child: Row(
+                      children: const [
+                        Icon(Icons.table_chart, size: 18),
+                        SizedBox(width: 8),
+                        Text('Copy Trades CSV'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 1,
+                    child: Row(
+                      children: const [
+                        Icon(Icons.copy, size: 18),
+                        SizedBox(width: 8),
+                        Text('Copy Summary'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 2,
+                    child: Row(
+                      children: const [
+                        Icon(Icons.download, size: 18),
+                        SizedBox(width: 8),
+                        Text('Export CSV'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 3,
+                    child: Row(
+                      children: const [
+                        Icon(Icons.delete_outline, size: 18),
+                        SizedBox(width: 8),
+                        Text('Delete'),
+                      ],
+                    ),
+                  ),
+                ],
+                onSelected: (value) {
+                  switch (value) {
+                    case 0:
+                      model.copyTradesCsvToClipboard(result);
+                      break;
+                    case 1:
+                      model.copyResultSummaryToClipboard(result);
+                      break;
+                    case 2:
+                      model.exportResultCsv(result);
+                      break;
+                    case 3:
+                      model.deleteResult(result);
+                      break;
+                  }
+                },
+              ),
+            )
+          ],
+        );
+      }
+      // Default: use OverflowBar to wrap icons into 2 lines when needed
+      return OverflowBar(
+        alignment: MainAxisAlignment.end,
+        overflowAlignment: OverflowBarAlignment.end,
+        spacing: 2,
+        overflowSpacing: 2,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.table_chart, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: () => model.copyTradesCsvToClipboard(result),
+            tooltip: 'Copy Trades CSV',
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: () => model.copyResultSummaryToClipboard(result),
+            tooltip: 'Copy Summary',
+          ),
+          IconButton(
+            icon: const Icon(Icons.download, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: () => model.exportResultCsv(result),
+            tooltip: 'Export CSV',
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: () => model.viewResult(result),
+            tooltip: 'View Details',
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete_outline, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            color: Theme.of(context).colorScheme.error,
+            onPressed: () => model.deleteResult(result),
+            tooltip: 'Delete',
+          ),
+        ],
+      );
+    });
   }
 }

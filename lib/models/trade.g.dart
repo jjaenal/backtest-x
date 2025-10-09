@@ -97,6 +97,9 @@ _$BacktestSummaryImpl _$$BacktestSummaryImplFromJson(
       largestWin: (json['largestWin'] as num).toDouble(),
       largestLoss: (json['largestLoss'] as num).toDouble(),
       expectancy: (json['expectancy'] as num).toDouble(),
+      tfStats: (json['tfStats'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(k, Map<String, num>.from(e as Map)),
+      ),
     );
 
 Map<String, dynamic> _$$BacktestSummaryImplToJson(
@@ -117,6 +120,7 @@ Map<String, dynamic> _$$BacktestSummaryImplToJson(
       'largestWin': instance.largestWin,
       'largestLoss': instance.largestLoss,
       'expectancy': instance.expectancy,
+      'tfStats': instance.tfStats,
     };
 
 _$EquityPointImpl _$$EquityPointImplFromJson(Map<String, dynamic> json) =>

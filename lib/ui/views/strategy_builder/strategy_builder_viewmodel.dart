@@ -5,6 +5,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/helpers/timeframe_helper.dart' as tfHelper;
 import 'dart:async';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -20,6 +21,7 @@ class RuleBuilder {
   IndicatorType? compareIndicator;
   int? period;
   LogicalOperator? logicalOperator;
+  String? timeframe;
 
   final TextEditingController numberController;
   final TextEditingController periodController;
@@ -32,6 +34,7 @@ class RuleBuilder {
     this.compareIndicator,
     this.period,
     this.logicalOperator,
+    this.timeframe,
   })  : numberController = TextEditingController(text: numberValue?.toString()),
         periodController = TextEditingController(text: period?.toString());
 
@@ -60,6 +63,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
   bool isRunningPreview = false;
   String? selectedDataId;
   List<MarketData> availableData = [];
+  // Per‑TF stats from the last preview run
+  Map<String, Map<String, num>> previewTfStats = {};
 
   // Controllers
   final nameController = TextEditingController();
@@ -83,6 +88,72 @@ class StrategyBuilderViewModel extends BaseViewModel {
       nameController.text.isNotEmpty &&
       initialCapitalController.text.isNotEmpty &&
       entryRules.isNotEmpty;
+
+  bool get hasFatalErrors => getAllFatalErrors().isNotEmpty;
+
+  // ======= VALIDATION =======
+  List<String> getRuleWarningsFor(int index, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    final warnings = <String>[];
+
+    // Timeframe smaller than base timeframe (if selected)
+    if (rule.timeframe != null && selectedDataId != null) {
+      final data = _dataManager.getData(selectedDataId!);
+      if (data != null) {
+        final baseMin = tfHelper.parseTimeframeToMinutes(data.timeframe);
+        final ruleMin = tfHelper.parseTimeframeToMinutes(rule.timeframe!);
+        if (ruleMin < baseMin) {
+          warnings.add(
+              'Timeframe rule lebih kecil dari data dasar; akan dipaksa ke ${data.timeframe}.');
+        }
+      }
+    }
+
+    return warnings;
+  }
+
+  List<String> _getRuleFatalErrors(RuleBuilder rule) {
+    final errors = <String>[];
+    if (rule.isNumberValue) {
+      if (rule.numberValue == null) {
+        errors.add('Nilai angka belum diisi.');
+      }
+    } else {
+      if (rule.compareIndicator == null) {
+        errors.add('Pilih indikator pembanding.');
+      }
+      if (rule.period == null || (rule.period ?? 0) <= 0) {
+        errors.add('Period indikator pembanding wajib > 0.');
+      }
+    }
+
+    // Operator-specific validation
+    if (rule.operator == ComparisonOperator.crossAbove ||
+        rule.operator == ComparisonOperator.crossBelow) {
+      // Cross operators require comparing against another indicator, not a number
+      if (rule.isNumberValue) {
+        errors.add(
+            'Operator crossAbove/crossBelow hanya valid dengan pembanding indikator (pilih Value: Indicator).');
+      }
+    }
+    return errors;
+  }
+
+  List<String> getRuleErrorsFor(int index, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    return _getRuleFatalErrors(rule);
+  }
+
+  List<String> getAllFatalErrors() {
+    final errors = <String>[];
+    for (final r in entryRules) {
+      errors.addAll(_getRuleFatalErrors(r).map((e) => 'Entry: $e'));
+    }
+    for (final r in exitRules) {
+      errors.addAll(_getRuleFatalErrors(r).map((e) => 'Exit: $e'));
+    }
+    return errors;
+  }
 
   Future<void> initialize() async {
     setBusy(true);
@@ -143,6 +214,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         isNumberValue: true,
         numberValue: n,
         logicalOperator: rule.logicalOperator,
+        timeframe: rule.timeframe,
       ),
       indicator: (type, period) => RuleBuilder(
         indicator: rule.indicator,
@@ -151,6 +223,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         compareIndicator: type,
         period: period,
         logicalOperator: rule.logicalOperator,
+        timeframe: rule.timeframe,
       ),
     );
   }
@@ -202,12 +275,36 @@ class StrategyBuilderViewModel extends BaseViewModel {
       int index, ComparisonOperator operator, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.operator = operator;
+
+    // If using cross operators, force value type to Indicator and set safe defaults
+    if (operator == ComparisonOperator.crossAbove ||
+        operator == ComparisonOperator.crossBelow) {
+      if (rule.isNumberValue) {
+        rule.isNumberValue = false;
+      }
+      rule.compareIndicator ??= IndicatorType.sma;
+      rule.period ??= 14;
+      // keep controllers in sync
+      rule.periodController.text = (rule.period ?? 14).toString();
+    }
+
     notifyListeners();
     _scheduleAutosave();
   }
 
   void updateRuleValueType(int index, bool isNumber, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
+    // Prevent selecting Number when using cross operators
+    if (isNumber &&
+        (rule.operator == ComparisonOperator.crossAbove ||
+            rule.operator == ComparisonOperator.crossBelow)) {
+      _snackbarService.showSnackbar(
+        message:
+            'Operator crossAbove/crossBelow hanya valid dengan pembanding indikator (pilih Value: Indicator).',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
     rule.isNumberValue = isNumber;
     notifyListeners();
     _scheduleAutosave();
@@ -241,10 +338,20 @@ class StrategyBuilderViewModel extends BaseViewModel {
     _scheduleAutosave();
   }
 
+  void updateRuleTimeframe(int index, String? tf, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    rule.timeframe = tf;
+    notifyListeners();
+    _scheduleAutosave();
+  }
+
   Future<void> saveStrategy(BuildContext context) async {
-    if (!canSave) {
+    final fatalErrors = getAllFatalErrors();
+    if (!canSave || fatalErrors.isNotEmpty) {
       _snackbarService.showSnackbar(
-        message: 'Please fill all required fields',
+        message: fatalErrors.isNotEmpty
+            ? 'Perbaiki error sebelum menyimpan:\n• ${fatalErrors.join('\n• ')}'
+            : 'Please fill all required fields',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -280,13 +387,14 @@ class StrategyBuilderViewModel extends BaseViewModel {
       } catch (e) {
         debugPrint('Failed to clear draft: $e');
       }
-      // Navigate back
-      _navigationService.back();
 
       _snackbarService.showSnackbar(
         message: isEditing ? 'Strategy updated!' : 'Strategy saved!',
         duration: const Duration(seconds: 2),
       );
+      // Navigate back
+      await Future.delayed(const Duration(seconds: 1));
+      _navigationService.back();
     } catch (e) {
       debugPrint('Error saving strategy: $e');
       _snackbarService.showSnackbar(
@@ -311,6 +419,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
       operator: builder.operator,
       value: value,
       logicalOperator: builder.logicalOperator,
+      timeframe: builder.timeframe,
     );
   }
 
@@ -359,9 +468,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   /// Run quick backtest preview without saving strategy
   Future<void> quickPreviewBacktest() async {
-    if (!canSave) {
+    final fatalErrors = getAllFatalErrors();
+    if (!canSave || fatalErrors.isNotEmpty) {
       _snackbarService.showSnackbar(
-        message: 'Please fill all required fields before testing',
+        message: fatalErrors.isNotEmpty
+            ? 'Perbaiki error sebelum testing:\n• ${fatalErrors.join('\n• ')}'
+            : 'Please fill all required fields before testing',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -410,6 +522,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
         marketData: marketData,
         strategy: strategy,
       );
+      // Capture per‑TF stats for preview rendering
+      previewTfStats = _backtestEngine.lastTfStats;
 
       // Show quick summary
       _snackbarService.showSnackbar(
@@ -492,24 +606,30 @@ class StrategyBuilderViewModel extends BaseViewModel {
       'stopLoss': stopLossController.text,
       'takeProfit': takeProfitController.text,
       'selectedDataId': selectedDataId,
-      'entryRules': entryRules.map((r) => {
-            'indicator': r.indicator.name,
-            'operator': r.operator.name,
-            'isNumberValue': r.isNumberValue,
-            'numberValue': r.numberValue,
-            'compareIndicator': r.compareIndicator?.name,
-            'period': r.period,
-            'logicalOperator': r.logicalOperator?.name,
-          }).toList(),
-      'exitRules': exitRules.map((r) => {
-            'indicator': r.indicator.name,
-            'operator': r.operator.name,
-            'isNumberValue': r.isNumberValue,
-            'numberValue': r.numberValue,
-            'compareIndicator': r.compareIndicator?.name,
-            'period': r.period,
-            'logicalOperator': r.logicalOperator?.name,
-          }).toList(),
+      'entryRules': entryRules
+          .map((r) => {
+                'indicator': r.indicator.name,
+                'operator': r.operator.name,
+                'isNumberValue': r.isNumberValue,
+                'numberValue': r.numberValue,
+                'compareIndicator': r.compareIndicator?.name,
+                'period': r.period,
+                'logicalOperator': r.logicalOperator?.name,
+                'timeframe': r.timeframe,
+              })
+          .toList(),
+      'exitRules': exitRules
+          .map((r) => {
+                'indicator': r.indicator.name,
+                'operator': r.operator.name,
+                'isNumberValue': r.isNumberValue,
+                'numberValue': r.numberValue,
+                'compareIndicator': r.compareIndicator?.name,
+                'period': r.period,
+                'logicalOperator': r.logicalOperator?.name,
+                'timeframe': r.timeframe,
+              })
+          .toList(),
     };
   }
 
@@ -616,6 +736,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
     final compareIndicatorName = map['compareIndicator'] as String?;
     final period = map['period'] as int?;
     final logicalName = map['logicalOperator'] as String?;
+    final timeframe = map['timeframe'] as String?;
 
     final indicator = indicatorName != null
         ? IndicatorType.values.firstWhere(
@@ -650,6 +771,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
       compareIndicator: compareIndicator,
       period: period,
       logicalOperator: logicalOp,
+      timeframe: timeframe,
     );
   }
 }

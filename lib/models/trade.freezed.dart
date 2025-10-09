@@ -763,6 +763,8 @@ mixin _$BacktestSummary {
   double get largestWin => throw _privateConstructorUsedError;
   double get largestLoss => throw _privateConstructorUsedError;
   double get expectancy => throw _privateConstructorUsedError;
+  Map<String, Map<String, num>>? get tfStats =>
+      throw _privateConstructorUsedError;
 
   /// Serializes this BacktestSummary to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -795,7 +797,8 @@ abstract class $BacktestSummaryCopyWith<$Res> {
       double averageLoss,
       double largestWin,
       double largestLoss,
-      double expectancy});
+      double expectancy,
+      Map<String, Map<String, num>>? tfStats});
 }
 
 /// @nodoc
@@ -828,6 +831,7 @@ class _$BacktestSummaryCopyWithImpl<$Res, $Val extends BacktestSummary>
     Object? largestWin = null,
     Object? largestLoss = null,
     Object? expectancy = null,
+    Object? tfStats = freezed,
   }) {
     return _then(_value.copyWith(
       totalTrades: null == totalTrades
@@ -890,6 +894,10 @@ class _$BacktestSummaryCopyWithImpl<$Res, $Val extends BacktestSummary>
           ? _value.expectancy
           : expectancy // ignore: cast_nullable_to_non_nullable
               as double,
+      tfStats: freezed == tfStats
+          ? _value.tfStats
+          : tfStats // ignore: cast_nullable_to_non_nullable
+              as Map<String, Map<String, num>>?,
     ) as $Val);
   }
 }
@@ -917,7 +925,8 @@ abstract class _$$BacktestSummaryImplCopyWith<$Res>
       double averageLoss,
       double largestWin,
       double largestLoss,
-      double expectancy});
+      double expectancy,
+      Map<String, Map<String, num>>? tfStats});
 }
 
 /// @nodoc
@@ -948,6 +957,7 @@ class __$$BacktestSummaryImplCopyWithImpl<$Res>
     Object? largestWin = null,
     Object? largestLoss = null,
     Object? expectancy = null,
+    Object? tfStats = freezed,
   }) {
     return _then(_$BacktestSummaryImpl(
       totalTrades: null == totalTrades
@@ -1010,6 +1020,10 @@ class __$$BacktestSummaryImplCopyWithImpl<$Res>
           ? _value.expectancy
           : expectancy // ignore: cast_nullable_to_non_nullable
               as double,
+      tfStats: freezed == tfStats
+          ? _value._tfStats
+          : tfStats // ignore: cast_nullable_to_non_nullable
+              as Map<String, Map<String, num>>?,
     ));
   }
 }
@@ -1032,7 +1046,9 @@ class _$BacktestSummaryImpl implements _BacktestSummary {
       required this.averageLoss,
       required this.largestWin,
       required this.largestLoss,
-      required this.expectancy});
+      required this.expectancy,
+      final Map<String, Map<String, num>>? tfStats})
+      : _tfStats = tfStats;
 
   factory _$BacktestSummaryImpl.fromJson(Map<String, dynamic> json) =>
       _$$BacktestSummaryImplFromJson(json);
@@ -1067,10 +1083,19 @@ class _$BacktestSummaryImpl implements _BacktestSummary {
   final double largestLoss;
   @override
   final double expectancy;
+  final Map<String, Map<String, num>>? _tfStats;
+  @override
+  Map<String, Map<String, num>>? get tfStats {
+    final value = _tfStats;
+    if (value == null) return null;
+    if (_tfStats is EqualUnmodifiableMapView) return _tfStats;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   @override
   String toString() {
-    return 'BacktestSummary(totalTrades: $totalTrades, winningTrades: $winningTrades, losingTrades: $losingTrades, winRate: $winRate, totalPnl: $totalPnl, totalPnlPercentage: $totalPnlPercentage, profitFactor: $profitFactor, maxDrawdown: $maxDrawdown, maxDrawdownPercentage: $maxDrawdownPercentage, sharpeRatio: $sharpeRatio, averageWin: $averageWin, averageLoss: $averageLoss, largestWin: $largestWin, largestLoss: $largestLoss, expectancy: $expectancy)';
+    return 'BacktestSummary(totalTrades: $totalTrades, winningTrades: $winningTrades, losingTrades: $losingTrades, winRate: $winRate, totalPnl: $totalPnl, totalPnlPercentage: $totalPnlPercentage, profitFactor: $profitFactor, maxDrawdown: $maxDrawdown, maxDrawdownPercentage: $maxDrawdownPercentage, sharpeRatio: $sharpeRatio, averageWin: $averageWin, averageLoss: $averageLoss, largestWin: $largestWin, largestLoss: $largestLoss, expectancy: $expectancy, tfStats: $tfStats)';
   }
 
   @override
@@ -1106,7 +1131,8 @@ class _$BacktestSummaryImpl implements _BacktestSummary {
             (identical(other.largestLoss, largestLoss) ||
                 other.largestLoss == largestLoss) &&
             (identical(other.expectancy, expectancy) ||
-                other.expectancy == expectancy));
+                other.expectancy == expectancy) &&
+            const DeepCollectionEquality().equals(other._tfStats, _tfStats));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1127,7 +1153,8 @@ class _$BacktestSummaryImpl implements _BacktestSummary {
       averageLoss,
       largestWin,
       largestLoss,
-      expectancy);
+      expectancy,
+      const DeepCollectionEquality().hash(_tfStats));
 
   /// Create a copy of BacktestSummary
   /// with the given fields replaced by the non-null parameter values.
@@ -1162,7 +1189,8 @@ abstract class _BacktestSummary implements BacktestSummary {
       required final double averageLoss,
       required final double largestWin,
       required final double largestLoss,
-      required final double expectancy}) = _$BacktestSummaryImpl;
+      required final double expectancy,
+      final Map<String, Map<String, num>>? tfStats}) = _$BacktestSummaryImpl;
 
   factory _BacktestSummary.fromJson(Map<String, dynamic> json) =
       _$BacktestSummaryImpl.fromJson;
@@ -1197,6 +1225,8 @@ abstract class _BacktestSummary implements BacktestSummary {
   double get largestLoss;
   @override
   double get expectancy;
+  @override
+  Map<String, Map<String, num>>? get tfStats;
 
   /// Create a copy of BacktestSummary
   /// with the given fields replaced by the non-null parameter values.

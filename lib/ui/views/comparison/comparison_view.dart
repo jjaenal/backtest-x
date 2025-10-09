@@ -653,6 +653,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             // Best performer highlight
             _buildBestPerformer(context, model),
 
+            const SizedBox(height: 16),
+            // Per‑Timeframe Stats for each result
+            _buildPerTfStats(context, model),
+
             const SizedBox(height: 24),
           ],
         ),
@@ -663,4 +667,137 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   @override
   ComparisonViewModel viewModelBuilder(BuildContext context) =>
       ComparisonViewModel(results);
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildPerTfStats(BuildContext context, ComparisonViewModel model) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Per-Timeframe Stats'),
+          const SizedBox(height: 12),
+          Column(
+            children: List.generate(results.length, (index) {
+              final r = results[index];
+              final stats = r.summary.tfStats;
+              if (stats == null || stats.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              final entries = stats.entries.toList()
+                ..sort((a, b) => a.key.compareTo(b.key));
+              return Card(
+                elevation: 1,
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'R${index + 1}: ${model.strategyLabelFor(r.strategyId)}',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: entries.map((e) {
+                          final tf = e.key;
+                          final s = e.value;
+                          final signals = (s['signals'] ?? 0).toInt();
+                          final trades = (s['trades'] ?? 0).toInt();
+                          final wins = (s['wins'] ?? 0).toInt();
+                          final wr = (s['winRate'] ?? 0).toDouble();
+                          return _tfStatChip(
+                            context,
+                            tf,
+                            signals,
+                            trades,
+                            wins,
+                            wr,
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tfStatChip(
+    BuildContext context,
+    String tf,
+    int signals,
+    int trades,
+    int wins,
+    double winRate,
+  ) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+      ),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 6,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          Text(
+            tf,
+            style:
+                theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          _statChip(context, 'Signals', signals.toString()),
+          _statChip(context, 'Trades', trades.toString()),
+          _statChip(context, 'Wins', wins.toString()),
+          _statChip(context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
+        ],
+      ),
+    );
+  }
+
+  Widget _statChip(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: theme.textTheme.bodySmall),
+          const SizedBox(width: 6),
+          Text(value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              )),
+        ],
+      ),
+    );
+  }
 }

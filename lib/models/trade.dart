@@ -68,6 +68,7 @@ class BacktestSummary with _$BacktestSummary {
     required double largestWin,
     required double largestLoss,
     required double expectancy,
+    Map<String, Map<String, num>>? tfStats,
   }) = _BacktestSummary;
 
   factory BacktestSummary.fromJson(Map<String, dynamic> json) =>

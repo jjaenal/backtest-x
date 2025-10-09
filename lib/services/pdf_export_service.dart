@@ -104,6 +104,26 @@ class PdfExportService {
                             _fmtCurrencyUsd(summary.largestLoss)),
                         _summaryRow(
                             'Expectancy', _fmtCurrencyUsd(summary.expectancy)),
+                        if (summary.tfStats != null &&
+                            summary.tfStats!.isNotEmpty) ...[
+                          pw.SizedBox(height: 8),
+                          pw.Text('Per-Timeframe Stats',
+                              style: pw.TextStyle(
+                                fontSize: 14,
+                                fontWeight: pw.FontWeight.bold,
+                              )),
+                          ...summary.tfStats!.entries.map((e) {
+                            final tf = e.key;
+                            final s = e.value;
+                            final signals = (s['signals'] ?? 0).toInt();
+                            final trades = (s['trades'] ?? 0).toInt();
+                            final wins = (s['wins'] ?? 0).toInt();
+                            final wr = (s['winRate'] ?? 0).toDouble();
+                            final value =
+                                'Signals: $signals, Trades: $trades, Wins: $wins, WinRate: ${wr.toStringAsFixed(1)}%';
+                            return _summaryRow('TF $tf', value);
+                          }).toList(),
+                        ],
                       ],
                     ),
                   ),

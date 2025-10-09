@@ -216,6 +216,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   const SizedBox(height: 12),
                   _buildPerformanceCards(context, result.summary),
                   const SizedBox(height: 24),
+                  if (result.summary.tfStats != null &&
+                      result.summary.tfStats!.isNotEmpty) ...[
+                    _buildSectionTitle('Per-Timeframe Stats'),
+                    const SizedBox(height: 12),
+                    _buildTfStats(context, result.summary.tfStats!),
+                    const SizedBox(height: 24),
+                  ],
+                  const SizedBox(height: 24),
                   _buildSectionTitle('Trade Statistics'),
                   const SizedBox(height: 12),
                   _buildTradeStatsCard(context, result.summary),
@@ -232,6 +240,83 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTfStats(
+      BuildContext context, Map<String, Map<String, num>> tfStats) {
+    final theme = Theme.of(context);
+    final entries = tfStats.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return Card(
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: entries.map((e) {
+                final tf = e.key;
+                final s = e.value;
+                final signals = (s['signals'] ?? 0).toInt();
+                final trades = (s['trades'] ?? 0).toInt();
+                final wins = (s['wins'] ?? 0).toInt();
+                final winRate = (s['winRate'] ?? 0).toDouble();
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+                  ),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        tf,
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                      ),
+                      _statChip(context, 'Signals', signals.toString()),
+                      _statChip(context, 'Trades', trades.toString()),
+                      _statChip(context, 'Wins', wins.toString()),
+                      _statChip(context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _statChip(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.primary.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(label, style: theme.textTheme.bodySmall),
+          const SizedBox(width: 6),
+          Text(value,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.primary,
+              )),
+        ],
       ),
     );
   }

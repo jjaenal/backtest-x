@@ -47,6 +47,22 @@ class ComparisonViewModel extends BaseViewModel {
         final name = strategyLabelFor(r.strategyId);
         buffer.writeln(
             'R${i + 1} • $name • PnL: ${r.summary.totalPnl.toStringAsFixed(2)} (${r.summary.totalPnlPercentage.toStringAsFixed(2)}%) • WinRate: ${r.summary.winRate.toStringAsFixed(1)}% • PF: ${r.summary.profitFactor.toStringAsFixed(2)} • MaxDD: ${r.summary.maxDrawdownPercentage.toStringAsFixed(2)}% • ${r.executedAt.toIso8601String()}');
+        final stats = r.summary.tfStats;
+        if (stats != null && stats.isNotEmpty) {
+          buffer.writeln('  Per‑Timeframe Stats:');
+          final sorted = stats.entries.toList()
+            ..sort((a, b) => a.key.compareTo(b.key));
+          for (final e in sorted) {
+            final tf = e.key;
+            final s = e.value;
+            final signals = (s['signals'] ?? 0).toInt();
+            final trades = (s['trades'] ?? 0).toInt();
+            final wins = (s['wins'] ?? 0).toInt();
+            final wr = (s['winRate'] ?? 0).toDouble();
+            buffer.writeln(
+                '    • $tf → Signals: $signals, Trades: $trades, Wins: $wins, WinRate: ${wr.toStringAsFixed(1)}%');
+          }
+        }
       }
       await Clipboard.setData(ClipboardData(text: buffer.toString()));
       return true;

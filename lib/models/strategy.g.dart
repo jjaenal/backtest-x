@@ -70,6 +70,7 @@ _$StrategyRuleImpl _$$StrategyRuleImplFromJson(Map<String, dynamic> json) =>
       value: ConditionValue.fromJson(json['value'] as Map<String, dynamic>),
       logicalOperator: $enumDecodeNullable(
           _$LogicalOperatorEnumMap, json['logicalOperator']),
+      timeframe: json['timeframe'] as String?,
     );
 
 Map<String, dynamic> _$$StrategyRuleImplToJson(_$StrategyRuleImpl instance) =>
@@ -78,6 +79,7 @@ Map<String, dynamic> _$$StrategyRuleImplToJson(_$StrategyRuleImpl instance) =>
       'operator': _$ComparisonOperatorEnumMap[instance.operator]!,
       'value': instance.value,
       'logicalOperator': _$LogicalOperatorEnumMap[instance.logicalOperator],
+      'timeframe': instance.timeframe,
     };
 
 const _$IndicatorTypeEnumMap = {

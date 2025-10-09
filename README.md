@@ -326,6 +326,16 @@ void main() {
    - Verified on Web build and preview
  - Strategy Builder:
    - Auto-save drafts with debounce to prevent data loss
+   - Validation & UX improvements:
+     - Per-rule warnings/errors displayed on rule cards
+     - Fatal errors block Save and Quick Test actions
+     - Disabled buttons when fatal errors or preview running, with tooltips explaining why
+     - Inline error text on Value, Compare With, and Period fields
+     - Error-highlighted rule cards with red border for visibility
+     - Per-rule timeframe dropdown connected; warning if Rule TF < Base TF
+     - Cross operators (crossAbove/crossBelow): auto-switch Value ke Indicator; Number dimatikan dengan hint
+     - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
+   - Verified on Flutter web preview without browser errors
 
 ## 💡 Implementation Insights
 
