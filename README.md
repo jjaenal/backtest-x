@@ -40,6 +40,7 @@ flutter run
 - **Data Import/Export**: Import CSV data and export backtest results (CSV, PDF)
   - Export trades to CSV from Backtest Result view
   - Export comparison results to CSV from Compare Results view
+  - Copy comparison summary to clipboard from Compare Results view
 - **Share Results**: Share backtest results with others
 
 ## 📁 Project Structure
@@ -294,7 +295,7 @@ void main() {
 ### Phase 2 - Polish (Next 3 months)
 
 - [x] Export results (CSV, PDF)
-- [ ] Save/load strategies
+- [x] Save/load strategies
 - [ ] Multi-timeframe analysis
 - [ ] UI/UX improvements
 - [x] Dark/Light theme toggle
@@ -310,6 +311,9 @@ void main() {
   - Market Analysis indicator settings sheet
 - Equity/Drawdown toggle UI refined (themed background + outline)
 - Chart info panel and price labels made theme-aware
+- Comparison View improvements:
+  - Show human-readable strategy names in cards and table
+  - Add "Copy Summary" menu to copy comparison stats to clipboard
 
 ## 💡 Implementation Insights
 

@@ -289,6 +289,7 @@
 7. **Undo/Redo** - Strategy builder safety net
 8. **Templates** - Common strategy patterns
 9. **Copy to clipboard** - Easy sharing of results
+   - [x] Implemented for Comparison View (Copy Summary)
 10. **Rate limiting** - Prevent app abuse
 
 ---
