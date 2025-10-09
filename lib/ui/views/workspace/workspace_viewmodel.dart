@@ -6,6 +6,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -26,6 +27,7 @@ class WorkspaceViewModel extends BaseViewModel {
   final _snackbarService = locator<SnackbarService>();
   final _dataManager = locator<DataManager>();
   final _backtestEngineService = locator<BacktestEngineService>();
+  final _dataValidationService = locator<DataValidationService>();
 
   List<Strategy> _strategies = [];
   List<Strategy> get strategies => _strategies;
@@ -450,6 +452,17 @@ class WorkspaceViewModel extends BaseViewModel {
         return;
       }
 
+      // Quick validation before running
+      final isValid = _dataValidationService.quickValidate(marketData);
+      if (!isValid) {
+        final report = _dataValidationService.validateMarketData(marketData);
+        _snackbarService.showSnackbar(
+          message: 'Market data tidak valid: ${report.summary}',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
       // Run backtest
       final result = await _backtestEngineService.runBacktest(
         strategy: strategy,
@@ -524,10 +537,17 @@ class WorkspaceViewModel extends BaseViewModel {
           ? list.length
           : (maxCount.clamp(1, list.length));
       int completed = 0;
+      int skipped = 0;
 
       for (int i = 0; i < total; i++) {
         final marketData = list[i];
         try {
+          // Validate each dataset quickly; skip invalid
+          if (!_dataValidationService.quickValidate(marketData)) {
+            skipped++;
+            continue;
+          }
+
           final result = await _backtestEngineService.runBacktest(
             strategy: strategy,
             marketData: marketData,
@@ -555,8 +575,11 @@ class WorkspaceViewModel extends BaseViewModel {
         }
       }
 
+      final msg = skipped > 0
+          ? 'Batch complete: $completed/$total saved (skipped $skipped invalid)'
+          : 'Batch complete: $completed/$total saved';
       _snackbarService.showSnackbar(
-        message: 'Batch complete: $completed/$total saved',
+        message: msg,
         duration: const Duration(seconds: 3),
       );
     } finally {

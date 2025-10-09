@@ -23,7 +23,10 @@ class DataParserService {
         timeframe: timeframe,
       );
     } catch (e) {
-      throw Exception('Failed to parse CSV: $e');
+      throw Exception(
+        'Gagal mem-parsing CSV dari file: ${e.toString()}\n'
+        'Hint: Pastikan format kolom adalah Date, Open, High, Low, Close, Volume (opsional).',
+      );
     }
   }
 
@@ -41,7 +44,10 @@ class DataParserService {
         timeframe: timeframe,
       );
     } catch (e) {
-      throw Exception('Failed to parse CSV bytes: $e');
+      throw Exception(
+        'Gagal mem-parsing CSV (bytes): ${e.toString()}\n'
+        'Hint: Periksa encoding UTF-8 dan susunan kolom sesuai format standar.',
+      );
     }
   }
 
@@ -54,7 +60,7 @@ class DataParserService {
     final rows = const CsvToListConverter().convert(content);
 
     if (rows.isEmpty) {
-      throw Exception('CSV file is empty');
+      throw Exception('CSV kosong: tidak ada baris data.');
     }
 
     // Detect if has header
@@ -64,22 +70,29 @@ class DataParserService {
     // Validate format
     if (!_validateCsvFormat(dataRows)) {
       throw Exception(
-          'Invalid CSV format. Expected: Date, Open, High, Low, Close, Volume');
+        'Format CSV tidak valid. Ekspektasi: Date, Open, High, Low, Close, Volume (opsional).',
+      );
     }
 
     // Parse candles
     final candles = <Candle>[];
-    for (final row in dataRows) {
+    for (var i = 0; i < dataRows.length; i++) {
+      final row = dataRows[i];
+      final lineNumber = i + (hasHeader ? 2 : 1); // 1-based + header line
       try {
         final candle = Candle.fromCsvRow(row);
         candles.add(candle);
       } catch (e) {
-        debugPrint('Skipping invalid row: $row. Error: $e');
+        // Log detail dan berikan pesan yang mudah dipahami
+        debugPrint('Lewati baris #$lineNumber: $row. Error: $e');
       }
     }
 
     if (candles.isEmpty) {
-      throw Exception('No valid candles found in CSV');
+      throw Exception(
+        'Tidak ada baris valid yang berhasil diparsing dari CSV.\n'
+        'Hint: Pastikan tiap baris memiliki nilai numerik untuk OHLC dan tanggal valid.',
+      );
     }
 
     // Sort by timestamp ascending

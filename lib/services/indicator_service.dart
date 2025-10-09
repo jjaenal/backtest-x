@@ -4,6 +4,9 @@ import 'package:backtestx/models/candle.dart';
 class IndicatorService {
   /// Simple Moving Average
   List<double?> calculateSMA(List<Candle> candles, int period) {
+    if (period <= 0) {
+      return List<double?>.filled(candles.length, null);
+    }
     final closes = candles.map((c) => c.close).toList();
     final sma = List<double?>.filled(closes.length, null);
 
@@ -19,6 +22,9 @@ class IndicatorService {
 
   /// Exponential Moving Average
   List<double?> calculateEMA(List<Candle> candles, int period) {
+    if (period <= 0) {
+      return List<double?>.filled(candles.length, null);
+    }
     final closes = candles.map((c) => c.close).toList();
     final ema = List<double?>.filled(closes.length, null);
 
@@ -43,6 +49,9 @@ class IndicatorService {
 
   /// Relative Strength Index
   List<double?> calculateRSI(List<Candle> candles, int period) {
+    if (period <= 0) {
+      return List<double?>.filled(candles.length, null);
+    }
     final closes = candles.map((c) => c.close).toList();
     final rsi = List<double?>.filled(closes.length, null);
 
@@ -86,6 +95,9 @@ class IndicatorService {
 
   /// Average True Range
   List<double?> calculateATR(List<Candle> candles, int period) {
+    if (period <= 0) {
+      return List<double?>.filled(candles.length, null);
+    }
     final atr = List<double?>.filled(candles.length, null);
 
     if (candles.length < period + 1) return atr;
@@ -161,6 +173,14 @@ class IndicatorService {
     int period,
     double stdDev,
   ) {
+    if (period <= 0) {
+      final empty = List<double?>.filled(candles.length, null);
+      return {
+        'upper': empty,
+        'middle': empty,
+        'lower': empty,
+      };
+    }
     final sma = calculateSMA(candles, period);
     final closes = candles.map((c) => c.close).toList();
 
@@ -187,6 +207,9 @@ class IndicatorService {
 
   // Helper: Calculate EMA from values list
   List<double?> _emaFromValues(List<double?> values, int period) {
+    if (period <= 0) {
+      return List<double?>.filled(values.length, null);
+    }
     final ema = List<double?>.filled(values.length, null);
 
     final validValues = <double>[];

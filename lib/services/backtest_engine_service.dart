@@ -46,6 +46,30 @@ class BacktestEngineService {
     final candles = marketData.candles;
     final baseTimeframe = marketData.timeframe;
 
+    // Guard: empty or too-short data
+    if (candles.isEmpty) {
+      throw StateError(
+        'Backtest gagal: market data kosong. Unggah CSV valid atau pilih data lain.',
+      );
+    }
+    if (candles.length < 2) {
+      // Early return dengan hasil kosong yang aman
+      final summary = _calculateSummary(
+        [],
+        strategy.initialCapital,
+        tfStats: {},
+      );
+      return BacktestResult(
+        id: _uuid.v4(),
+        strategyId: strategy.id,
+        marketDataId: marketData.id,
+        executedAt: DateTime.now(),
+        trades: const [],
+        summary: summary,
+        equityCurve: const [],
+      );
+    }
+
     // Prepare multi-timeframe context
     final ruleTimeframes = <String>{};
     for (final r in [...strategy.entryRules, ...strategy.exitRules]) {
