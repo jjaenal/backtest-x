@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class ThemeService {
-  final ValueNotifier<ThemeMode> themeMode = ValueNotifier<ThemeMode>(ThemeMode.system);
+  final ValueNotifier<ThemeMode> themeMode =
+      ValueNotifier<ThemeMode>(ThemeMode.dark);
 
   void setThemeMode(ThemeMode mode) {
     themeMode.value = mode;
