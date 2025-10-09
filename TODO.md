@@ -286,10 +286,12 @@
 4. **Dark mode default** - Traders love dark themes
 5. **Keyboard shortcuts** - Power user features
 6. **Auto-save** - Never lose work
+   - [x] Implemented: Strategy Builder auto-saves drafts with debounce
 7. **Undo/Redo** - Strategy builder safety net
 8. **Templates** - Common strategy patterns
 9. **Copy to clipboard** - Easy sharing of results
    - [x] Implemented for Comparison View (Copy Summary)
+   - [x] Implemented for Backtest Result View (Copy Summary)
 10. **Rate limiting** - Prevent app abuse
 
 ---

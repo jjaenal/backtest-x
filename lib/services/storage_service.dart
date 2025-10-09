@@ -33,7 +33,7 @@ class StorageService {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -77,6 +77,16 @@ class StorageService {
       )
     ''');
 
+    // Strategy drafts table for autosave
+    await db.execute('''
+      CREATE TABLE strategy_drafts (
+        id TEXT PRIMARY KEY,
+        strategy_id TEXT,
+        data TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      )
+    ''');
+
     // Create indexes
     await db.execute(
         'CREATE INDEX idx_strategy_created ON strategies(created_at DESC)');
@@ -84,6 +94,8 @@ class StorageService {
         'CREATE INDEX idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
     await db.execute(
         'CREATE INDEX idx_market_symbol ON market_data(symbol, timeframe)');
+    await db.execute(
+        'CREATE INDEX idx_draft_updated ON strategy_drafts(updated_at DESC)');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -115,6 +127,23 @@ class StorageService {
             'CREATE INDEX IF NOT EXISTS idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
       } catch (_) {
         // Non-critical; continue
+      }
+    }
+    // Add drafts table for autosave in v3
+    if (oldVersion < 3) {
+      try {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS strategy_drafts (
+            id TEXT PRIMARY KEY,
+            strategy_id TEXT,
+            data TEXT NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_draft_updated ON strategy_drafts(updated_at DESC)');
+      } catch (_) {
+        // Non-critical
       }
     }
   }
@@ -461,6 +490,7 @@ class StorageService {
     await db.delete('strategies');
     await db.delete('backtest_results');
     await db.delete('market_data');
+    await db.delete('strategy_drafts');
 
     // Clear all caches
     _strategyCache.clear();
@@ -475,6 +505,70 @@ class StorageService {
     _resultCache.clear();
     _strategiesCacheValid = false;
     _allStrategiesCache = null;
+  }
+
+  // ============ STRATEGY DRAFTS (AUTOSAVE) ============
+
+  /// Save a strategy draft. If [strategyId] is provided, the draft is scoped to that strategy.
+  /// Otherwise it is treated as the latest unsaved builder draft.
+  Future<void> saveStrategyDraft({
+    String? strategyId,
+    required Map<String, dynamic> draftJson,
+  }) async {
+    final db = await database;
+    final id = strategyId ?? 'builder_draft';
+    await db.insert(
+      'strategy_drafts',
+      {
+        'id': id,
+        'strategy_id': strategyId,
+        'data': jsonEncode(draftJson),
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      },
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  /// Get a strategy draft, either for a specific [strategyId] or the latest unsaved builder draft.
+  Future<Map<String, dynamic>?> getStrategyDraft({String? strategyId}) async {
+    final db = await database;
+    if (strategyId != null) {
+      final maps = await db.query(
+        'strategy_drafts',
+        where: 'strategy_id = ?',
+        whereArgs: [strategyId],
+        limit: 1,
+      );
+      if (maps.isEmpty) return null;
+      return jsonDecode(maps.first['data'] as String) as Map<String, dynamic>;
+    } else {
+      final maps = await db.query(
+        'strategy_drafts',
+        where: 'id = ?',
+        whereArgs: ['builder_draft'],
+        limit: 1,
+      );
+      if (maps.isEmpty) return null;
+      return jsonDecode(maps.first['data'] as String) as Map<String, dynamic>;
+    }
+  }
+
+  /// Clear a strategy draft.
+  Future<void> clearStrategyDraft({String? strategyId}) async {
+    final db = await database;
+    if (strategyId != null) {
+      await db.delete(
+        'strategy_drafts',
+        where: 'strategy_id = ?',
+        whereArgs: [strategyId],
+      );
+    } else {
+      await db.delete(
+        'strategy_drafts',
+        where: 'id = ?',
+        whereArgs: ['builder_draft'],
+      );
+    }
   }
 }
 

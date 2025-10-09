@@ -5,6 +5,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'dart:async';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -71,6 +72,11 @@ class StrategyBuilderViewModel extends BaseViewModel {
   List<RuleBuilder> entryRules = [];
   List<RuleBuilder> exitRules = [];
 
+  // Autosave
+  Timer? _autosaveTimer;
+  final Duration _autosaveDebounce = const Duration(seconds: 2);
+  String autosaveStatus = '';
+
   bool get isEditing => strategyId != null;
   bool get canSave =>
       nameController.text.isNotEmpty &&
@@ -83,6 +89,15 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (isEditing) {
       await _loadExistingStrategy();
     }
+
+    // Try restore draft if available (prefer draft over existing state)
+    try {
+      await restoreDraftIfAvailable();
+    } catch (e) {
+      debugPrint('Restore draft failed: $e');
+    }
+
+    _setupAutosaveListeners();
 
     setBusy(false);
   }
@@ -143,35 +158,43 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (type != null) {
       riskType = type;
       notifyListeners();
+      _scheduleAutosave();
     }
   }
 
   void addEntryRule() {
     entryRules.add(RuleBuilder());
     notifyListeners();
+    _attachRuleListeners(entryRules.last);
+    _scheduleAutosave();
   }
 
   void addExitRule() {
     exitRules.add(RuleBuilder());
     notifyListeners();
+    _attachRuleListeners(exitRules.last);
+    _scheduleAutosave();
   }
 
   void removeEntryRule(int index) {
     entryRules[index].dispose();
     entryRules.removeAt(index);
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void removeExitRule(int index) {
     exitRules[index].dispose();
     exitRules.removeAt(index);
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void updateRuleIndicator(int index, IndicatorType indicator, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.indicator = indicator;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void updateRuleOperator(
@@ -179,17 +202,20 @@ class StrategyBuilderViewModel extends BaseViewModel {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.operator = operator;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void updateRuleValueType(int index, bool isNumber, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.isNumberValue = isNumber;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void updateRuleNumberValue(int index, String value, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.numberValue = double.tryParse(value);
+    _scheduleAutosave();
   }
 
   void updateRuleCompareIndicator(
@@ -197,11 +223,13 @@ class StrategyBuilderViewModel extends BaseViewModel {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.compareIndicator = indicator;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   void updateRulePeriod(int index, String value, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.period = int.tryParse(value);
+    _scheduleAutosave();
   }
 
   void updateRuleLogicalOperator(
@@ -209,6 +237,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.logicalOperator = operator;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   Future<void> saveStrategy(BuildContext context) async {
@@ -242,6 +271,14 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
       // Save to database
       await _storageService.saveStrategy(strategy);
+      // Clear related draft (autosave) after successful save
+      try {
+        await _storageService.clearStrategyDraft(
+          strategyId: isEditing ? strategyId : null,
+        );
+      } catch (e) {
+        debugPrint('Failed to clear draft: $e');
+      }
       // Navigate back
       _navigationService.back();
 
@@ -316,6 +353,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   void setSelectedData(String? dataId) {
     selectedDataId = dataId;
     notifyListeners();
+    _scheduleAutosave();
   }
 
   /// Run quick backtest preview without saving strategy
@@ -399,6 +437,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _autosaveTimer?.cancel();
     nameController.dispose();
     initialCapitalController.dispose();
     riskValueController.dispose();
@@ -411,5 +450,166 @@ class StrategyBuilderViewModel extends BaseViewModel {
       rule.dispose();
     }
     super.dispose();
+  }
+
+  // ================= AUTOSAVE =================
+  void _setupAutosaveListeners() {
+    nameController.addListener(_scheduleAutosave);
+    initialCapitalController.addListener(_scheduleAutosave);
+    riskValueController.addListener(_scheduleAutosave);
+    stopLossController.addListener(_scheduleAutosave);
+    takeProfitController.addListener(_scheduleAutosave);
+
+    // Attach to existing rules
+    for (final rule in entryRules) {
+      _attachRuleListeners(rule);
+    }
+    for (final rule in exitRules) {
+      _attachRuleListeners(rule);
+    }
+  }
+
+  void _attachRuleListeners(RuleBuilder rule) {
+    rule.numberController.addListener(_scheduleAutosave);
+    rule.periodController.addListener(_scheduleAutosave);
+  }
+
+  void _scheduleAutosave() {
+    _autosaveTimer?.cancel();
+    _autosaveTimer = Timer(_autosaveDebounce, () async {
+      await _saveDraft();
+    });
+  }
+
+  Map<String, dynamic> _buildDraftJson() {
+    return {
+      'name': nameController.text,
+      'initialCapital': initialCapitalController.text,
+      'riskType': riskType.name,
+      'riskValue': riskValueController.text,
+      'stopLoss': stopLossController.text,
+      'takeProfit': takeProfitController.text,
+      'selectedDataId': selectedDataId,
+      'entryRules': entryRules.map((r) => {
+            'indicator': r.indicator.name,
+            'operator': r.operator.name,
+            'isNumberValue': r.isNumberValue,
+            'numberValue': r.numberValue,
+            'compareIndicator': r.compareIndicator?.name,
+            'period': r.period,
+            'logicalOperator': r.logicalOperator?.name,
+          }).toList(),
+      'exitRules': exitRules.map((r) => {
+            'indicator': r.indicator.name,
+            'operator': r.operator.name,
+            'isNumberValue': r.isNumberValue,
+            'numberValue': r.numberValue,
+            'compareIndicator': r.compareIndicator?.name,
+            'period': r.period,
+            'logicalOperator': r.logicalOperator?.name,
+          }).toList(),
+    };
+  }
+
+  Future<void> _saveDraft() async {
+    try {
+      final draft = _buildDraftJson();
+      await _storageService.saveStrategyDraft(
+        strategyId: isEditing ? strategyId : null,
+        draftJson: draft,
+      );
+      final now = DateTime.now();
+      autosaveStatus =
+          'Auto-saved ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Autosave failed: $e');
+    }
+  }
+
+  Future<void> restoreDraftIfAvailable() async {
+    final draft = await _storageService.getStrategyDraft(
+      strategyId: isEditing ? strategyId : null,
+    );
+    if (draft == null) return;
+
+    try {
+      nameController.text = (draft['name'] as String?) ?? '';
+      initialCapitalController.text =
+          (draft['initialCapital'] as String?) ?? initialCapitalController.text;
+      final riskTypeName = draft['riskType'] as String?;
+      if (riskTypeName != null) {
+        riskType = RiskType.values
+            .firstWhere((e) => e.name == riskTypeName, orElse: () => riskType);
+      }
+      riskValueController.text =
+          (draft['riskValue'] as String?) ?? riskValueController.text;
+      stopLossController.text =
+          (draft['stopLoss'] as String?) ?? stopLossController.text;
+      takeProfitController.text =
+          (draft['takeProfit'] as String?) ?? takeProfitController.text;
+      selectedDataId = draft['selectedDataId'] as String?;
+
+      // Restore rules
+      List<dynamic> entry = (draft['entryRules'] as List<dynamic>? ?? []);
+      List<dynamic> exit = (draft['exitRules'] as List<dynamic>? ?? []);
+      for (final r in entryRules) {
+        r.dispose();
+      }
+      for (final r in exitRules) {
+        r.dispose();
+      }
+      entryRules = entry.map((m) => _mapToRuleBuilder(m)).toList();
+      exitRules = exit.map((m) => _mapToRuleBuilder(m)).toList();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to apply draft: $e');
+    }
+  }
+
+  RuleBuilder _mapToRuleBuilder(dynamic m) {
+    final map = m as Map<String, dynamic>;
+    final indicatorName = map['indicator'] as String?;
+    final operatorName = map['operator'] as String?;
+    final isNumberValue = map['isNumberValue'] as bool? ?? true;
+    final numberValue = (map['numberValue'] as num?)?.toDouble();
+    final compareIndicatorName = map['compareIndicator'] as String?;
+    final period = map['period'] as int?;
+    final logicalName = map['logicalOperator'] as String?;
+
+    final indicator = indicatorName != null
+        ? IndicatorType.values.firstWhere(
+            (e) => e.name == indicatorName,
+            orElse: () => IndicatorType.rsi,
+          )
+        : IndicatorType.rsi;
+    final operator = operatorName != null
+        ? ComparisonOperator.values.firstWhere(
+            (e) => e.name == operatorName,
+            orElse: () => ComparisonOperator.lessThan,
+          )
+        : ComparisonOperator.lessThan;
+    final compareIndicator = compareIndicatorName != null
+        ? IndicatorType.values.firstWhere(
+            (e) => e.name == compareIndicatorName,
+            orElse: () => IndicatorType.sma,
+          )
+        : null;
+    final logicalOp = logicalName != null
+        ? LogicalOperator.values.firstWhere(
+            (e) => e.name == logicalName,
+            orElse: () => LogicalOperator.and,
+          )
+        : null;
+
+    return RuleBuilder(
+      indicator: indicator,
+      operator: operator,
+      isNumberValue: isNumberValue,
+      numberValue: numberValue,
+      compareIndicator: compareIndicator,
+      period: period,
+      logicalOperator: logicalOp,
+    );
   }
 }

@@ -24,6 +24,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         title: const Text('Backtest Results'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.copy),
+            onPressed: () => viewModel.copySummaryToClipboard(),
+            tooltip: 'Copy Summary',
+          ),
+          IconButton(
             icon: const Icon(Icons.share),
             onPressed: () => viewModel.shareResults(),
             tooltip: 'Share Results',

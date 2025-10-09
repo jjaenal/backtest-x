@@ -493,6 +493,21 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               ),
                       ),
 
+                      const SizedBox(height: 8),
+                      if (viewModel.autosaveStatus.isNotEmpty)
+                        Center(
+                          child: Text(
+                            viewModel.autosaveStatus,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ),
+
                       const SizedBox(height: 24),
                     ],
                   ),
