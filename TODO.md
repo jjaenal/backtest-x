@@ -124,11 +124,11 @@
 ### Export Features
 
 - [ ] Export trades to CSV
-- [ ] Generate PDF report
-  - Strategy details
-  - Summary stats
-  - Charts
-  - Trade list
+- [x] Generate PDF report (basic)
+  - [x] Summary stats
+  - [x] Trade list
+  - [ ] Strategy details
+  - [ ] Charts
 - [ ] Share via social media
 
 ### Multi-Asset Backtest

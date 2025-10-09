@@ -38,6 +38,7 @@ flutter run
 - **Performance Analytics**: Comprehensive statistics and visualizations
 - **Multi-platform Support**: Works on Web, Android, iOS, and desktop platforms
 - **Data Import/Export**: Import CSV data and export backtest results
+- **Data Import/Export**: Import CSV data and export backtest results (CSV, PDF)
 - **Share Results**: Share backtest results with others
 
 ## 📁 Project Structure
@@ -127,6 +128,10 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   uuid: ^4.2.1
+  
+  # Export (PDF)
+  pdf: ^3.10.8
+  printing: ^5.12.0
 ```
 
 ## 🏗️ Architecture
