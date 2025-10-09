@@ -337,12 +337,15 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Theme.of(context).colorScheme.onSurface,
+          child: Tooltip(
+            message: _metricTooltip(label),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
             ),
           ),
         ),
@@ -365,6 +368,37 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
           ),
       ],
     );
+  }
+
+  String _metricTooltip(String label) {
+    switch (label) {
+      case 'Total P&L':
+        return 'Net profit/loss in currency from all closed trades.';
+      case 'Return %':
+        return 'Total P&L expressed as a percentage of initial capital.';
+      case 'Win Rate':
+        return 'Percentage of winning trades out of total closed trades.';
+      case 'Total Trades':
+        return 'Number of closed trades included in the summary.';
+      case 'Profit Factor':
+        return 'Gross profit divided by gross loss; > 1 indicates profitability.';
+      case 'Max Drawdown':
+        return 'Largest peak-to-trough decline during the backtest (percentage shown).';
+      case 'Sharpe Ratio':
+        return 'Risk-adjusted return; higher values indicate better risk efficiency.';
+      case 'Avg Win':
+        return 'Average profit per winning trade.';
+      case 'Avg Loss':
+        return 'Average loss per losing trade.';
+      case 'Largest Win':
+        return 'Biggest single-trade profit observed.';
+      case 'Largest Loss':
+        return 'Biggest single-trade loss observed.';
+      case 'Expectancy':
+        return 'Average expected profit per trade; positive indicates an edge.';
+      default:
+        return 'Metric description';
+    }
   }
 
   Widget _buildBestPerformer(BuildContext context, ComparisonViewModel model) {
@@ -517,6 +551,39 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         appBar: AppBar(
           title: const Text('Compare Results'),
           actions: [
+            IconButton(
+              icon: const Icon(Icons.download),
+              tooltip: 'Export Comparison CSV',
+              onPressed: () async {
+                final ok = await model.exportComparisonCsv();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? 'Ekspor comparison CSV berhasil'
+                          : 'Ekspor comparison CSV gagal',
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: const Icon(Icons.copy),
+              tooltip: 'Copy Comparison Summary',
+              onPressed: () async {
+                final ok = await model.copySummaryToClipboard();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? 'Ringkasan comparison disalin ke clipboard'
+                          : 'Gagal menyalin ringkasan ke clipboard',
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+            ),
             PopupMenuButton(
               icon: const Icon(Icons.more_vert),
               itemBuilder: (context) => [

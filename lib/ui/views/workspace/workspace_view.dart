@@ -481,12 +481,17 @@ class WorkspaceView extends StatelessWidget {
             color: color,
           ),
         ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        Tooltip(
+          message: _metricTooltip(label),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
+            ),
           ),
         ),
       ],
@@ -767,6 +772,21 @@ class WorkspaceView extends StatelessWidget {
               // Action buttons (only when not in compare mode)
               if (!isCompareMode) ...[
                 IconButton(
+                  icon: const Icon(Icons.table_chart, size: 20),
+                  onPressed: () => model.copyTradesCsvToClipboard(result),
+                  tooltip: 'Copy Trades CSV',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 20),
+                  onPressed: () => model.copyResultSummaryToClipboard(result),
+                  tooltip: 'Copy Summary',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.download, size: 20),
+                  onPressed: () => model.exportResultCsv(result),
+                  tooltip: 'Export CSV',
+                ),
+                IconButton(
                   icon: const Icon(Icons.chevron_right, size: 20),
                   onPressed: () => model.viewResult(result),
                   tooltip: 'View Details',
@@ -795,12 +815,17 @@ class WorkspaceView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+        Tooltip(
+          message: _metricTooltip(label),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
+            ),
           ),
         ),
         const SizedBox(height: 2),
@@ -825,6 +850,23 @@ class WorkspaceView extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  String _metricTooltip(String label) {
+    switch (label) {
+      case 'Tests':
+        return 'Number of backtests executed for this strategy.';
+      case 'Avg P&L':
+        return 'Average profit/loss percentage across backtests.';
+      case 'Win Rate':
+        return 'Average percentage of winning trades across results.';
+      case 'P&L':
+        return 'Total profit or loss in currency for this result.';
+      case 'PF':
+        return 'Profit Factor = gross profit divided by gross loss.';
+      default:
+        return 'Metric description';
+    }
   }
 
   String _formatDate(DateTime date) {

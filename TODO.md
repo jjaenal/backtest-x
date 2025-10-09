@@ -98,6 +98,9 @@
 - [x] View historical results per strategy
 - [x] Compare results
 - [x] Quick run backtest
+ - [x] Copy trades CSV from results list
+ - [x] Copy summary from results list
+ - [x] Export trades CSV from results list
 
 **Estimated Time:** 1-2 days
 
@@ -131,6 +134,8 @@
   - [ ] Strategy details
   - [ ] Charts
 - [ ] Share via social media
+ - [x] Copy trades to clipboard (Workspace)
+ - [x] Copy summary to clipboard (Workspace)
 
 ### Multi-Asset Backtest
 
@@ -230,6 +235,15 @@
 ---
 
 ## 📝 Immediate Next Actions (This Week)
+
+### Next Main Feature Focus: Multi-timeframe Analysis (MVP)
+
+1. Add timeframe selector and multi-select across views
+2. Extend DataManager to aggregate multi-timeframe candles
+3. Update BacktestEngineService to support multi-timeframe conditions
+4. Adjust StrategyBuilder to define MTF rules cleanly
+5. Update Backtest Result to show per-timeframe stats and charts
+6. Enhance Workspace Compare to visualize results across timeframes
 
 ### Day 1-2: Strategy Builder View
 

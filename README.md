@@ -42,6 +42,9 @@ flutter run
   - Export comparison results to CSV from Compare Results view
   - Copy comparison summary to clipboard from Compare Results view
   - Copy backtest summary to clipboard from Backtest Result view
+  - Copy trades CSV to clipboard from Workspace results
+  - Copy backtest summary to clipboard from Workspace results
+  - Export trades to CSV from Workspace results list
 - **Share Results**: Share backtest results with others
  - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 
@@ -318,6 +321,9 @@ void main() {
   - Add "Copy Summary" menu to copy comparison stats to clipboard
 - Backtest Result improvements:
   - Add "Copy Summary" button to copy backtest stats to clipboard
+ - Workspace results quick actions:
+   - Add "Copy Trades CSV", "Copy Summary", and "Export CSV" buttons on each result
+   - Verified on Web build and preview
  - Strategy Builder:
    - Auto-save drafts with debounce to prevent data loss
 

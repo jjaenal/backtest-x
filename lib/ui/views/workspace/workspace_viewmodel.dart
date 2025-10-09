@@ -10,6 +10,14 @@ import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:csv/csv.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
+    as html;
+import 'dart:io';
 
 class WorkspaceViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
@@ -344,6 +352,188 @@ class WorkspaceViewModel extends BaseViewModel {
       Routes.backtestResultView,
       arguments: BacktestResultViewArguments(result: result),
     );
+  }
+
+  /// Export single backtest result trades to CSV (web/mobile/desktop)
+  Future<void> exportResultCsv(BacktestResult result) async {
+    try {
+      final marketData = _dataManager.getData(result.marketDataId);
+      String strategyName = 'Strategy ${result.strategyId}';
+      try {
+        strategyName =
+            _strategies.firstWhere((s) => s.id == result.strategyId).name;
+      } catch (_) {}
+
+      final List<List<dynamic>> rows = [];
+      rows.add([
+        'Strategy',
+        'Symbol',
+        'Timeframe',
+        'Direction',
+        'Entry Date',
+        'Exit Date',
+        'Entry Price',
+        'Exit Price',
+        'Lot Size',
+        'Stop Loss',
+        'Take Profit',
+        'PnL',
+        'PnL %',
+        'Duration',
+      ]);
+
+      for (final trade in result.trades) {
+        String duration = '-';
+        if (trade.exitTime != null) {
+          final diff = trade.exitTime!.difference(trade.entryTime).inHours;
+          duration = '${diff ~/ 24}d ${diff % 24}h';
+        }
+
+        rows.add([
+          strategyName,
+          marketData?.symbol ?? '-',
+          marketData?.timeframe ?? '-',
+          trade.direction == TradeDirection.buy ? 'BUY' : 'SELL',
+          trade.entryTime.toIso8601String(),
+          trade.exitTime?.toIso8601String() ?? '-',
+          trade.entryPrice.toStringAsFixed(4),
+          trade.exitPrice?.toStringAsFixed(4) ?? '-',
+          trade.lotSize.toStringAsFixed(2),
+          trade.stopLoss?.toStringAsFixed(4) ?? '-',
+          trade.takeProfit?.toStringAsFixed(4) ?? '-',
+          trade.pnl?.toStringAsFixed(2) ?? '-',
+          trade.pnlPercentage?.toStringAsFixed(2) ?? '-',
+          duration,
+        ]);
+      }
+
+      final csv = const ListToCsvConverter().convert(rows);
+      final fileName = '${strategyName}_backtest_results.csv';
+
+      if (kIsWeb) {
+        final blob = html.Blob([csv], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csv);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Results');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'Results exported to CSV',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Copy single result summary to clipboard
+  Future<void> copyResultSummaryToClipboard(BacktestResult result) async {
+    try {
+      final marketData = _dataManager.getData(result.marketDataId);
+      String strategyName = 'Strategy ${result.strategyId}';
+      try {
+        strategyName =
+            _strategies.firstWhere((s) => s.id == result.strategyId).name;
+      } catch (_) {}
+
+      final summary = result.summary;
+      final buffer = StringBuffer();
+      buffer.writeln('Backtest Summary - $strategyName');
+      buffer.writeln(
+          'Symbol: ${marketData?.symbol ?? '-'} | Timeframe: ${marketData?.timeframe ?? '-'}');
+      buffer.writeln('Executed: ${result.executedAt.toIso8601String()}');
+      buffer.writeln('');
+      buffer.writeln('Total Trades: ${summary.totalTrades}');
+      buffer.writeln('Win Rate: ${summary.winRate.toStringAsFixed(2)}%');
+      buffer.writeln('Profit Factor: ${summary.profitFactor.toStringAsFixed(2)}');
+      buffer.writeln('Total PnL: ${summary.totalPnl.toStringAsFixed(2)}');
+      buffer.writeln(
+          'Total PnL %: ${summary.totalPnlPercentage.toStringAsFixed(2)}%');
+      buffer.writeln(
+          'Max Drawdown: ${summary.maxDrawdown.toStringAsFixed(2)} (${summary.maxDrawdownPercentage.toStringAsFixed(2)}%)');
+      buffer.writeln('Sharpe Ratio: ${summary.sharpeRatio.toStringAsFixed(2)}');
+
+      await Clipboard.setData(ClipboardData(text: buffer.toString()));
+      _snackbarService.showSnackbar(
+        message: 'Summary copied to clipboard',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Copy failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Copy trades table as CSV to clipboard for a single result
+  Future<void> copyTradesCsvToClipboard(BacktestResult result) async {
+    try {
+      final closedTrades =
+          result.trades.where((t) => t.status == TradeStatus.closed).toList();
+
+      final List<List<dynamic>> rows = [];
+      rows.add([
+        'Direction',
+        'Entry Date',
+        'Exit Date',
+        'Entry Price',
+        'Exit Price',
+        'Lot Size',
+        'Stop Loss',
+        'Take Profit',
+        'PnL',
+        'PnL %',
+        'Duration',
+      ]);
+
+      for (final trade in closedTrades) {
+        String duration = '-';
+        if (trade.exitTime != null) {
+          final diff = trade.exitTime!.difference(trade.entryTime).inHours;
+          duration = '${diff ~/ 24}d ${diff % 24}h';
+        }
+
+        rows.add([
+          trade.direction == TradeDirection.buy ? 'BUY' : 'SELL',
+          trade.entryTime.toIso8601String(),
+          trade.exitTime?.toIso8601String() ?? '-',
+          trade.entryPrice.toStringAsFixed(4),
+          trade.exitPrice?.toStringAsFixed(4) ?? '-',
+          trade.lotSize.toStringAsFixed(2),
+          trade.stopLoss?.toStringAsFixed(4) ?? '-',
+          trade.takeProfit?.toStringAsFixed(4) ?? '-',
+          trade.pnl?.toStringAsFixed(2) ?? '-',
+          trade.pnlPercentage?.toStringAsFixed(2) ?? '-',
+          duration,
+        ]);
+      }
+
+      final csv = const ListToCsvConverter().convert(rows);
+      await Clipboard.setData(ClipboardData(text: csv));
+      _snackbarService.showSnackbar(
+        message: 'Trades CSV copied to clipboard',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Copy failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   // Strategy actions

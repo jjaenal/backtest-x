@@ -29,6 +29,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             tooltip: 'Copy Summary',
           ),
           IconButton(
+            icon: const Icon(Icons.table_chart),
+            onPressed: () => viewModel.copyTradesCsvToClipboard(),
+            tooltip: 'Copy Trades CSV',
+          ),
+          IconButton(
             icon: const Icon(Icons.share),
             onPressed: () => viewModel.shareResults(),
             tooltip: 'Share Results',
@@ -331,15 +336,18 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 Icon(icon, color: color, size: 20),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.8),
-                      fontWeight: FontWeight.w500,
+                  child: Tooltip(
+                    message: _metricTooltip(title),
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                 ),
@@ -775,7 +783,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14)),
+          Tooltip(
+            message: _metricTooltip(label),
+            child: Text(label, style: const TextStyle(fontSize: 14)),
+          ),
           Text(
             value,
             style: TextStyle(
@@ -830,4 +841,38 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   @override
   BacktestResultViewModel viewModelBuilder(BuildContext context) =>
       BacktestResultViewModel(result);
+
+  String _metricTooltip(String label) {
+    switch (label) {
+      case 'Total P&L':
+        return 'Net profit/loss in currency from all closed trades.';
+      case 'Win Rate':
+        return 'Percentage of winning trades out of total closed trades.';
+      case 'Profit Factor':
+        return 'Gross profit divided by gross loss; > 1 indicates profitability.';
+      case 'Sharpe Ratio':
+        return 'Risk-adjusted return; higher values indicate better risk efficiency.';
+      case 'Max Drawdown':
+      case 'Max Drawdown %':
+        return 'Largest peak-to-trough decline during the backtest.';
+      case 'Total Trades':
+        return 'Number of closed trades included in the summary.';
+      case 'Winning Trades':
+        return 'Count of trades with positive P&L.';
+      case 'Losing Trades':
+        return 'Count of trades with negative P&L.';
+      case 'Average Win':
+        return 'Average profit per winning trade.';
+      case 'Average Loss':
+        return 'Average loss per losing trade.';
+      case 'Largest Win':
+        return 'Biggest single-trade profit observed.';
+      case 'Largest Loss':
+        return 'Biggest single-trade loss observed.';
+      case 'Expectancy':
+        return 'Average expected profit per trade; positive indicates an edge.';
+      default:
+        return 'Metric description';
+    }
+  }
 }
