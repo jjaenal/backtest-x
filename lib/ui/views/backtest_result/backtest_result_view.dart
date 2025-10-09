@@ -785,9 +785,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color:
-              isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color:
+                Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+          ),
         ),
         child: Text(
           label,
@@ -795,7 +800,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: isSelected
-                ? Colors.white
+                ? Theme.of(context).colorScheme.onPrimary
                 : Theme.of(context)
                     .colorScheme
                     .onSurface

@@ -331,6 +331,8 @@ void main() {
 - Outlines/dividers: `colorScheme.outline`
 - Success/Error/Warning: `colorScheme.primary/tertiary/error` with low-opacity fills
 
+- Full guide: see `THEMING_GUIDE.md` for detailed standards and examples
+
 ### Phase 3 - Premium (6-12 months)
 
 - [ ] Walk-forward analysis

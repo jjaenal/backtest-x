@@ -32,12 +32,11 @@
   <title>backtestx</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Share API polyfill for Web Share API -->
-  <script src="https://unpkg.com/share-api-polyfill/dist/share-min.js"></script>
+  <!-- Share API polyfill removed to avoid runtime error in flutter.js loader -->
   
   <script>
     // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = null;
+    var serviceWorkerVersion = '{{flutter_service_worker_version}}';
   </script>
   <!-- This script adds the flutter initialization JS code -->
   <script src="flutter.js" defer></script>
@@ -46,15 +45,19 @@
   <script>
     window.addEventListener('load', function(ev) {
       // Download main.dart.js
+      // Configure Flutter web renderer
+      // Options: 'auto', 'html', or 'canvaskit'
+      _flutter.buildConfig = {
+        renderer: 'auto',
+      };
       _flutter.loader.loadEntrypoint({
         serviceWorker: {
           serviceWorkerVersion: serviceWorkerVersion,
-        },
-        onEntrypointLoaded: function(engineInitializer) {
-          engineInitializer.initializeEngine().then(function(appRunner) {
-            appRunner.runApp();
-          });
         }
+      }).then(function (engineInitializer) {
+        return engineInitializer.initializeEngine();
+      }).then(function (appRunner) {
+        return appRunner.runApp();
       });
     });
   </script>
