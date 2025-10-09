@@ -31,34 +31,19 @@
 
   <title>backtestx</title>
   <link rel="manifest" href="manifest.json">
-
-  <!-- Share API polyfill removed to avoid runtime error in flutter.js loader -->
-  
-  <script>
-    // The value below is injected by flutter build, do not touch.
-    var serviceWorkerVersion = '{{flutter_service_worker_version}}';
-  </script>
-  <!-- This script adds the flutter initialization JS code -->
-  <script src="flutter.js" defer></script>
+  <!-- Bootstrapping Flutter Web (recommended) -->
+  <!-- Uses generated flutter_bootstrap.js to init and run the app -->
 </head>
 <body>
   <script>
-    window.addEventListener('load', function(ev) {
-      // Download main.dart.js
-      // Configure Flutter web renderer
-      // Options: 'auto', 'html', or 'canvaskit'
-      _flutter.buildConfig = {
-        renderer: 'auto',
-      };
-      _flutter.loader.loadEntrypoint({
-        serviceWorker: {
-          serviceWorkerVersion: serviceWorkerVersion,
-        }
-      }).then(function (engineInitializer) {
-        return engineInitializer.initializeEngine();
-      }).then(function (appRunner) {
-        return appRunner.runApp();
-      });
+    {{flutter_js}}
+    {{flutter_build_config}}
+    _flutter.loader.load({
+      onEntrypointLoaded: function(engineInitializer) {
+        engineInitializer.initializeEngine().then(function(appRunner) {
+          appRunner.runApp();
+        });
+      }
     });
   </script>
 </body>

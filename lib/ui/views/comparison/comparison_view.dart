@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'comparison_viewmodel.dart';
 
-class ComparisonView extends StatelessWidget {
+class ComparisonView extends StackedView<ComparisonViewModel> {
   final List<BacktestResult> results;
 
   const ComparisonView({
@@ -14,85 +14,26 @@ class ComparisonView extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return ViewModelBuilder<ComparisonViewModel>.reactive(
-      viewModelBuilder: () => ComparisonViewModel(results),
-      builder: (context, model, child) => Scaffold(
-        appBar: AppBar(
-          title: const Text('Compare Results'),
-          actions: [
-            PopupMenuButton(
-              icon: const Icon(Icons.more_vert),
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'export',
-                  child: Row(
-                    children: [
-                      Icon(Icons.download, size: 20),
-                      SizedBox(width: 12),
-                      Text('Export Comparison'),
-                    ],
-                  ),
-                ),
-              ],
-              onSelected: (value) async {
-                if (value == 'export') {
-                  final ok = await model.exportComparisonCsv();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        ok
-                            ? 'Ekspor comparison CSV berhasil'
-                            : 'Ekspor comparison CSV gagal',
-                      ),
-                    ),
-                  );
-                }
-              },
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Summary cards
-              _buildSummaryCards(context, model),
-
-              const SizedBox(height: 16),
-
-              // Detailed comparison table
-              _buildComparisonTable(context, model),
-
-              const SizedBox(height: 16),
-
-              // Best performer highlight
-              _buildBestPerformer(context, model),
-
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  void onViewModelReady(ComparisonViewModel viewModel) =>
+      viewModel.initialize();
 
   Widget _buildSummaryCards(BuildContext context, ComparisonViewModel model) {
     return SizedBox(
-      height: 200,
+      height: 210,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.all(16),
         itemCount: results.length,
         itemBuilder: (context, index) {
           final result = results[index];
-          return _buildSummaryCard(context, result, index);
+          return _buildSummaryCard(context, model, result, index);
         },
       ),
     );
   }
 
-  Widget _buildSummaryCard(
-      BuildContext context, BacktestResult result, int index) {
+  Widget _buildSummaryCard(BuildContext context, ComparisonViewModel model,
+      BacktestResult result, int index) {
     final colors = [Colors.blue, Colors.purple, Colors.orange, Colors.teal];
     final color = colors[index % colors.length];
 
@@ -138,6 +79,16 @@ class ComparisonView extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
+          // Strategy name
+          Text(
+            model.strategyLabelFor(result.strategyId),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.9),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
           Text(
             _formatPnL(result.summary.totalPnl),
             style: const TextStyle(
@@ -220,7 +171,10 @@ class ComparisonView extends StatelessWidget {
                   children: [
                     _buildTableHeader(context, 'Metric'),
                     for (int i = 0; i < results.length; i++)
-                      _buildTableHeader(context, 'R${i + 1}'),
+                      _buildTableHeader(
+                        context,
+                        'R${i + 1}: ${model.strategyLabelFor(results[i].strategyId)}',
+                      ),
                   ],
                 ),
 
@@ -441,7 +395,7 @@ class ComparisonView extends StatelessWidget {
             _buildPerformerCard(
               context,
               'Highest P&L',
-              'Result ${results.indexOf(bestByPnL) + 1}',
+              model.strategyLabelFor(bestByPnL.strategyId),
               _formatPnL(bestByPnL.summary.totalPnl),
               Colors.green,
               Icons.trending_up,
@@ -450,7 +404,7 @@ class ComparisonView extends StatelessWidget {
             _buildPerformerCard(
               context,
               'Best Win Rate',
-              'Result ${results.indexOf(bestByWinRate) + 1}',
+              model.strategyLabelFor(bestByWinRate.strategyId),
               '${bestByWinRate.summary.winRate.toStringAsFixed(1)}%',
               Colors.orange,
               Icons.check_circle,
@@ -459,7 +413,7 @@ class ComparisonView extends StatelessWidget {
             _buildPerformerCard(
               context,
               'Best Profit Factor',
-              'Result ${results.indexOf(bestByProfitFactor) + 1}',
+              model.strategyLabelFor(bestByProfitFactor.strategyId),
               bestByProfitFactor.summary.profitFactor.toStringAsFixed(2),
               Colors.blue,
               Icons.bar_chart,
@@ -468,7 +422,7 @@ class ComparisonView extends StatelessWidget {
             _buildPerformerCard(
               context,
               'Lowest Drawdown',
-              'Result ${results.indexOf(lowestDrawdown) + 1}',
+              model.strategyLabelFor(lowestDrawdown.strategyId),
               '${lowestDrawdown.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
               Colors.purple,
               Icons.trending_down,
@@ -555,4 +509,69 @@ class ComparisonView extends StatelessWidget {
     final sign = percent >= 0 ? '+' : '';
     return '$sign${percent.toStringAsFixed(2)}%';
   }
+
+  @override
+  Widget builder(
+      BuildContext context, ComparisonViewModel model, Widget? child) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Compare Results'),
+        actions: [
+          PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.download, size: 20),
+                    SizedBox(width: 12),
+                    Text('Export Comparison'),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) async {
+              if (value == 'export') {
+                final ok = await model.exportComparisonCsv();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      ok
+                          ? 'Ekspor comparison CSV berhasil'
+                          : 'Ekspor comparison CSV gagal',
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            // Summary cards
+            _buildSummaryCards(context, model),
+
+            const SizedBox(height: 16),
+
+            // Detailed comparison table
+            _buildComparisonTable(context, model),
+
+            const SizedBox(height: 16),
+
+            // Best performer highlight
+            _buildBestPerformer(context, model),
+
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  ComparisonViewModel viewModelBuilder(BuildContext context) =>
+      ComparisonViewModel(results);
 }

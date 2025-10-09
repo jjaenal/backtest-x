@@ -3,6 +3,7 @@ import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/helpers/backtest_helper.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
@@ -23,6 +24,8 @@ class HomeViewModel extends BaseViewModel {
   int dataSetsCount = 0;
   int testsCount = 0;
   List<Strategy> recentStrategies = [];
+  BacktestResult? lastResult;
+  String? lastResultStrategyName;
 
   bool get hasResults => testsCount > 0;
 
@@ -57,11 +60,37 @@ class HomeViewModel extends BaseViewModel {
       }
       testsCount = totalTests;
 
+      // Load latest backtest result (for quick summary in Home)
+      lastResult = await _storageService.getLatestBacktestResult();
+      if (lastResult != null) {
+        // Try resolve strategy name from cache/DB
+        final strategy =
+            await _storageService.getStrategy(lastResult!.strategyId);
+        lastResultStrategyName =
+            strategy?.name ?? 'Strategy ${lastResult!.strategyId}';
+      } else {
+        lastResultStrategyName = null;
+      }
+      _isRunningBacktest = false;
       notifyListeners();
     } catch (e) {
       debugPrint('Error loading stats: $e');
     }
   }
+
+  void viewLastResult() {
+    if (lastResult == null) return;
+    _navigationService.navigateToBacktestResultView(result: lastResult!);
+  }
+
+  // Quick access labels for Last Result card
+  String? get lastResultSymbol => lastResult == null
+      ? null
+      : _dataManager.getData(lastResult!.marketDataId)?.symbol;
+  String? get lastResultTimeframe => lastResult == null
+      ? null
+      : _dataManager.getData(lastResult!.marketDataId)?.timeframe;
+  String get lastResultStrategyLabel => lastResultStrategyName ?? '';
 
   void navigateToDataUpload() {
     _navigationService.navigateToDataUploadView().whenComplete(() => refresh());

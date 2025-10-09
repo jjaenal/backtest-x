@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path_provider/path_provider.dart';
 
 /// Singleton class to manage market data with persistent file caching
@@ -28,6 +29,12 @@ class DataManager {
   /// Initialize cache directory
   Future<void> _initializeCacheDir() async {
     try {
+      // On web, path_provider is not available. Use memory-only cache.
+      if (kIsWeb) {
+        _cacheDir = null;
+        debugPrint('🌐 Web detected: disabling disk cache (memory-only).');
+        return;
+      }
       final appDir = await getApplicationDocumentsDirectory();
       _cacheDir = Directory('${appDir.path}/market_data_cache');
 
@@ -61,8 +68,20 @@ class DataManager {
   /// Save market data to disk
   Future<void> _saveToDisk(MarketData data) async {
     try {
+      // Skip disk operations on web
+      if (kIsWeb) {
+        debugPrint('💾 [Web] Skipping disk save for ${data.id}');
+        return;
+      }
+
       if (_cacheDir == null) {
         await _initializeCacheDir();
+      }
+
+      // If still not available, skip safely
+      if (_cacheDir == null) {
+        debugPrint('⚠️  Cache directory unavailable, skipping disk save for ${data.id}');
+        return;
       }
 
       final file = File('${_cacheDir!.path}/${data.id}.json');
@@ -249,7 +268,7 @@ class DataManager {
     debugPrint('\n🔍 DEBUG: DataManager Cache State');
     debugPrint('   Instance: ${identityHashCode(this)}');
     debugPrint('   Memory cache size: ${_memoryCache.length}');
-    debugPrint('   Cache directory: ${_cacheDir?.path ?? "not initialized"}');
+    debugPrint('   Cache directory: ${kIsWeb ? "web: disabled" : (_cacheDir?.path ?? "not initialized")}');
     debugPrint('   Memory keys: ${_memoryCache.keys.join(", ")}');
     for (final entry in _memoryCache.entries) {
       debugPrint(

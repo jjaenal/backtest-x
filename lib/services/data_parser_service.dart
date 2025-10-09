@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:csv/csv.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
@@ -15,50 +17,81 @@ class DataParserService {
   }) async {
     try {
       final content = await file.readAsString();
-      final rows = const CsvToListConverter().convert(content);
-
-      if (rows.isEmpty) {
-        throw Exception('CSV file is empty');
-      }
-
-      // Detect if has header
-      final hasHeader = _detectHeader(rows.first);
-      final dataRows = hasHeader ? rows.skip(1).toList() : rows;
-
-      // Validate format
-      if (!_validateCsvFormat(dataRows)) {
-        throw Exception(
-            'Invalid CSV format. Expected: Date, Open, High, Low, Close, Volume');
-      }
-
-      // Parse candles
-      final candles = <Candle>[];
-      for (final row in dataRows) {
-        try {
-          final candle = Candle.fromCsvRow(row);
-          candles.add(candle);
-        } catch (e) {
-          debugPrint('Skipping invalid row: $row. Error: $e');
-        }
-      }
-
-      if (candles.isEmpty) {
-        throw Exception('No valid candles found in CSV');
-      }
-
-      // Sort by timestamp ascending
-      candles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-
-      return MarketData(
-        id: _uuid.v4(),
+      return _parseCsvContent(
+        content: content,
         symbol: symbol,
         timeframe: timeframe,
-        candles: candles,
-        uploadedAt: DateTime.now(),
       );
     } catch (e) {
       throw Exception('Failed to parse CSV: $e');
     }
+  }
+
+  /// Parse CSV bytes (web-safe)
+  Future<MarketData> parseCsvBytes({
+    required Uint8List bytes,
+    required String symbol,
+    required String timeframe,
+  }) async {
+    try {
+      final content = utf8.decode(bytes);
+      return _parseCsvContent(
+        content: content,
+        symbol: symbol,
+        timeframe: timeframe,
+      );
+    } catch (e) {
+      throw Exception('Failed to parse CSV bytes: $e');
+    }
+  }
+
+  /// Shared CSV parsing logic from string content
+  MarketData _parseCsvContent({
+    required String content,
+    required String symbol,
+    required String timeframe,
+  }) {
+    final rows = const CsvToListConverter().convert(content);
+
+    if (rows.isEmpty) {
+      throw Exception('CSV file is empty');
+    }
+
+    // Detect if has header
+    final hasHeader = _detectHeader(rows.first);
+    final dataRows = hasHeader ? rows.skip(1).toList() : rows;
+
+    // Validate format
+    if (!_validateCsvFormat(dataRows)) {
+      throw Exception(
+          'Invalid CSV format. Expected: Date, Open, High, Low, Close, Volume');
+    }
+
+    // Parse candles
+    final candles = <Candle>[];
+    for (final row in dataRows) {
+      try {
+        final candle = Candle.fromCsvRow(row);
+        candles.add(candle);
+      } catch (e) {
+        debugPrint('Skipping invalid row: $row. Error: $e');
+      }
+    }
+
+    if (candles.isEmpty) {
+      throw Exception('No valid candles found in CSV');
+    }
+
+    // Sort by timestamp ascending
+    candles.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+    return MarketData(
+      id: _uuid.v4(),
+      symbol: symbol,
+      timeframe: timeframe,
+      candles: candles,
+      uploadedAt: DateTime.now(),
+    );
   }
 
   /// Detect if first row is header

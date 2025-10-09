@@ -1,5 +1,7 @@
 import 'package:backtestx/models/trade.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/services/storage_service.dart';
 import 'package:csv/csv.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +13,28 @@ class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
 
   ComparisonViewModel(this.results);
+
+  final _storageService = locator<StorageService>();
+  final Map<String, String> _strategyNames = {};
+
+  Future<void> initialize() async {
+    // Load human-readable strategy names for all result.strategyId
+    for (final r in results) {
+      final sid = r.strategyId;
+      if (_strategyNames.containsKey(sid)) continue;
+      try {
+        final s = await _storageService.getStrategy(sid);
+        if (s != null) {
+          _strategyNames[sid] = s.name;
+        }
+      } catch (_) {}
+    }
+    notifyListeners();
+  }
+
+  String strategyLabelFor(String strategyId) {
+    return _strategyNames[strategyId] ?? strategyId;
+  }
 
   BacktestResult get bestByPnL =>
       results.reduce((a, b) => a.summary.totalPnl > b.summary.totalPnl ? a : b);
@@ -73,7 +97,9 @@ class ComparisonViewModel extends BaseViewModel {
         final anchor = html.AnchorElement(href: url)
           ..setAttribute('download', fileName)
           ..click();
-        html.Url.revokeObjectUrl(url);
+        if (anchor.href!.isNotEmpty) {
+          html.Url.revokeObjectUrl(url);
+        }
         return true;
       } else {
         final directory = await getApplicationDocumentsDirectory();

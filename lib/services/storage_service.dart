@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/models/candle.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StorageService {
   Database? _database;
@@ -21,8 +22,14 @@ class StorageService {
   }
 
   Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'backtestx.db');
+    String path;
+    if (kIsWeb) {
+      // On web, use a simple name stored in IndexedDB
+      path = 'backtestx.db';
+    } else {
+      final dbPath = await getDatabasesPath();
+      path = join(dbPath, 'backtestx.db');
+    }
 
     return await openDatabase(
       path,
@@ -232,6 +239,38 @@ class StorageService {
       _resultCache[result.strategyId] = [];
     }
     _resultCache[result.strategyId]!.insert(0, result);
+  }
+
+  /// Get the latest backtest result across all strategies
+  Future<BacktestResult?> getLatestBacktestResult() async {
+    final db = await database;
+    final maps = await db.query(
+      'backtest_results',
+      orderBy: 'created_at DESC',
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+
+    final map = maps.first;
+    final rawMarketId = map['market_data_id'] as String?;
+    final normalizedMarketId =
+        (rawMarketId == null || rawMarketId.trim().isEmpty)
+            ? 'unknown'
+            : rawMarketId;
+
+    return BacktestResult(
+      id: map['id'] as String,
+      strategyId: map['strategy_id'] as String,
+      marketDataId: normalizedMarketId,
+      executedAt:
+          DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      summary: BacktestSummary.fromJson(
+        jsonDecode(map['summary'] as String),
+      ),
+      trades: [],
+      equityCurve: [],
+    );
   }
 
   // Lightweight schema compatibility: add market_data_id if missing

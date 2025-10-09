@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'dart:typed_data';
+import 'package:backtestx/models/candle.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/data_parser_service.dart';
@@ -18,6 +21,7 @@ class DataUploadViewModel extends BaseViewModel {
 
   String? selectedFileName;
   File? selectedFile;
+  Uint8List? selectedFileBytes; // Web-safe storage
   String? selectedTimeframe = 'H1';
   ValidationResult? validationResult;
   List<MarketDataInfo> recentUploads = [];
@@ -35,7 +39,7 @@ class DataUploadViewModel extends BaseViewModel {
   ];
 
   bool get canUpload =>
-      selectedFile != null &&
+      (kIsWeb ? selectedFileBytes != null : selectedFile != null) &&
       symbolController.text.isNotEmpty &&
       selectedTimeframe != null;
 
@@ -71,12 +75,22 @@ class DataUploadViewModel extends BaseViewModel {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['csv'],
+        withData: true, // ensure bytes are available on web
       );
 
-      if (result != null && result.files.single.path != null) {
-        selectedFile = File(result.files.single.path!);
-        selectedFileName = result.files.single.name;
+      if (result != null) {
+        final file = result.files.single;
+        selectedFileName = file.name;
         validationResult = null;
+
+        if (kIsWeb) {
+          selectedFileBytes = file.bytes;
+          selectedFile = null;
+        } else if (file.path != null) {
+          selectedFile = File(file.path!);
+          selectedFileBytes = null;
+        }
+
         notifyListeners();
       }
     } catch (e) {
@@ -100,67 +114,23 @@ class DataUploadViewModel extends BaseViewModel {
       debugPrint('\n🚀 Starting upload process...');
 
       // Parse CSV
-      debugPrint('📄 Parsing CSV file: ${selectedFile!.path}');
-      final marketData = await _dataParserService.parseCsvFile(
-        file: selectedFile!,
-        symbol: symbolController.text.trim().toUpperCase(),
-        timeframe: selectedTimeframe!,
-      );
-
-      debugPrint('✅ Parsed ${marketData.candles.length} candles');
-      debugPrint('   ID: ${marketData.id}');
-      debugPrint('   Symbol: ${marketData.symbol}');
-      debugPrint('   Timeframe: ${marketData.timeframe}');
-
-      // Validate
-      validationResult = _dataParserService.validateCandles(marketData.candles);
-      notifyListeners();
-
-      if (!validationResult!.isValid) {
-        _snackbarService.showSnackbar(
-          message: 'Validation failed. Check errors below.',
-          duration: const Duration(seconds: 3),
+      if (kIsWeb) {
+        debugPrint('📄 Parsing CSV (web bytes): ${selectedFileName}');
+        final marketData = await _dataParserService.parseCsvBytes(
+          bytes: selectedFileBytes!,
+          symbol: symbolController.text.trim().toUpperCase(),
+          timeframe: selectedTimeframe!,
         );
-        return;
-      }
-
-      // CRITICAL: Cache market data in memory + disk (persistent!)
-      debugPrint('\n📦 Caching market data (memory + disk)...');
-      await _dataManager.cacheData(marketData);
-      debugPrint('✅ Data cached successfully!');
-      debugPrint('   Cache ID: ${marketData.id}');
-
-      // Verify cache
-      final cachedData = _dataManager.getData(marketData.id);
-      if (cachedData != null) {
-        debugPrint('✅ Verified: Data is in cache');
+        await _afterParse(marketData);
       } else {
-        debugPrint('❌ ERROR: Data not found in cache after caching!');
+        debugPrint('📄 Parsing CSV file: ${selectedFile!.path}');
+        final marketData = await _dataParserService.parseCsvFile(
+          file: selectedFile!,
+          symbol: symbolController.text.trim().toUpperCase(),
+          timeframe: selectedTimeframe!,
+        );
+        await _afterParse(marketData);
       }
-
-      // Save metadata only to database
-      debugPrint('\n💾 Saving metadata to database...');
-      await _storageService.saveMarketData(marketData);
-      debugPrint('✅ Metadata saved to database');
-
-      _snackbarService.showSnackbar(
-        message:
-            'Data uploaded successfully! ${marketData.candles.length} candles processed.',
-        duration: const Duration(seconds: 3),
-      );
-
-      // Print cache info
-      debugPrint('\n📊 Current cache state:');
-      _printCacheInfo();
-
-      // Reset form
-      selectedFile = null;
-      selectedFileName = null;
-      symbolController.clear();
-      validationResult = null;
-
-      // Reload recent uploads
-      await _loadRecentUploads();
 
       debugPrint('\n✅ Upload process completed successfully!');
     } catch (e, stackTrace) {
@@ -173,6 +143,64 @@ class DataUploadViewModel extends BaseViewModel {
     } finally {
       setBusy(false);
     }
+  }
+
+  Future<void> _afterParse(MarketData marketData) async {
+    debugPrint('✅ Parsed ${marketData.candles.length} candles');
+    debugPrint('   ID: ${marketData.id}');
+    debugPrint('   Symbol: ${marketData.symbol}');
+    debugPrint('   Timeframe: ${marketData.timeframe}');
+
+    // Validate
+    validationResult = _dataParserService.validateCandles(marketData.candles);
+    notifyListeners();
+
+    if (!validationResult!.isValid) {
+      _snackbarService.showSnackbar(
+        message: 'Validation failed. Check errors below.',
+        duration: const Duration(seconds: 3),
+      );
+      return;
+    }
+
+    // Cache market data
+    debugPrint('\n📦 Caching market data (memory + disk)...');
+    await _dataManager.cacheData(marketData);
+    debugPrint('✅ Data cached successfully!');
+    debugPrint('   Cache ID: ${marketData.id}');
+
+    // Verify cache
+    final cachedData = _dataManager.getData(marketData.id);
+    if (cachedData != null) {
+      debugPrint('✅ Verified: Data is in cache');
+    } else {
+      debugPrint('❌ ERROR: Data not found in cache after caching!');
+    }
+
+    // Save metadata only to database
+    debugPrint('\n💾 Saving metadata to database...');
+    await _storageService.saveMarketData(marketData);
+    debugPrint('✅ Metadata saved to database');
+
+    _snackbarService.showSnackbar(
+      message:
+          'Data uploaded successfully! ${marketData.candles.length} candles processed.',
+      duration: const Duration(seconds: 3),
+    );
+
+    // Print cache info
+    debugPrint('\n📊 Current cache state:');
+    _printCacheInfo();
+
+    // Reset form
+    selectedFile = null;
+    selectedFileBytes = null;
+    selectedFileName = null;
+    symbolController.clear();
+    validationResult = null;
+
+    // Reload recent uploads
+    await _loadRecentUploads();
   }
 
   Future<void> deleteMarketData(String id) async {
