@@ -26,8 +26,9 @@ class StorageService {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -76,6 +77,39 @@ class StorageService {
         'CREATE INDEX idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
     await db.execute(
         'CREATE INDEX idx_market_symbol ON market_data(symbol, timeframe)');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Handle incremental upgrades
+    if (oldVersion < 2) {
+      // Ensure backtest_results has market_data_id column
+      try {
+        final info = await db.rawQuery('PRAGMA table_info(backtest_results)');
+        final hasColumn = info.any((row) => row['name'] == 'market_data_id');
+        if (!hasColumn) {
+          await db.execute(
+              'ALTER TABLE backtest_results ADD COLUMN market_data_id TEXT');
+        }
+      } catch (_) {
+        // Ignore pragma errors; ALTER TABLE may still succeed
+      }
+
+      // Normalize existing rows to avoid null/empty market_data_id
+      try {
+        await db.rawUpdate(
+            "UPDATE backtest_results SET market_data_id = 'unknown' WHERE market_data_id IS NULL OR TRIM(market_data_id) = ''");
+      } catch (_) {
+        // Safe to ignore if table has no rows or column just added
+      }
+
+      // Recreate indexes if needed
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
+      } catch (_) {
+        // Non-critical; continue
+      }
+    }
   }
 
   // ============ STRATEGIES ============
@@ -165,6 +199,17 @@ class StorageService {
   Future<void> saveBacktestResult(BacktestResult result) async {
     final db = await database;
 
+    // Ensure legacy databases have the expected column before inserting
+    await _ensureBacktestResultsMarketDataIdColumn(db);
+    // Normalize any existing rows missing market_data_id
+    try {
+      await db.rawUpdate(
+        "UPDATE backtest_results SET market_data_id = 'unknown' WHERE market_data_id IS NULL OR TRIM(market_data_id) = ''",
+      );
+    } catch (_) {
+      // Safe to ignore if the column just got added and table has no rows yet
+    }
+
     // Save summary only, not full trade list (optimization!)
     await db.insert(
       'backtest_results',
@@ -187,6 +232,24 @@ class StorageService {
       _resultCache[result.strategyId] = [];
     }
     _resultCache[result.strategyId]!.insert(0, result);
+  }
+
+  // Lightweight schema compatibility: add market_data_id if missing
+  Future<void> _ensureBacktestResultsMarketDataIdColumn(Database db) async {
+    try {
+      final info = await db.rawQuery('PRAGMA table_info(backtest_results)');
+      final hasColumn = info.any((row) {
+        final name = row['name'];
+        return name == 'market_data_id';
+      });
+      if (!hasColumn) {
+        await db.execute(
+          'ALTER TABLE backtest_results ADD COLUMN market_data_id TEXT',
+        );
+      }
+    } catch (_) {
+      // If pragma fails for any reason, proceed without blocking; insert may still work
+    }
   }
 
   Future<List<BacktestResult>> getBacktestResultsByStrategy(

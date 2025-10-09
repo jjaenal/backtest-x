@@ -13,7 +13,7 @@ class HomeViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
   final _dialogService = locator<DialogService>();
-  final _dataManager = DataManager();
+  final _dataManager = locator<DataManager>();
 
   bool _isRunningBacktest = false;
   bool get isRunningBacktest => _isRunningBacktest;

@@ -36,7 +36,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: () => viewModel.exportResults(),
-            tooltip: 'Export Results',
+            tooltip: 'Export CSV',
           ),
         ],
       ),

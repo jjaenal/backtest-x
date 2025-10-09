@@ -37,8 +37,9 @@ flutter run
 - **Backtest Engine**: Test strategies against historical data
 - **Performance Analytics**: Comprehensive statistics and visualizations
 - **Multi-platform Support**: Works on Web, Android, iOS, and desktop platforms
-- **Data Import/Export**: Import CSV data and export backtest results
 - **Data Import/Export**: Import CSV data and export backtest results (CSV, PDF)
+  - Export trades to CSV from Backtest Result view
+  - Export comparison results to CSV from Compare Results view
 - **Share Results**: Share backtest results with others
 
 ## 📁 Project Structure

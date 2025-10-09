@@ -35,8 +35,19 @@ class ComparisonView extends StatelessWidget {
                   ),
                 ),
               ],
-              onSelected: (value) {
-                if (value == 'export') {}
+              onSelected: (value) async {
+                if (value == 'export') {
+                  final ok = await model.exportComparisonCsv();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        ok
+                            ? 'Ekspor comparison CSV berhasil'
+                            : 'Ekspor comparison CSV gagal',
+                      ),
+                    ),
+                  );
+                }
               },
             ),
           ],
@@ -201,17 +212,21 @@ class ComparisonView extends StatelessWidget {
                 // Header
                 TableRow(
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceVariant
+                        .withValues(alpha: 0.2),
                   ),
                   children: [
-                    _buildTableHeader('Metric'),
+                    _buildTableHeader(context, 'Metric'),
                     for (int i = 0; i < results.length; i++)
-                      _buildTableHeader('R${i + 1}'),
+                      _buildTableHeader(context, 'R${i + 1}'),
                   ],
                 ),
 
                 // Total P&L
                 _buildMetricRow(
+                  context,
                   'Total P&L',
                   results.map((r) => _formatPnL(r.summary.totalPnl)).toList(),
                   results.map((r) => r.summary.totalPnl >= 0).toList(),
@@ -219,6 +234,7 @@ class ComparisonView extends StatelessWidget {
 
                 // P&L %
                 _buildMetricRow(
+                  context,
                   'Return %',
                   results
                       .map((r) =>
@@ -231,6 +247,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Win Rate
                 _buildMetricRow(
+                  context,
                   'Win Rate',
                   results
                       .map((r) => '${r.summary.winRate.toStringAsFixed(1)}%')
@@ -240,6 +257,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Total Trades
                 _buildMetricRow(
+                  context,
                   'Total Trades',
                   results.map((r) => '${r.summary.totalTrades}').toList(),
                   null,
@@ -247,6 +265,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Profit Factor
                 _buildMetricRow(
+                  context,
                   'Profit Factor',
                   results
                       .map((r) => r.summary.profitFactor.toStringAsFixed(2))
@@ -256,6 +275,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Max Drawdown
                 _buildMetricRow(
+                  context,
                   'Max Drawdown',
                   results
                       .map((r) =>
@@ -268,6 +288,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Sharpe Ratio
                 _buildMetricRow(
+                  context,
                   'Sharpe Ratio',
                   results
                       .map((r) => r.summary.sharpeRatio.toStringAsFixed(2))
@@ -277,6 +298,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Average Win
                 _buildMetricRow(
+                  context,
                   'Avg Win',
                   results
                       .map(
@@ -287,6 +309,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Average Loss
                 _buildMetricRow(
+                  context,
                   'Avg Loss',
                   results
                       .map((r) =>
@@ -297,6 +320,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Largest Win
                 _buildMetricRow(
+                  context,
                   'Largest Win',
                   results
                       .map(
@@ -307,6 +331,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Largest Loss
                 _buildMetricRow(
+                  context,
                   'Largest Loss',
                   results
                       .map((r) =>
@@ -317,6 +342,7 @@ class ComparisonView extends StatelessWidget {
 
                 // Expectancy
                 _buildMetricRow(
+                  context,
                   'Expectancy',
                   results
                       .map(
@@ -332,14 +358,15 @@ class ComparisonView extends StatelessWidget {
     );
   }
 
-  Widget _buildTableHeader(String text) {
+  Widget _buildTableHeader(BuildContext context, String text) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       child: Text(
         text,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.bold,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
         textAlign: text == 'Metric' ? TextAlign.left : TextAlign.center,
       ),
@@ -347,6 +374,7 @@ class ComparisonView extends StatelessWidget {
   }
 
   TableRow _buildMetricRow(
+    BuildContext context,
     String label,
     List<String> values,
     List<bool>? isPositive,
@@ -357,9 +385,10 @@ class ComparisonView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -373,8 +402,10 @@ class ComparisonView extends StatelessWidget {
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: isPositive != null
-                    ? (isPositive[i] ? Colors.green : Colors.red)
-                    : Colors.black87,
+                    ? (isPositive[i]
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.error)
+                    : Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),
@@ -408,6 +439,7 @@ class ComparisonView extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             _buildPerformerCard(
+              context,
               'Highest P&L',
               'Result ${results.indexOf(bestByPnL) + 1}',
               _formatPnL(bestByPnL.summary.totalPnl),
@@ -416,6 +448,7 @@ class ComparisonView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildPerformerCard(
+              context,
               'Best Win Rate',
               'Result ${results.indexOf(bestByWinRate) + 1}',
               '${bestByWinRate.summary.winRate.toStringAsFixed(1)}%',
@@ -424,6 +457,7 @@ class ComparisonView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildPerformerCard(
+              context,
               'Best Profit Factor',
               'Result ${results.indexOf(bestByProfitFactor) + 1}',
               bestByProfitFactor.summary.profitFactor.toStringAsFixed(2),
@@ -432,6 +466,7 @@ class ComparisonView extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             _buildPerformerCard(
+              context,
               'Lowest Drawdown',
               'Result ${results.indexOf(lowestDrawdown) + 1}',
               '${lowestDrawdown.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
@@ -445,28 +480,32 @@ class ComparisonView extends StatelessWidget {
   }
 
   Widget _buildPerformerCard(
+    BuildContext context,
     String title,
     String subtitle,
     String value,
     Color color,
     IconData icon,
   ) {
+    final derivedColor = icon == Icons.trending_down
+        ? Theme.of(context).colorScheme.error
+        : Theme.of(context).colorScheme.primary;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: derivedColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
+        border: Border.all(color: derivedColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: derivedColor.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: derivedColor, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -477,7 +516,10 @@ class ComparisonView extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.7),
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -496,7 +538,7 @@ class ComparisonView extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: color,
+              color: derivedColor,
             ),
           ),
         ],

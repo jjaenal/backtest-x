@@ -289,9 +289,35 @@ class WorkspaceViewModel extends BaseViewModel {
         strategy: strategy,
         marketData: marketData,
       );
-
-      // Store result in memory (not in storage)
+      // Store result in memory
       _quickResults[strategy.id] = result;
+
+      // Persist to database so it appears under results list
+      try {
+        // Ensure strategy exists in storage
+        final existing = await _storageService.getStrategy(strategy.id);
+        if (existing == null) {
+          await _storageService.saveStrategy(strategy);
+        }
+
+        // Save summary result to DB
+        await _storageService.saveBacktestResult(result);
+
+        // Refresh results for this strategy from DB
+        _strategyResults[strategy.id] =
+            await _storageService.getBacktestResultsByStrategy(strategy.id);
+
+        _snackbarService.showSnackbar(
+          message: 'Quick test saved to database',
+          duration: const Duration(seconds: 2),
+        );
+      } catch (e) {
+        debugPrint('Error saving quick test: $e');
+        _snackbarService.showSnackbar(
+          message: 'Failed to save quick test: ${e.toString()}',
+          duration: const Duration(seconds: 3),
+        );
+      }
     } catch (e) {
       _snackbarService.showSnackbar(
         message: 'Error running backtest: ${e.toString()}',

@@ -123,7 +123,8 @@
 
 ### Export Features
 
-- [ ] Export trades to CSV
+- [x] Export trades to CSV
+- [x] Export comparison to CSV
 - [x] Generate PDF report (basic)
   - [x] Summary stats
   - [x] Trade list

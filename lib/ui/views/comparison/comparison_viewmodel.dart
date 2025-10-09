@@ -1,5 +1,11 @@
 import 'package:backtestx/models/trade.dart';
 import 'package:stacked/stacked.dart';
+import 'package:csv/csv.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:universal_html/html.dart' as html;
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -19,4 +25,66 @@ class ComparisonViewModel extends BaseViewModel {
       a.summary.maxDrawdownPercentage < b.summary.maxDrawdownPercentage
           ? a
           : b);
+
+  Future<bool> exportComparisonCsv() async {
+    // Build CSV with summary metrics per result
+    final List<List<dynamic>> rows = [];
+    rows.add([
+      'Strategy',
+      'Symbol',
+      'Timeframe',
+      'Total Trades',
+      'Win Rate %',
+      'Profit Factor',
+      'Total PnL',
+      'Total PnL %',
+      'Max DD',
+      'Max DD %',
+      'Sharpe',
+      'Executed At',
+    ]);
+
+    for (final r in results) {
+      final marketDataId = r.marketDataId;
+      // We don't have DataManager here; include minimal fields available.
+      rows.add([
+        r.strategyId,
+        marketDataId,
+        '-',
+        r.summary.totalTrades,
+        r.summary.winRate.toStringAsFixed(2),
+        r.summary.profitFactor.toStringAsFixed(2),
+        r.summary.totalPnl.toStringAsFixed(2),
+        r.summary.totalPnlPercentage.toStringAsFixed(2),
+        r.summary.maxDrawdown.toStringAsFixed(2),
+        r.summary.maxDrawdownPercentage.toStringAsFixed(2),
+        r.summary.sharpeRatio.toStringAsFixed(2),
+        r.executedAt.toIso8601String(),
+      ]);
+    }
+
+    final csv = const ListToCsvConverter().convert(rows);
+    final fileName = 'comparison_backtest_results.csv';
+
+    try {
+      if (kIsWeb) {
+        final blob = html.Blob([csv], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        html.Url.revokeObjectUrl(url);
+        return true;
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csv);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Comparison');
+        return true;
+      }
+    } catch (_) {
+      return false;
+    }
+  }
 }

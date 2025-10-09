@@ -33,7 +33,7 @@ class BacktestHelper {
   final _backtestEngine = locator<BacktestEngineService>();
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
-  final _dataManager = DataManager();
+  final _dataManager = locator<DataManager>();
   final _validationService = locator<DataValidationService>();
 
   /// Run backtest with cached market data
