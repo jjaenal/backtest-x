@@ -76,6 +76,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   Timer? _autosaveTimer;
   final Duration _autosaveDebounce = const Duration(seconds: 2);
   String autosaveStatus = '';
+  bool autosaveEnabled = true;
 
   bool get isEditing => strategyId != null;
   bool get canSave =>
@@ -475,6 +476,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   }
 
   void _scheduleAutosave() {
+    if (!autosaveEnabled) return;
     _autosaveTimer?.cancel();
     _autosaveTimer = Timer(_autosaveDebounce, () async {
       await _saveDraft();
@@ -524,6 +526,44 @@ class StrategyBuilderViewModel extends BaseViewModel {
       notifyListeners();
     } catch (e) {
       debugPrint('Autosave failed: $e');
+    }
+  }
+
+  void toggleAutosave(bool value) {
+    autosaveEnabled = value;
+    if (!autosaveEnabled) {
+      _autosaveTimer?.cancel();
+      autosaveStatus = 'Autosave off';
+      _snackbarService.showSnackbar(
+        message: 'Autosave disabled',
+        duration: const Duration(seconds: 2),
+      );
+    } else {
+      _snackbarService.showSnackbar(
+        message: 'Autosave enabled',
+        duration: const Duration(seconds: 2),
+      );
+      _scheduleAutosave();
+    }
+    notifyListeners();
+  }
+
+  Future<void> discardDraft() async {
+    try {
+      await _storageService.clearStrategyDraft(
+        strategyId: isEditing ? strategyId : null,
+      );
+      autosaveStatus = '';
+      _snackbarService.showSnackbar(
+        message: 'Draft discarded',
+        duration: const Duration(seconds: 2),
+      );
+      notifyListeners();
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Failed to discard draft',
+        duration: const Duration(seconds: 2),
+      );
     }
   }
 

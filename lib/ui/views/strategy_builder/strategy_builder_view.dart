@@ -21,6 +21,18 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
           title:
               Text(viewModel.isEditing ? 'Edit Strategy' : 'Create Strategy'),
           actions: [
+            Row(spacing: 4, children: [
+              Text(
+                'Autosave',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.tertiary,
+                ),
+              ),
+              Switch(
+                value: viewModel.autosaveEnabled,
+                onChanged: viewModel.toggleAutosave,
+              ),
+            ]),
             if (viewModel.isEditing)
               IconButton(
                 icon: const Icon(Icons.delete),
@@ -176,7 +188,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   IconButton(
                                     icon: const Icon(Icons.add_circle),
                                     onPressed: viewModel.addEntryRule,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ],
                               ),
@@ -255,7 +268,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   IconButton(
                                     icon: const Icon(Icons.add_circle),
                                     onPressed: viewModel.addExitRule,
-                                    color: Theme.of(context).colorScheme.primary,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                   ),
                                 ],
                               ),
@@ -404,8 +418,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             context,
                                             'Win Rate',
                                             '${viewModel.previewResult!.summary.winRate.toStringAsFixed(1)}%',
-                                            viewModel.previewResult!.summary
-                                                        .winRate >=
+                                            viewModel.previewResult!.summary.winRate >=
                                                     50
                                                 ? Theme.of(context)
                                                     .colorScheme
@@ -507,6 +520,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             ),
                           ),
                         ),
+
+                      const SizedBox(height: 8),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: viewModel.discardDraft,
+                          icon: const Icon(Icons.delete_forever),
+                          label: const Text('Discard Draft'),
+                        ),
+                      ),
 
                       const SizedBox(height: 24),
                     ],
