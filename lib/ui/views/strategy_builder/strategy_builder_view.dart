@@ -407,8 +407,12 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             viewModel.previewResult!.summary
                                                         .winRate >=
                                                     50
-                                                ? Colors.green
-                                                : Colors.red,
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
                                           ),
                                           _buildStatCard(
                                             context,
@@ -417,14 +421,20 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             viewModel.previewResult!.summary
                                                         .totalPnl >=
                                                     0
-                                                ? Colors.green
-                                                : Colors.red,
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .primary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .error,
                                           ),
                                           _buildStatCard(
                                             context,
                                             'Trades',
                                             '${viewModel.previewResult!.summary.totalTrades}',
-                                            Colors.blue,
+                                            Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
                                           ),
                                         ],
                                       ),

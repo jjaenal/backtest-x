@@ -39,7 +39,7 @@ class EquityCurveChart extends StatelessWidget {
             flex: (shouldShowOnlyEquity || !showDrawdown) ? 10 : 7,
             child: Padding(
               padding: const EdgeInsets.only(right: 16, top: 8),
-              child: LineChart(_buildEquityChartData()),
+              child: LineChart(_buildEquityChartData(context)),
             ),
           ),
 
@@ -144,7 +144,7 @@ class EquityCurveChart extends StatelessWidget {
     );
   }
 
-  LineChartData _buildEquityChartData() {
+  LineChartData _buildEquityChartData(BuildContext context) {
     final spots = equityCurve
         .asMap()
         .entries
@@ -225,7 +225,7 @@ class EquityCurveChart extends StatelessWidget {
         LineChartBarData(
           spots: spots,
           isCurved: true,
-          color: Colors.green,
+          color: Theme.of(context).colorScheme.primary,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: const FlDotData(show: false),
@@ -233,8 +233,8 @@ class EquityCurveChart extends StatelessWidget {
             show: true,
             gradient: LinearGradient(
               colors: [
-                Colors.green.withValues(alpha: 0.3),
-                Colors.green.withValues(alpha: 0.0),
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
@@ -244,7 +244,8 @@ class EquityCurveChart extends StatelessWidget {
       ],
       lineTouchData: LineTouchData(
         touchTooltipData: LineTouchTooltipData(
-          tooltipBgColor: Colors.black87,
+          tooltipBgColor:
+              Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
           getTooltipItems: (spots) {
             return spots.map((spot) {
               final index = spot.x.toInt();
@@ -252,8 +253,8 @@ class EquityCurveChart extends StatelessWidget {
               return LineTooltipItem(
                 'Equity: \$${spot.y.toStringAsFixed(2)}\n'
                 'Date: ${point.timestamp.day}/${point.timestamp.month}/${point.timestamp.year}',
-                const TextStyle(
-                  color: Colors.white,
+                TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),

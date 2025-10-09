@@ -69,8 +69,6 @@ class _CandlestickChartState extends State<CandlestickChart> {
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
           ),
-        if (_hoveredIndex != null)
-          _buildCandleInfo(widget.candles[_hoveredIndex!]),
         Expanded(
           flex: widget.showVolume ? 7 : 10,
           child: LayoutBuilder(
@@ -79,11 +77,17 @@ class _CandlestickChartState extends State<CandlestickChart> {
               const labelWidth = 70.0; // keep in sync with painter
               return MouseRegion(
                 onHover: (event) {
-                  final visibleCount = (_endIndex - _startIndex).toInt().clamp(1, widget.candles.length);
-                  final candleWidth = ((_chartWidth - labelWidth) / visibleCount).clamp(1, _chartWidth);
-                  final localX = event.localPosition.dx.clamp(0, _chartWidth - labelWidth);
+                  final visibleCount = (_endIndex - _startIndex)
+                      .toInt()
+                      .clamp(1, widget.candles.length);
+                  final candleWidth =
+                      ((_chartWidth - labelWidth) / visibleCount)
+                          .clamp(1, _chartWidth);
+                  final localX =
+                      event.localPosition.dx.clamp(0, _chartWidth - labelWidth);
                   final localIndex = (localX / candleWidth).floor();
-                  final globalIndex = (_startIndex.toInt() + localIndex).clamp(0, widget.candles.length - 1);
+                  final globalIndex = (_startIndex.toInt() + localIndex)
+                      .clamp(0, widget.candles.length - 1);
                   setState(() {
                     _hoveredIndex = globalIndex;
                   });
@@ -95,11 +99,17 @@ class _CandlestickChartState extends State<CandlestickChart> {
                 },
                 child: GestureDetector(
                   onTapDown: (details) {
-                    final visibleCount = (_endIndex - _startIndex).toInt().clamp(1, widget.candles.length);
-                    final candleWidth = ((_chartWidth - labelWidth) / visibleCount).clamp(1, _chartWidth);
-                    final localX = details.localPosition.dx.clamp(0, _chartWidth - labelWidth);
+                    final visibleCount = (_endIndex - _startIndex)
+                        .toInt()
+                        .clamp(1, widget.candles.length);
+                    final candleWidth =
+                        ((_chartWidth - labelWidth) / visibleCount)
+                            .clamp(1, _chartWidth);
+                    final localX = details.localPosition.dx
+                        .clamp(0, _chartWidth - labelWidth);
                     final localIndex = (localX / candleWidth).floor();
-                    final globalIndex = (_startIndex.toInt() + localIndex).clamp(0, widget.candles.length - 1);
+                    final globalIndex = (_startIndex.toInt() + localIndex)
+                        .clamp(0, widget.candles.length - 1);
                     setState(() {
                       _hoveredIndex = globalIndex;
                     });
@@ -151,57 +161,6 @@ class _CandlestickChartState extends State<CandlestickChart> {
             ),
           ),
         _buildZoomControls(),
-      ],
-    );
-  }
-
-  Widget _buildCandleInfo(Candle candle) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .surfaceVariant
-            .withValues(alpha: 0.2),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildInfoItem('O', candle.open),
-          _buildInfoItem('H', candle.high),
-          _buildInfoItem('L', candle.low),
-          _buildInfoItem('C', candle.close, isBold: true),
-          if (candle.volume > 0)
-            _buildInfoItem('V', candle.volume, isVolume: true),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoItem(String label, double value,
-      {bool isBold = false, bool isVolume = false}) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: Theme.of(context)
-                .colorScheme
-                .onSurface
-                .withValues(alpha: 0.7),
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          isVolume ? value.toStringAsFixed(0) : value.toStringAsFixed(4),
-          style: TextStyle(
-            fontSize: isBold ? 14 : 12,
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
       ],
     );
   }
@@ -444,8 +403,11 @@ class CandlestickPainter extends CustomPainter {
     _drawPriceLabels(canvas, size, chartArea, minPrice, maxPrice, labelWidth);
 
     // Draw hover crosshair and tooltip
-    if (hoveredIndex != null && hoveredIndex! >= startIndex && hoveredIndex! < endIndex) {
-      _drawHoverOverlay(canvas, chartArea, visibleCandles, minPrice, maxPrice, candleWidth, labelWidth);
+    if (hoveredIndex != null &&
+        hoveredIndex! >= startIndex &&
+        hoveredIndex! < endIndex) {
+      _drawHoverOverlay(canvas, chartArea, visibleCandles, minPrice, maxPrice,
+          candleWidth, labelWidth);
     }
   }
 
@@ -738,15 +700,18 @@ class CandlestickPainter extends CustomPainter {
     canvas.drawLine(Offset(x, 0), Offset(x, chartArea.height), vPaint);
 
     // Tooltip box near top-left of hovered candle
-    final closeY = chartArea.height - ((candle.close - minPrice) / priceRange * chartArea.height);
+    final closeY = chartArea.height -
+        ((candle.close - minPrice) / priceRange * chartArea.height);
     final tooltipX = (x + 10).clamp(10, chartArea.width - labelWidth - 160);
     final tooltipY = (closeY - 10).clamp(10, chartArea.height - 110);
-    final rect = Rect.fromLTWH(tooltipX.toDouble(), tooltipY.toDouble(), 150, 100);
+    final rect =
+        Rect.fromLTWH(tooltipX.toDouble(), tooltipY.toDouble(), 150, 100);
 
     final bgPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.7)
       ..style = PaintingStyle.fill;
-    canvas.drawRRect(RRect.fromRectAndRadius(rect, const Radius.circular(6)), bgPaint);
+    canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(6)), bgPaint);
 
     // Compose text lines: time and OHLC
     final lines = <String>[
@@ -761,10 +726,16 @@ class CandlestickPainter extends CustomPainter {
     if (trades != null && trades!.isNotEmpty) {
       for (final t in trades!) {
         if (t.entryTime.isAtSameMomentAs(candle.timestamp)) {
-          lines.add(t.direction == TradeDirection.buy ? 'Entry ▲ ${t.entryPrice.toStringAsFixed(4)}' : 'Entry ▼ ${t.entryPrice.toStringAsFixed(4)}');
+          lines.add(t.direction == TradeDirection.buy
+              ? 'Entry ▲ ${t.entryPrice.toStringAsFixed(4)}'
+              : 'Entry ▼ ${t.entryPrice.toStringAsFixed(4)}');
         }
-        if (t.status == TradeStatus.closed && t.exitTime != null && t.exitTime!.isAtSameMomentAs(candle.timestamp)) {
-          lines.add(t.direction == TradeDirection.buy ? 'Exit ▼ ${t.exitPrice!.toStringAsFixed(4)}' : 'Exit ▲ ${t.exitPrice!.toStringAsFixed(4)}');
+        if (t.status == TradeStatus.closed &&
+            t.exitTime != null &&
+            t.exitTime!.isAtSameMomentAs(candle.timestamp)) {
+          lines.add(t.direction == TradeDirection.buy
+              ? 'Exit ▼ ${t.exitPrice!.toStringAsFixed(4)}'
+              : 'Exit ▲ ${t.exitPrice!.toStringAsFixed(4)}');
         }
       }
     }

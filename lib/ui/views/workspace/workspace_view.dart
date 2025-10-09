@@ -592,7 +592,9 @@ class WorkspaceView extends StatelessWidget {
                   'P&L',
                   summary.totalPnl.toStringAsFixed(2),
                   Icons.trending_up,
-                  isProfitable ? Colors.green : Colors.red,
+                  isProfitable
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.error,
                 ),
               ),
               Expanded(
@@ -744,7 +746,7 @@ class WorkspaceView extends StatelessWidget {
                           'Win Rate',
                           '${result.summary.winRate.toStringAsFixed(1)}%',
                           '${result.summary.winningTrades}/${result.summary.totalTrades}',
-                          Colors.orange,
+                          Theme.of(context).colorScheme.tertiary,
                         ),
                         const SizedBox(width: 16),
                         _buildResultMetric(
@@ -753,8 +755,8 @@ class WorkspaceView extends StatelessWidget {
                           result.summary.profitFactor.toStringAsFixed(2),
                           null,
                           result.summary.profitFactor > 1
-                              ? Colors.green
-                              : Colors.red,
+                              ? Theme.of(context).colorScheme.primary
+                              : Theme.of(context).colorScheme.error,
                         ),
                       ],
                     ),
@@ -771,7 +773,7 @@ class WorkspaceView extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
-                  color: Colors.red,
+                  color: Theme.of(context).colorScheme.error,
                   onPressed: () => model.deleteResult(result),
                   tooltip: 'Delete',
                 ),

@@ -29,6 +29,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             tooltip: 'Share Results',
           ),
           IconButton(
+            icon: const Icon(Icons.picture_as_pdf),
+            onPressed: () => viewModel.exportPdf(),
+            tooltip: 'Export PDF',
+          ),
+          IconButton(
             icon: const Icon(Icons.download),
             onPressed: () => viewModel.exportResults(),
             tooltip: 'Export Results',
@@ -567,8 +572,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: trade.direction == TradeDirection.buy
-                                ? Colors.green.withValues(alpha: 0.2)
-                                : Colors.red.withValues(alpha: 0.2),
+                                ? Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.2)
+                                : Theme.of(context)
+                                    .colorScheme
+                                    .error
+                                    .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -579,8 +590,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: trade.direction == TradeDirection.buy
-                                  ? Colors.green
-                                  : Colors.red,
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.error,
                             ),
                             textAlign: TextAlign.center,
                           ),
