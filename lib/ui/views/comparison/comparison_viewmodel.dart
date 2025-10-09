@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
+import 'package:flutter/services.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -34,6 +35,24 @@ class ComparisonViewModel extends BaseViewModel {
 
   String strategyLabelFor(String strategyId) {
     return _strategyNames[strategyId] ?? strategyId;
+  }
+
+  Future<bool> copySummaryToClipboard() async {
+    try {
+      final buffer = StringBuffer();
+      buffer.writeln('Backtest Comparison Summary');
+      buffer.writeln('============================');
+      for (int i = 0; i < results.length; i++) {
+        final r = results[i];
+        final name = strategyLabelFor(r.strategyId);
+        buffer.writeln(
+            'R${i + 1} • $name • PnL: ${r.summary.totalPnl.toStringAsFixed(2)} (${r.summary.totalPnlPercentage.toStringAsFixed(2)}%) • WinRate: ${r.summary.winRate.toStringAsFixed(1)}% • PF: ${r.summary.profitFactor.toStringAsFixed(2)} • MaxDD: ${r.summary.maxDrawdownPercentage.toStringAsFixed(2)}% • ${r.executedAt.toIso8601String()}');
+      }
+      await Clipboard.setData(ClipboardData(text: buffer.toString()));
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   BacktestResult get bestByPnL =>
@@ -88,7 +107,7 @@ class ComparisonViewModel extends BaseViewModel {
     }
 
     final csv = const ListToCsvConverter().convert(rows);
-    final fileName = 'comparison_backtest_results.csv';
+    const fileName = 'comparison_backtest_results.csv';
 
     try {
       if (kIsWeb) {
