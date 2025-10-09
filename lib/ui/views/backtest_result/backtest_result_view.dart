@@ -52,12 +52,44 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Equity Curve',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            viewModel.chartMode == ChartMode.equity 
+                                ? 'Equity Curve' 
+                                : 'Drawdown Chart',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _buildModeButton(
+                                  context,
+                                  'Equity',
+                                  ChartMode.equity,
+                                  viewModel.chartMode == ChartMode.equity,
+                                  () => viewModel.setChartMode(ChartMode.equity),
+                                ),
+                                _buildModeButton(
+                                  context,
+                                  'Drawdown',
+                                  ChartMode.drawdown,
+                                  viewModel.chartMode == ChartMode.drawdown,
+                                  () => viewModel.setChartMode(ChartMode.drawdown),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       Expanded(
@@ -66,7 +98,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           initialCapital: result.summary.totalPnl > 0
                               ? result.equityCurve.first.equity
                               : 10000, // Default initial capital
-                          showDrawdown: true,
+                          showDrawdown: viewModel.chartMode == ChartMode.drawdown,
+                          chartMode: viewModel.chartMode,
                         ),
                       ),
                     ],
@@ -620,6 +653,33 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildModeButton(
+    BuildContext context,
+    String label,
+    ChartMode mode,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isSelected ? Colors.white : Colors.grey[600],
+          ),
+        ),
       ),
     );
   }

@@ -110,24 +110,25 @@ dependencies:
     sdk: flutter
   stacked: ^3.4.0
   stacked_services: ^1.1.0
-  
+
   # Data & Storage
   sqflite: ^2.3.0
   path_provider: ^2.1.1
   csv: ^6.0.0
   share_plus: ^7.2.1
   universal_html: ^2.2.4
-  
+
   # Charts
   fl_chart: ^0.65.0
   candlesticks: ^2.1.0
-  
+
   # Utils
   intl: ^0.18.0
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   uuid: ^4.2.1
 ```
+
 ## 🏗️ Architecture
 
 ### Stacked MVVM Pattern
@@ -286,7 +287,7 @@ void main() {
 
 ### Phase 2 - Polish (Next 3 months)
 
-- [ ] Export results (CSV, PDF)
+- [x] Export results (CSV, PDF)
 - [ ] Save/load strategies
 - [ ] Multi-timeframe analysis
 - [ ] UI/UX improvements

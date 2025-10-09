@@ -1,4 +1,5 @@
 import 'package:backtestx/models/trade.dart';
+import 'package:backtestx/ui/views/backtest_result/backtest_result_viewmodel.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
@@ -6,12 +7,14 @@ class EquityCurveChart extends StatelessWidget {
   final List<EquityPoint> equityCurve;
   final double initialCapital;
   final bool showDrawdown;
+  final ChartMode? chartMode;
 
   const EquityCurveChart({
     Key? key,
     required this.equityCurve,
     required this.initialCapital,
     this.showDrawdown = true,
+    this.chartMode,
   }) : super(key: key);
 
   @override
@@ -20,22 +23,31 @@ class EquityCurveChart extends StatelessWidget {
       return const Center(child: Text('No equity data available'));
     }
 
+    // Jika chartMode diset, gunakan mode tersebut untuk menentukan tampilan
+    final bool shouldShowOnlyDrawdown = chartMode == ChartMode.drawdown;
+    final bool shouldShowOnlyEquity = chartMode == ChartMode.equity;
+
     return Column(
       children: [
-        _buildStatsRow(),
-        const SizedBox(height: 16),
-        Expanded(
-          flex: showDrawdown ? 7 : 10,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 16, top: 8),
-            child: LineChart(_buildEquityChartData()),
-          ),
-        ),
-        if (showDrawdown)
+        if (!shouldShowOnlyDrawdown) _buildStatsRow(),
+        if (!shouldShowOnlyDrawdown) const SizedBox(height: 16),
+        
+        // Tampilkan equity chart jika mode equity atau mode default dengan showDrawdown
+        if (shouldShowOnlyEquity || (!shouldShowOnlyDrawdown && !shouldShowOnlyEquity))
           Expanded(
-            flex: 3,
+            flex: (shouldShowOnlyEquity || !showDrawdown) ? 10 : 7,
             child: Padding(
-              padding: const EdgeInsets.only(right: 16, top: 16),
+              padding: const EdgeInsets.only(right: 16, top: 8),
+              child: LineChart(_buildEquityChartData()),
+            ),
+          ),
+        
+        // Tampilkan drawdown chart jika mode drawdown atau mode default dengan showDrawdown
+        if (shouldShowOnlyDrawdown || (showDrawdown && !shouldShowOnlyEquity))
+          Expanded(
+            flex: shouldShowOnlyDrawdown ? 10 : 3,
+            child: Padding(
+              padding: EdgeInsets.only(right: 16, top: shouldShowOnlyDrawdown ? 8 : 16),
               child: LineChart(_buildDrawdownChartData()),
             ),
           ),
