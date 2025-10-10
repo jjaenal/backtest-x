@@ -537,6 +537,12 @@ class WorkspaceView extends StatelessWidget {
                       if (hasResults) ...[
                         const SizedBox(width: 8),
                         IconButton(
+                          onPressed: () => model.copyStrategyLinkToClipboard(strategy),
+                          icon: const Icon(Icons.link),
+                          tooltip: 'Copy Strategy Link',
+                        ),
+                        const SizedBox(width: 4),
+                        IconButton(
                           onPressed: () => model.toggleExpand(strategy.id),
                           icon: Icon(
                             isExpanded ? Icons.expand_less : Icons.expand_more,
@@ -1422,6 +1428,14 @@ class WorkspaceView extends StatelessWidget {
         spacing: 2,
         overflowSpacing: 2,
         children: [
+          IconButton(
+            icon: const Icon(Icons.link, size: 18),
+            visualDensity: VisualDensity.compact,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            onPressed: () => model.copyResultLinkToClipboard(result),
+            tooltip: 'Copy Result Link',
+          ),
           IconButton(
             icon: const Icon(Icons.table_chart, size: 18),
             visualDensity: VisualDensity.compact,

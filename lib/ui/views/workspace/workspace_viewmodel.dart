@@ -7,6 +7,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/helpers/isolate_backtest.dart';
+import 'package:backtestx/services/clipboard_service.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
@@ -15,12 +16,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:csv/csv.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     as html;
 import 'dart:io';
 import 'package:backtestx/ui/common/ui_helpers.dart';
+import 'package:backtestx/services/share_service.dart';
+import 'package:backtestx/services/deep_link_service.dart';
 
 class WorkspaceViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
@@ -87,6 +89,50 @@ class WorkspaceViewModel extends BaseViewModel {
   void toggleFilterProfitOnly() {
     _filterProfitOnly = !_filterProfitOnly;
     notifyListeners();
+  }
+
+  /// Copy a strategy deep link to clipboard
+  Future<void> copyStrategyLinkToClipboard(Strategy strategy) async {
+    try {
+      final deepLinks = locator<DeepLinkService>();
+      final url = deepLinks.buildStrategyLink(strategyId: strategy.id);
+      if (locator.isRegistered<ClipboardService>()) {
+        await locator<ClipboardService>().copyText(url);
+      } else {
+        await Clipboard.setData(ClipboardData(text: url));
+      }
+      _snackbarService.showSnackbar(
+        message: 'Strategy link copied to clipboard',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Failed to copy link: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Copy a backtest result deep link to clipboard
+  Future<void> copyResultLinkToClipboard(BacktestResult result) async {
+    try {
+      final deepLinks = locator<DeepLinkService>();
+      final url = deepLinks.buildBacktestResultLink(resultId: result.id);
+      if (locator.isRegistered<ClipboardService>()) {
+        await locator<ClipboardService>().copyText(url);
+      } else {
+        await Clipboard.setData(ClipboardData(text: url));
+      }
+      _snackbarService.showSnackbar(
+        message: 'Backtest result link copied to clipboard',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Failed to copy link: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
   }
 
   void toggleFilterPfPositive() {
@@ -838,8 +884,17 @@ class WorkspaceViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)],
-            text: 'BacktestX Results Summary');
+        final share = locator<ShareService>();
+        final deepLinks = locator<DeepLinkService>();
+        final link = deepLinks.buildStrategyLink(strategyId: strategy.id);
+        final text = 'BacktestX Results Summary — ${strategy.name}\n'
+            'Open in Strategy Builder: $link';
+        await share.shareFilePath(
+          path,
+          text: text,
+          mimeType: 'text/csv',
+          filename: fileName,
+        );
       }
 
       _snackbarService.showSnackbar(
@@ -934,8 +989,11 @@ class WorkspaceViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)],
-            text: 'BacktestX Results Per-Timeframe Stats');
+        final share = locator<ShareService>();
+        await share.shareFilePath(
+          path,
+          text: 'BacktestX Results Per-Timeframe Stats',
+        );
       }
 
       _snackbarService.showSnackbar(
@@ -1050,7 +1108,17 @@ class WorkspaceViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Trades Export');
+        final share = locator<ShareService>();
+        final deepLinks = locator<DeepLinkService>();
+        final link = deepLinks.buildStrategyLink(strategyId: strategy.id);
+        final text = 'BacktestX Trades Export — ${strategy.name}\n'
+            'Open in Strategy Builder: $link';
+        await share.shareFilePath(
+          path,
+          text: text,
+          mimeType: 'text/csv',
+          filename: fileName,
+        );
       }
 
       _snackbarService.showSnackbar(
@@ -1135,7 +1203,17 @@ class WorkspaceViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Results');
+        final share = locator<ShareService>();
+        final deepLinks = locator<DeepLinkService>();
+        final link = deepLinks.buildBacktestResultLink(resultId: result.id);
+        final text = 'BacktestX Results — $strategyName\n'
+            'Open Backtest Result: $link';
+        await share.shareFilePath(
+          path,
+          text: text,
+          mimeType: 'text/csv',
+          filename: fileName,
+        );
       }
 
       _snackbarService.showSnackbar(
@@ -1198,7 +1276,12 @@ class WorkspaceViewModel extends BaseViewModel {
         }
       }
 
-      await Clipboard.setData(ClipboardData(text: buffer.toString()));
+      final text = buffer.toString();
+      if (locator.isRegistered<ClipboardService>()) {
+        await locator<ClipboardService>().copyText(text);
+      } else {
+        await Clipboard.setData(ClipboardData(text: text));
+      }
       _snackbarService.showSnackbar(
         message: 'Summary copied to clipboard',
         duration: const Duration(seconds: 2),
@@ -1255,7 +1338,11 @@ class WorkspaceViewModel extends BaseViewModel {
       }
 
       final csv = const ListToCsvConverter().convert(rows);
-      await Clipboard.setData(ClipboardData(text: csv));
+      if (locator.isRegistered<ClipboardService>()) {
+        await locator<ClipboardService>().copyText(csv);
+      } else {
+        await Clipboard.setData(ClipboardData(text: csv));
+      }
       _snackbarService.showSnackbar(
         message: 'Trades CSV copied to clipboard',
         duration: const Duration(seconds: 2),

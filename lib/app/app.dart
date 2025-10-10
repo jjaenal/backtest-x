@@ -13,6 +13,7 @@ import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/services/theme_service.dart';
 import 'package:backtestx/services/pdf_export_service.dart';
+import 'package:backtestx/services/share_service.dart';
 import 'package:backtestx/ui/views/data_upload/data_upload_view.dart';
 import 'package:backtestx/ui/views/backtest_result/backtest_result_view.dart';
 import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart';
@@ -23,6 +24,7 @@ import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart';
 import 'package:backtestx/ui/bottom_sheets/indicator_settings/indicator_settings_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick_pattern_guide_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
+import 'package:backtestx/services/deep_link_service.dart';
 // @stacked-import
 
 @StackedApp(
@@ -52,6 +54,8 @@ import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
     LazySingleton(classType: DataManager),
     LazySingleton(classType: ThemeService),
     LazySingleton(classType: PdfExportService),
+    LazySingleton(classType: ShareService),
+    LazySingleton(classType: DeepLinkService),
 // @stacked-service
   ],
   bottomsheets: [

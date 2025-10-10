@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/helpers/share_content_helper.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/services/storage_service.dart';
 
@@ -53,7 +54,7 @@ class PdfExportService {
                               )),
                           pw.SizedBox(height: 4),
                           pw.Text(
-                              'Strategy: ${strategy?.name ?? result.strategyId}',
+                              'Strategy: ${ShareContentHelper.redactPII(strategy?.name ?? result.strategyId)}',
                               style: const pw.TextStyle(fontSize: 12)),
                           pw.SizedBox(height: 2),
                           pw.Text(

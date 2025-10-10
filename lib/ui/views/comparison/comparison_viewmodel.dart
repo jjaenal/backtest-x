@@ -4,7 +4,6 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/services/pdf_export_service.dart';
 import 'package:csv/csv.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -14,6 +13,7 @@ import 'dart:async';
 import 'package:backtestx/services/prefs_service.dart';
 import 'package:backtestx/debug/perf_monitor.dart';
 import 'package:backtestx/helpers/filename_helper.dart';
+import 'package:backtestx/services/share_service.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -168,8 +168,13 @@ class ComparisonViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsBytes(pdf);
-        await Share.shareXFiles([XFile(path)],
-            text: 'BacktestX Comparison PDF');
+        final share = locator<ShareService>();
+        await share.shareFilePath(
+          path,
+          text: 'BacktestX Comparison PDF',
+          mimeType: 'application/pdf',
+          filename: fileName,
+        );
         return true;
       }
     } catch (_) {
@@ -465,7 +470,13 @@ class ComparisonViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(csv);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Comparison');
+        final share = locator<ShareService>();
+        await share.shareFilePath(
+          path,
+          text: 'BacktestX Comparison',
+          mimeType: 'text/csv',
+          filename: fileName,
+        );
         return true;
       }
     } catch (_) {
@@ -546,8 +557,13 @@ class ComparisonViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(content);
-        await Share.shareXFiles([XFile(path)],
-            text: 'BacktestX Comparison Per‑TF Stats');
+        final share = locator<ShareService>();
+        await share.shareFilePath(
+          path,
+          text: 'BacktestX Comparison Per‑TF Stats',
+          mimeType: mime,
+          filename: fileName,
+        );
         return true;
       }
     } catch (_) {

@@ -1,5 +1,7 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:backtestx/services/share_service.dart';
+import 'package:backtestx/services/deep_link_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 import 'package:backtestx/app/app.locator.dart';
@@ -8,6 +10,7 @@ import 'package:backtestx/services/data_parser_service.dart';
 import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/services/clipboard_service.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:flutter/services.dart';
@@ -31,6 +34,8 @@ import 'test_helpers.mocks.dart';
     MockSpec<IndicatorService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<BacktestEngineService>(onMissingStub: OnMissingStub.returnDefault),
     MockSpec<StorageService>(onMissingStub: OnMissingStub.returnDefault),
+    MockSpec<ShareService>(onMissingStub: OnMissingStub.returnDefault),
+    MockSpec<SnackbarService>(onMissingStub: OnMissingStub.returnDefault),
 // @stacked-mock-spec
   ],
 )
@@ -54,12 +59,14 @@ void registerServices() {
   if (!locator.isRegistered<BacktestEngineService>()) {
     getAndRegisterBacktestEngineService();
   }
+  // Ensure DeepLinkService available for tests using deep link generation
+  if (!locator.isRegistered<DeepLinkService>()) {
+    locator.registerSingleton<DeepLinkService>(DeepLinkService());
+  }
   // Always override StorageService with a mock for tests (setupLocator registers real one)
   getAndRegisterStorageService();
-  // Ensure SnackbarService is registered to avoid GetIt errors in tests
-  if (!locator.isRegistered<SnackbarService>()) {
-    locator.registerSingleton<SnackbarService>(SnackbarService());
-  }
+  // Override SnackbarService with a mock to prevent GetX UI calls in tests
+  getAndRegisterSnackbarService();
   // Ensure DataManager is registered; HomeViewModel accesses it via locator
   if (!locator.isRegistered<DataManager>()) {
     locator.registerSingleton<DataManager>(DataManager());
@@ -148,7 +155,27 @@ MockStorageService getAndRegisterStorageService() {
   locator.registerSingleton<StorageService>(service);
   return service;
 }
+
+MockShareService getAndRegisterShareService() {
+  _removeRegistrationIfExists<ShareService>();
+  final service = MockShareService();
+  locator.registerSingleton<ShareService>(service);
+  return service;
+}
+MockSnackbarService getAndRegisterSnackbarService() {
+  _removeRegistrationIfExists<SnackbarService>();
+  final service = MockSnackbarService();
+  locator.registerSingleton<SnackbarService>(service);
+  return service;
+}
 // @stacked-mock-create
+
+ClipboardService getAndRegisterClipboardServiceInstance(
+    ClipboardService instance) {
+  _removeRegistrationIfExists<ClipboardService>();
+  locator.registerSingleton<ClipboardService>(instance);
+  return instance;
+}
 
 void _removeRegistrationIfExists<T extends Object>() {
   if (locator.isRegistered<T>()) {
@@ -177,6 +204,30 @@ void mockPathProviderForTests({String? tempDirPath}) {
       default:
         return basePath;
     }
+  });
+}
+
+/// Mock clipboard method channel for tests to intercept `Clipboard.setData`.
+/// Supply `onSet` to capture the text written to clipboard.
+void mockClipboardForTests({void Function(String text)? onSet}) {
+  const platformChannel = MethodChannel('flutter/platform');
+  TestWidgetsFlutterBinding.ensureInitialized();
+  final messenger =
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+  messenger.setMockMethodCallHandler(platformChannel,
+      (MethodCall methodCall) async {
+    if (methodCall.method == 'Clipboard.setData') {
+      final args = methodCall.arguments;
+      String captured = '';
+      if (args is Map || args is Map<dynamic, dynamic>) {
+        final dynamic val = (args as Map)["text"];
+        if (val is String) captured = val;
+      }
+      if (onSet != null) onSet(captured);
+      return null;
+    }
+    return null;
   });
 }
 

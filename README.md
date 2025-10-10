@@ -49,6 +49,19 @@ flutter run
   
   PDF Export enhancements:
   - Multi‑page PDF report (Charts + Indicator Panel)
+  
+### Deep Link (Web/Mobile)
+
+Use `DeepLinkService` to generate shareable links to open results directly:
+
+```dart
+final deepLinkService = locator<DeepLinkService>();
+final url = deepLinkService.buildBacktestResultLink(resultId: result.id);
+// Include `url` in your share text or buttons
+```
+
+On Web, links use the current origin with hash/path routing (e.g. `https://example.com/#/backtest-result-view?id=abc123`).
+On app startup, if a deep link to Backtest Result is detected, the app navigates directly to the view.
   - Pagination/layout optimized for long datasets
   - Dynamic file naming `
     <strategy>-<tf>-<date>.pdf` (sanitized)
@@ -695,3 +708,53 @@ For issues or questions:
 - Micro-delay pacing between steps handled in `StartupViewModel` for natural rhythm.
 - Branding header retained: logo glow, gradient title, accent divider, and subtle background pattern.
 - Code reference: `lib/ui/views/startup/startup_view.dart`, `lib/ui/views/startup/startup_viewmodel.dart`.
+## 🔗 Sharing
+
+Use the app-wide `ShareService` for consistent cross-platform sharing.
+
+Text sharing:
+
+```dart
+final share = locator<ShareService>();
+await share.shareText(summaryText, subject: 'BacktestX Results');
+```
+
+Share a generated PDF (bytes):
+
+```dart
+final pdfBytes = await locator<PdfExportService>()
+    .buildImageDocument(imageBytes, title: 'My Report');
+await locator<ShareService>().shareBytes(
+  pdfBytes,
+  filename: 'my_report.pdf',
+  mimeType: 'application/pdf',
+  text: 'BacktestX PDF Export',
+);
+```
+
+On Web, `ShareService` uses Web Share API when available and falls back to copying text to the clipboard or triggering a file download. On mobile/desktop it wraps `share_plus` and `XFile` under the hood.
+
+## 🔗 Deep Links
+
+Deep links let you share URLs that open directly to a specific view.
+
+- Backtest Result: `buildBacktestResultLink(resultId: '<id>')`
+- Strategy Builder: `buildStrategyLink(strategyId: '<id>')`
+
+Example:
+
+```dart
+final deepLinks = locator<DeepLinkService>();
+final url1 = deepLinks.buildBacktestResultLink(resultId: result.id);
+final url2 = deepLinks.buildStrategyLink(strategyId: strategy.id);
+```
+
+Routing behavior:
+
+- Web (hash routing): `https://host/app/#/backtest-result-view?id=<id>` and `https://host/app/#/strategy-builder-view?strategyId=<id>`
+- Web (path routing): `https://host/app/backtest-result-view?id=<id>` and `https://host/app/strategy-builder-view?strategyId=<id>`
+- Native suggestion: `backtestx://app/backtest-result-view?id=<id>` and `backtestx://app/strategy-builder-view?strategyId=<id>` (configure platform schemes)
+
+Startup handling on Web:
+
+- `StartupViewModel` calls `DeepLinkService.maybeHandleInitialLink()` to parse the current URL and navigate to either Backtest Result or Strategy Builder based on path and query string.

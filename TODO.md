@@ -68,12 +68,15 @@
 ### Low Priority
 
 - Social sharing integration
-  - [ ] Mobile share via `share_plus` (Android/iOS)
-  - [ ] Web share via Web Share API, fallback copy link/text
-  - [ ] Share PDF exports and chart snapshot images
-  - [ ] Share summary text and deep links to results/strategies
-  - [ ] Sanitize content, remove PII, validate filenames
-  - [ ] Document usage and examples in README
+  - [x] Mobile share via `share_plus` (Android/iOS) via ShareService
+  - [x] Web share via Web Share API, fallback copy text or download file
+  - [x] Share PDF exports and chart snapshot images
+  - [x] Share summary text
+  - [x] Deep links to results
+  - [x] Deep links to strategies
+  - [x] Sanitize content & validate filenames
+  - [x] PII removal policy and redaction rules
+  - [x] Document usage and examples in README
 
 ## Next Sprint (1–2 weeks)
 
@@ -226,6 +229,14 @@
 - [x] Copy summary to clipboard (Workspace)
 - [x] Backtest Result: export per‑TF metrics (Avg Win/Loss, R/R) dan Entry TFs
 - [x] Comparison CSV respects chart order (Sort/Agg) on grouped TF chart
+
+### Deep Link
+
+- [x] Service untuk membangun tautan hasil backtest (DeepLinkService)
+- [x] Sertakan deep link di payload share BacktestResult
+- [x] Tangani deep link pada startup Web (navigasi langsung)
+- [x] Tambah dokumentasi & contoh di README
+- [x] Unit test untuk format URL dan encoding id
 
 ### Multi-Asset Backtest
 
@@ -828,3 +839,41 @@ xl: 32px
 - [x] Unit test untuk agregasi dan pengurutan grouped
 - [x] Empty state & tooltip deskripsi metrik di Comparison View
 - [x] Batasi item dan responsif untuk dataset besar
+
+---
+
+## 🎯 Focused Checklist — Strategy Builder: Pengembangan Lanjutan
+
+### Strategi Prioritas untuk Diimplementasikan
+
+- [ ] Breakout (HH/HL, range box, volatility filter)
+- [ ] Momentum (RSI/MACD konfirmasi, multi‑TF opsi)
+- [ ] Trend Following (EMA/SMA cross, ADX filter)
+- [ ] Mean Reversion (Bollinger Bands, RSI oversold/overbought)
+- [ ] Bollinger Squeeze (BB width + breakout trigger)
+- [ ] RSI Divergence (regular + hidden, dengan konfirmasi MA)
+- [ ] MACD Signal (cross, histogram momentum, filter noise)
+- [ ] VWAP & Anchored VWAP (pullback/cross)
+- [ ] EMA Ribbon (multi‑EMA alignment)
+- [ ] Stochastic (K/D cross + threshold)
+
+### Template & Rule Builder
+
+- [ ] Tambah template per strategi (pre‑filled rules)
+- [ ] Validasi otomatis per operator (crossAbove/crossBelow, thresholds)
+- [ ] Dukungan multi‑timeframe per rule (TF base vs rule TF)
+- [ ] Preset risk management per template (SL/TP, RR, trailing)
+- [ ] Hint & tooltip deskripsi strategi pada kartu rule
+
+### Integrasi & UX
+
+- [ ] Quick preview hasil strategi dari builder (subset data)
+- [ ] Indikator wajib & kompatibilitas rule (hindari kombinasi tidak valid)
+- [ ] Badge performa cepat (WinRate/PF dari preview)
+- [ ] Export/Import template strategi (JSON)
+- [ ] Unit test per template (validasi rule, save/load, quick backtest)
+
+### Dokumentasi
+
+- [ ] STRATEGY_BUILDER_GUIDE.md: tambah bab Template & Best Practices
+- [ ] Contoh strategi siap pakai (5+ contoh) di README/guide

@@ -14,6 +14,7 @@ import 'package:backtestx/models/trade.dart' as _i4;
 import 'package:backtestx/services/backtest_engine_service.dart' as _i14;
 import 'package:backtestx/services/data_parser_service.dart' as _i3;
 import 'package:backtestx/services/indicator_service.dart' as _i13;
+import 'package:backtestx/services/share_service.dart' as _i17;
 import 'package:backtestx/services/storage_service.dart' as _i16;
 import 'package:flutter/material.dart' as _i8;
 import 'package:mockito/mockito.dart' as _i1;
@@ -1242,6 +1243,196 @@ class MockStorageService extends _i1.Mock implements _i16.StorageService {
           #clearStrategyDraft,
           [],
           {#strategyId: strategyId},
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+}
+
+/// A class which mocks [ShareService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockShareService extends _i1.Mock implements _i17.ShareService {
+  @override
+  _i9.Future<void> shareText(
+    String? text, {
+    String? subject,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #shareText,
+          [text],
+          {#subject: subject},
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> shareFilePath(
+    String? path, {
+    String? text,
+    String? mimeType,
+    String? filename,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #shareFilePath,
+          [path],
+          {
+            #text: text,
+            #mimeType: mimeType,
+            #filename: filename,
+          },
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+
+  @override
+  _i9.Future<void> shareBytes(
+    _i12.Uint8List? bytes, {
+    required String? filename,
+    String? text,
+    String? mimeType,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #shareBytes,
+          [bytes],
+          {
+            #filename: filename,
+            #text: text,
+            #mimeType: mimeType,
+          },
+        ),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
+}
+
+/// A class which mocks [SnackbarService].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockSnackbarService extends _i1.Mock implements _i6.SnackbarService {
+  @override
+  bool get isSnackbarOpen => (super.noSuchMethod(
+        Invocation.getter(#isSnackbarOpen),
+        returnValue: false,
+        returnValueForMissingStub: false,
+      ) as bool);
+
+  @override
+  void registerSnackbarConfig(_i6.SnackbarConfig? config) => super.noSuchMethod(
+        Invocation.method(
+          #registerSnackbarConfig,
+          [config],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void registerCustomMainButtonBuilder({
+    dynamic variant,
+    _i8.Widget Function(
+      String?,
+      Function?,
+    )? builder,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #registerCustomMainButtonBuilder,
+          [],
+          {
+            #variant: variant,
+            #builder: builder,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void registerCustomSnackbarConfig({
+    required dynamic variant,
+    _i6.SnackbarConfig? config,
+    _i6.SnackbarConfig Function()? configBuilder,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #registerCustomSnackbarConfig,
+          [],
+          {
+            #variant: variant,
+            #config: config,
+            #configBuilder: configBuilder,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void showSnackbar({
+    String? title = '',
+    required String? message,
+    dynamic Function(dynamic)? onTap,
+    Duration? duration,
+    String? mainButtonTitle,
+    void Function()? onMainButtonTapped,
+  }) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #showSnackbar,
+          [],
+          {
+            #title: title,
+            #message: message,
+            #onTap: onTap,
+            #duration: duration,
+            #mainButtonTitle: mainButtonTitle,
+            #onMainButtonTapped: onMainButtonTapped,
+          },
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  _i9.Future<dynamic>? showCustomSnackBar({
+    required String? message,
+    _i8.TextStyle? messageTextStyle,
+    required dynamic variant,
+    String? title,
+    _i8.TextStyle? titleTextStyle,
+    String? mainButtonTitle,
+    _i8.ButtonStyle? mainButtonStyle,
+    void Function()? onMainButtonTapped,
+    Function? onTap,
+    Duration? duration,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #showCustomSnackBar,
+          [],
+          {
+            #message: message,
+            #messageTextStyle: messageTextStyle,
+            #variant: variant,
+            #title: title,
+            #titleTextStyle: titleTextStyle,
+            #mainButtonTitle: mainButtonTitle,
+            #mainButtonStyle: mainButtonStyle,
+            #onMainButtonTapped: onMainButtonTapped,
+            #onTap: onTap,
+            #duration: duration,
+          },
+        ),
+        returnValueForMissingStub: null,
+      ) as _i9.Future<dynamic>?);
+
+  @override
+  _i9.Future<void> closeSnackbar() => (super.noSuchMethod(
+        Invocation.method(
+          #closeSnackbar,
+          [],
         ),
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
