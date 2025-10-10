@@ -234,23 +234,39 @@ class ComparisonViewModel extends BaseViewModel {
     for (final tf in tfs) {
       final m = grouped[tf] ?? {};
       if (m.isEmpty) {
-        scoreByTf[tf] = 0.0;
+        scoreByTf[tf] = double.nan; // empty treated as invalid and placed last
         continue;
       }
-      final values = m.values.toList();
-      double score;
-      if (_groupedTfAgg == 'max') {
-        score = values.reduce((a, b) => a > b ? a : b);
+      // Use only finite values for aggregation; invalids (NaN/Infinity) cause tf to be placed last
+      final values = m.values.where((v) => v.isFinite).toList();
+      if (values.isEmpty) {
+        scoreByTf[tf] = double.nan;
       } else {
-        // Default to average
-        score = values.reduce((a, b) => a + b) / values.length;
+        double score;
+        if (_groupedTfAgg == 'max') {
+          score = values.reduce((a, b) => a > b ? a : b);
+        } else {
+          // Default to average
+          score = values.reduce((a, b) => a + b) / values.length;
+        }
+        scoreByTf[tf] = score;
       }
-      scoreByTf[tf] = score;
     }
     tfs.sort((a, b) {
-      final va = scoreByTf[a] ?? 0.0;
-      final vb = scoreByTf[b] ?? 0.0;
-      return _groupedTfSort == 'valueAsc' ? va.compareTo(vb) : vb.compareTo(va);
+      final va = scoreByTf[a] ?? double.nan;
+      final vb = scoreByTf[b] ?? double.nan;
+      final aInvalid = !(va.isFinite);
+      final bInvalid = !(vb.isFinite);
+      if (aInvalid && bInvalid) {
+        // Tie-break by key for deterministic order
+        return a.compareTo(b);
+      }
+      if (aInvalid) return 1; // a goes after b
+      if (bInvalid) return -1; // b goes after a
+      final cmp = _groupedTfSort == 'valueAsc' ? va.compareTo(vb) : vb.compareTo(va);
+      if (cmp != 0) return cmp;
+      // Stable tie-break by timeframe key (ascending)
+      return a.compareTo(b);
     });
     return tfs;
   }

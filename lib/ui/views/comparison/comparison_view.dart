@@ -757,8 +757,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Metric selector and grouped per‑TF chart
                 Row(
                   children: [
-                    Text('Chart Metric:',
-                        style: Theme.of(context).textTheme.bodyMedium),
+                    Tooltip(
+                      message: _metricTooltip(model.selectedTfMetric),
+                      child: Text('Chart Metric:',
+                          style: Theme.of(context).textTheme.bodyMedium),
+                    ),
                     const SizedBox(width: 8),
                     DropdownButton<String>(
                       value: model.selectedTfMetric,
@@ -779,6 +782,9 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                   final grouped = model.getGroupedTfMetricSeries();
                   final labels = model.getSeriesLabels();
                   final tfOrder = model.getTimeframeOrderForGrouped();
+                  if (grouped.isEmpty || tfOrder.isEmpty) {
+                    return _emptyGroupedState(context, model);
+                  }
                   return GroupedTfBarChart(
                     data: grouped,
                     seriesOrder: labels,
@@ -788,6 +794,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     repaintKey: _groupedTfChartKey,
                     overlayWatermark:
                         'BacktestX • ${model.selectedTfMetric} • ${DateTime.now().toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+                    maxRows: 24,
                   );
                 }),
                 const SizedBox(height: 8),
@@ -1081,6 +1088,42 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         );
       }
     }
+  }
+
+  Widget _emptyGroupedState(BuildContext context, ComparisonViewModel model) {
+    final theme = Theme.of(context);
+    final hasFilter = model.selectedTimeframeFilters.isNotEmpty;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.insights, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              const SizedBox(width: 8),
+              Text(
+                'No grouped data to display',
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            hasFilter
+                ? 'Adjust the timeframe filters above or change metric.'
+                : 'Run comparison with results that include per‑TF stats, or change metric.',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
   }
 
   Future<Uint8List?> _captureWidgetPng(GlobalKey key, double pixelRatio) async {

@@ -9,6 +9,7 @@ class GroupedTfBarChart extends StatelessWidget {
   final bool isPercent;
   final GlobalKey? repaintKey;
   final String? overlayWatermark;
+  final int? maxRows; // cap number of timeframe rows rendered
 
   const GroupedTfBarChart({
     super.key,
@@ -19,6 +20,7 @@ class GroupedTfBarChart extends StatelessWidget {
     this.isPercent = false,
     this.repaintKey,
     this.overlayWatermark,
+    this.maxRows,
   });
 
   @override
@@ -27,9 +29,13 @@ class GroupedTfBarChart extends StatelessWidget {
     final theme = Theme.of(context);
 
     // Determine timeframe order: use provided order if present, otherwise sort alphabetically
-    final tfs = timeframeOrder != null && timeframeOrder!.isNotEmpty
+    final tfsAll = timeframeOrder != null && timeframeOrder!.isNotEmpty
         ? timeframeOrder!.where((tf) => data.containsKey(tf)).toList()
         : (data.keys.toList()..sort());
+    final totalCount = tfsAll.length;
+    final tfs = (maxRows != null && totalCount > (maxRows ?? 0))
+        ? tfsAll.sublist(0, maxRows!)
+        : tfsAll;
 
     // Determine max absolute value across all series for scaling
     double maxVal = 0.0;
@@ -63,23 +69,34 @@ class GroupedTfBarChart extends StatelessWidget {
               _legendItem(context, colors[i], seriesOrder[i]),
           ],
         ),
+        if (maxRows != null && totalCount > (maxRows ?? 0))
+          Padding(
+            padding: const EdgeInsets.only(top: 6.0),
+            child: Text(
+              'Showing ${tfs.length} of $totalCount timeframes',
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
         const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, constraints) {
             final fullWidth = constraints.maxWidth;
-            return Column(
-              children: [
-                for (final tf in tfs)
-                  _groupRow(
-                    context,
-                    tf,
-                    data[tf] ?? {},
-                    seriesOrder,
-                    colors,
-                    fullWidth,
-                    maxVal,
-                  ),
-              ],
+            return ListView.builder(
+              itemCount: tfs.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final tf = tfs[index];
+                return _groupRow(
+                  context,
+                  tf,
+                  data[tf] ?? {},
+                  seriesOrder,
+                  colors,
+                  fullWidth,
+                  maxVal,
+                );
+              },
             );
           },
         ),

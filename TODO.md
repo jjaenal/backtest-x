@@ -8,6 +8,25 @@
 - Performance: memory optimization for large datasets (>10k candles)
 - Known Issues: BacktestEngine edge cases; division by zero; parser messages; storage migration
 
+## 🎯 Focused Checklist — Performance: Memory Optimization (>10k candles)
+
+- [ ] Profile memory hotspots using DevTools (timeline/memory)
+- [ ] Virtualize long lists with builder widgets (`ListView.builder`, `GridView.builder`)
+- [ ] Downsample chart series per zoom/window to limit draw calls
+- [ ] Cache aggregated stats and reuse computed values across views
+- [ ] Throttle UI notifications and window updates to reduce rebuilds
+- [ ] Integration test for 10k+ candles scenario (Web + Mobile)
+- [ ] Document performance best practices in README (charts, lists, isolates)
+
+## 🎯 Focused Checklist — Known Issues: Engine/Indicator/Parser/Storage
+
+- [ ] `IndicatorService`: add division-by-zero guards and unit tests
+- [ ] `BacktestEngineService`: handle empty data and single-candle runs
+- [ ] `DataParserService`: improve error messages with line/column context
+- [ ] `StorageService`: migration safety, fallback path, and validation routine
+- [ ] Unit tests covering these edge cases end-to-end
+- [ ] Basic error surfaces in UI (snackbar/banner) for critical failures
+
 ### Medium Priority
 - UI/UX: error handling UI; onboarding tutorial; empty states
 - Documentation: Theming Guide for contributors
@@ -761,11 +780,11 @@ xl: 32px
 
 ## 🎯 Focused Checklist — Workspace Compare: MTF Visualization
 
-- [ ] Tambah panel Grouped TF Chart di Comparison View
-- [ ] Dropdown metrik untuk grouped chart (winRate, PF, expectancy, rr)
-- [ ] Opsi sort (Timeframe, Value ↑/↓) dan agregasi (Sum/Avg)
-- [ ] Sinkronkan urutan ekspor CSV dengan urutan chart grouped
-- [ ] Export PNG untuk grouped chart (panel dan chart saja)
-- [ ] Unit test untuk agregasi dan pengurutan grouped
-- [ ] Empty state & tooltip deskripsi metrik di Comparison View
-- [ ] Batasi item dan responsif untuk dataset besar
+- [x] Tambah panel Grouped TF Chart di Comparison View
+- [x] Dropdown metrik untuk grouped chart (winRate, PF, expectancy, rr)
+- [x] Opsi sort (Timeframe, Value ↑/↓) dan agregasi (Avg/Max)
+- [x] Sinkronkan urutan ekspor CSV dengan urutan chart grouped
+- [x] Export PNG untuk grouped chart (panel dan chart saja)
+- [x] Unit test untuk agregasi dan pengurutan grouped
+- [x] Empty state & tooltip deskripsi metrik di Comparison View
+- [x] Batasi item dan responsif untuk dataset besar
