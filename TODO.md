@@ -3,6 +3,7 @@
 ## Top Priorities (Sorted)
 
 ### High Priority
+
 - Workspace Compare: visualize results across timeframes
 - Backtest Result: per‑TF chart sorting by metric value
 - Performance: memory optimization for large datasets (>10k candles)
@@ -10,29 +11,49 @@
 
 ## 🎯 Focused Checklist — Performance: Memory Optimization (>10k candles)
 
-- [ ] Profile memory hotspots using DevTools (timeline/memory)
-- [ ] Virtualize long lists with builder widgets (`ListView.builder`, `GridView.builder`)
-- [ ] Downsample chart series per zoom/window to limit draw calls
-- [ ] Cache aggregated stats and reuse computed values across views
-- [ ] Throttle UI notifications and window updates to reduce rebuilds
-- [ ] Integration test for 10k+ candles scenario (Web + Mobile)
-- [ ] Document performance best practices in README (charts, lists, isolates)
+- [x] Profile memory hotspots using DevTools (timeline/memory)
+- [x] Virtualize long lists with builder widgets (`ListView.builder`, `GridView.builder`)
+- [x] Downsample chart series per zoom/window to limit draw calls
+- [x] Cache aggregated stats and reuse computed values across views
+- [x] Throttle UI notifications and window updates to reduce rebuilds
+- [x] Integration test for 10k+ candles scenario (Web + Mobile)
+- [x] Document performance best practices in README (charts, lists, isolates)
+- [x] Isolate backtest stress test on 50k candles
+- [x] EMA crossover backtest performance test on 20k candles
+- [x] RSI threshold backtest performance test on 20k candles
+- [x] Isolate backtest stress test on 100k candles
 
 ## 🎯 Focused Checklist — Known Issues: Engine/Indicator/Parser/Storage
 
-- [ ] `IndicatorService`: add division-by-zero guards and unit tests
-- [ ] `BacktestEngineService`: handle empty data and single-candle runs
-- [ ] `DataParserService`: improve error messages with line/column context
-- [ ] `StorageService`: migration safety, fallback path, and validation routine
-- [ ] Unit tests covering these edge cases end-to-end
-- [ ] Basic error surfaces in UI (snackbar/banner) for critical failures
+- [x] `IndicatorService`: add division-by-zero guards and unit tests
+- [x] `BacktestEngineService`: handle empty data and single-candle runs
+- [x] `DataParserService`: improve error messages with line/column context
+- [x] `StorageService`: migration safety, fallback path, and validation routine
+- [x] Unit tests covering these edge cases end-to-end
+- [x] Basic error surfaces in UI (snackbar/banner) for critical failures
+
+### Test/Golden & Plugins
+
+- [x] Golden tests: HomeView empty/default/populated/warm-up states stabilized
+- [x] Deterministic golden setup (viewport, DPR, limited pumps)
+- [x] Document golden commands and tips (COMMANDS.md, README.md)
+- [x] Disable background warm-up in tests via `DataManager.setBackgroundWarmupEnabled(false)`
+- [x] Add golden: populated state after warm-up completed (banner hidden)
+- [x] Mock `getApplicationDocumentsDirectory` in tests (helper `mockPathProviderForTests()`) to avoid MissingPluginException
+- [x] Configure `dart_test.yaml` tags (`golden`) and use `--tags golden`
+- [x] Annotate golden tests with `@Tags(['golden'])`
+- [x] Add helper `silenceInfoLogsForTests()` to raise logger threshold in tests
+- [x] Consolidate sqflite FFI init for unit tests (central helper `initSqfliteFfiForTests()`)
+- [x] Investigate `file_picker` platform plugin warnings; decision: informational only, safe to ignore in tests
 
 ### Medium Priority
+
 - UI/UX: error handling UI; onboarding tutorial; empty states
 - Documentation: Theming Guide for contributors
 - Export: combined Chart+Panel multi‑page PDF; dynamic file naming
 
 ### Low Priority
+
 - Social sharing integration
 
 ## Next Sprint (1–2 weeks)
@@ -184,8 +205,8 @@
 - [ ] Share via social media
 - [x] Copy trades to clipboard (Workspace)
 - [x] Copy summary to clipboard (Workspace)
- - [x] Backtest Result: export per‑TF metrics (Avg Win/Loss, R/R) dan Entry TFs
- - [x] Comparison CSV respects chart order (Sort/Agg) on grouped TF chart
+- [x] Backtest Result: export per‑TF metrics (Avg Win/Loss, R/R) dan Entry TFs
+- [x] Comparison CSV respects chart order (Sort/Agg) on grouped TF chart
 
 ### Multi-Asset Backtest
 
@@ -199,9 +220,9 @@
 - [ ] Onboarding tutorial
 - [ ] Empty states
 - [x] Loading skeletons
- - [x] Startup view: centered animated steps (AnimatedSwitcher)
- - [x] Startup view: remove loader and check icon
- - [x] Startup view: micro-delay pacing for smoother transitions
+- [x] Startup view: centered animated steps (AnimatedSwitcher)
+- [x] Startup view: remove loader and check icon
+- [x] Startup view: micro-delay pacing for smoother transitions
 - [x] Home: "Loading cache..." banner saat warm-up background
 - [x] Home: kontrol AppBar untuk pause/enable dan Load Now
 - [x] Home: skeleton angka quick stats saat busy
@@ -220,11 +241,11 @@
 - [x] Tooltip for timeframe dropdown explaining correction behavior
 - [x] Auto-switch Value ke Indicator untuk operator crossAbove/crossBelow
 - [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
- - [x] Strategy Builder: error summary banner under Save button
- - [x] Save/Test button labels show error count when disabled
+- [x] Strategy Builder: error summary banner under Save button
+- [x] Save/Test button labels show error count when disabled
 - [ ] Add Theming Guide docs for contributors
 - [ ] UI tests for dark mode components (toggle, sheets, chart labels)
- - [x] Persist Compare view preferences (Sort/Agg) across sessions
+- [x] Persist Compare view preferences (Sort/Agg) across sessions
 
 ### Data Management
 
@@ -769,12 +790,12 @@ xl: 32px
 
 ## 🎯 Focused Checklist — Backtest Result: Per‑TF Sorting
 
- - [x] Tambah state sort di ViewModel (Value ↑/↓, Timeframe)
- - [x] Urutkan series di helper sesuai sort terpilih
- - [x] Tambah dropdown sort di Backtest Result view
- - [x] Pastikan `PerTfBarChart` render mengikuti urutan input
- - [x] Sinkronkan urutan ekspor CSV per‑TF dengan urutan chart
- - [x] Unit test untuk logika pengurutan (NaN, ties, empty)
+- [x] Tambah state sort di ViewModel (Value ↑/↓, Timeframe)
+- [x] Urutkan series di helper sesuai sort terpilih
+- [x] Tambah dropdown sort di Backtest Result view
+- [x] Pastikan `PerTfBarChart` render mengikuti urutan input
+- [x] Sinkronkan urutan ekspor CSV per‑TF dengan urutan chart
+- [x] Unit test untuk logika pengurutan (NaN, ties, empty)
 
 ---
 

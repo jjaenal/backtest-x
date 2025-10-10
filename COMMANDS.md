@@ -102,6 +102,79 @@ open coverage/html/index.html
 flutter test test/ui/views/home_view_test.dart
 ```
 
+### Performance Tests (Quick)
+
+```bash
+# Integration 10k+ candles
+flutter test test/performance/backtest_large_dataset_test.dart
+
+# Isolate stress 50k candles
+flutter test test/performance/backtest_isolate_stress_test.dart
+
+# EMA crossover 20k candles
+flutter test test/performance/backtest_ema_20k_test.dart
+
+# RSI threshold 20k candles
+flutter test test/performance/backtest_rsi_20k_test.dart
+
+# Isolate stress 100k candles
+flutter test test/performance/backtest_isolate_100k_stress_test.dart
+```
+
+## 🖼️ Golden Tests
+
+```bash
+# Update golden baseline for a specific test
+flutter test test/golden/home_view_populated_golden_test.dart --update-goldens
+
+# Run all golden tests with compact output
+flutter test test/golden -r compact
+
+# Run a single test by name (VM)
+dart test test/golden/home_view_populated_golden_test.dart \
+  -p vm --plain-name 'HomeView - populated state'
+
+# Run all golden tests via tag (configured in dart_test.yaml)
+flutter test --tags golden
+
+# Update all golden baselines via tag
+flutter test --tags golden --update-goldens
+```
+
+Tips agar snapshot deterministik:
+- Kunci viewport: set `SurfaceSize` dan `devicePixelRatio` ke nilai tetap.
+- Hindari `pumpAndSettle`; gunakan beberapa `pump` pendek lalu `expectLater`.
+- Matikan warm-up background `DataManager` di test untuk mencegah churn async.
+- Stub `StorageService` untuk mengontrol jumlah strategi, datasets, dan `latest result`.
+
+Troubleshooting umum:
+- `MissingPluginException(getApplicationDocumentsDirectory)`: muncul di VM test saat `path_provider` tidak tersedia. Abaikan jika tidak memblokir, atau hindari operasi disk (jangan panggil `DataManager.cacheData(...)` di golden).
+- `databaseFactory not initialized`: jika memakai `sqflite_common_ffi` di VM, inisialisasi di setup test: `databaseFactory = databaseFactoryFfi;`.
+ - Pesan log yang bising: panggil `silenceInfoLogsForTests()` di `setUpAll` untuk menaikkan threshold logger ke `warning`.
+
+## DevTools Memory Profiling
+
+```bash
+# 1) Launch app in Profile mode (recommended)
+flutter run -d chrome --profile --web-port 7357
+# or
+flutter run -d macos --profile
+
+# 2) Start DevTools server (if IDE doesn't auto-launch)
+dart devtools
+# DevTools prints a URL, e.g. http://127.0.0.1:9100
+
+# 3) Open DevTools → Memory tab
+# - Take heap snapshots
+# - Monitor allocation/GC during interactions
+# - Use Diff to compare before/after heavy interactions
+
+# 4) Optional: record Timeline for frame analysis
+
+# 5) Web rendering tweaks for charts
+flutter run -d chrome --profile --web-renderer canvaskit --web-port 7357
+```
+
 ## 📦 Build & Release
 
 ```bash

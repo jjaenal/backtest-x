@@ -10,7 +10,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'package:backtestx/services/prefs_service.dart';
+import 'package:backtestx/debug/perf_monitor.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -21,6 +23,40 @@ class ComparisonViewModel extends BaseViewModel {
   final _pdfExportService = locator<PdfExportService>();
   final _prefs = PrefsService();
   final Map<String, String> _strategyNames = {};
+
+  // Lightweight notify throttle to avoid spam renders during rapid interactions
+  Timer? _notifyTimer;
+  void _throttleNotify() {
+    _notifyTimer?.cancel();
+    _notifyTimer = Timer(const Duration(milliseconds: 30), () {
+      notifyListeners();
+    });
+  }
+
+  // Memoization cache for grouped per‑TF metric series
+  Map<String, Map<String, double>>? _groupedCache;
+  String? _groupedCacheKey;
+  void _invalidateGroupedCache() {
+    _groupedCache = null;
+    _groupedCacheKey = null;
+  }
+  String _computeGroupedCacheKey() {
+    final buf = StringBuffer();
+    buf.write(_selectedTfMetric);
+    buf.write('|');
+    final filters = _selectedTimeframeFilters.toList()..sort();
+    buf.write(filters.join(','));
+    buf.write('|');
+    buf.write('len=${results.length}');
+    for (final r in results) {
+      final tfLen = (r.summary.tfStats ?? {}).length;
+      buf.write(';');
+      buf.write(r.id);
+      buf.write(':');
+      buf.write(tfLen);
+    }
+    return buf.toString();
+  }
 
   // Global timeframe filters for per‑TF comparison section
   final Set<String> _selectedTimeframeFilters = {};
@@ -43,7 +79,8 @@ class ComparisonViewModel extends BaseViewModel {
   String get selectedTfMetric => _selectedTfMetric;
   void setSelectedTfMetric(String metric) {
     _selectedTfMetric = metric;
-    notifyListeners();
+    _invalidateGroupedCache();
+    _throttleNotify();
   }
 
   // Grouped chart sorting mode
@@ -59,7 +96,7 @@ class ComparisonViewModel extends BaseViewModel {
       _groupedTfSort = mode;
       // Persist preference
       _prefs.setString('compare.groupedTfSort', mode);
-      notifyListeners();
+      _throttleNotify();
     }
   }
 
@@ -75,7 +112,7 @@ class ComparisonViewModel extends BaseViewModel {
       _groupedTfAgg = mode;
       // Persist preference
       _prefs.setString('compare.groupedTfAgg', mode);
-      notifyListeners();
+      _throttleNotify();
     }
   }
 
@@ -171,12 +208,14 @@ class ComparisonViewModel extends BaseViewModel {
     } else {
       _selectedTimeframeFilters.add(tf);
     }
-    notifyListeners();
+    _invalidateGroupedCache();
+    _throttleNotify();
   }
 
   void clearTimeframeFilters() {
     _selectedTimeframeFilters.clear();
-    notifyListeners();
+    _invalidateGroupedCache();
+    _throttleNotify();
   }
 
   // Filter a specific result's tfStats by selected TFs (if any)
@@ -205,6 +244,13 @@ class ComparisonViewModel extends BaseViewModel {
 
   // Build grouped series: timeframe -> { seriesLabel -> metricValue }
   Map<String, Map<String, double>> getGroupedTfMetricSeries() {
+    // Return cached result when inputs are unchanged
+    final key = _computeGroupedCacheKey();
+    if (_groupedCacheKey == key && _groupedCache != null) {
+      return _groupedCache!;
+    }
+
+    PerfMonitor.start('groupedTfMetricSeries');
     final Map<String, Map<String, double>> grouped = {};
     for (int i = 0; i < results.length; i++) {
       final r = results[i];
@@ -218,6 +264,10 @@ class ComparisonViewModel extends BaseViewModel {
         grouped[tf]![label] = val;
       }
     }
+    PerfMonitor.end('groupedTfMetricSeries',
+        context: 'results=${results.length}, tfs=${grouped.length}, metric=$_selectedTfMetric');
+    _groupedCache = grouped;
+    _groupedCacheKey = key;
     return grouped;
   }
 

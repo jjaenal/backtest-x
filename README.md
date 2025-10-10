@@ -47,7 +47,7 @@ flutter run
   - Export trades to CSV from Workspace results list
 - PDF report includes Strategy Details section and improved charts (grid, axis labels, date range)
 - **Share Results**: Share backtest results with others
- - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
+- **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
 - **Background Cache Warm-up**: Pause/enable toggle and manual "Load Now" on Home
 - **Warm-up Indicator Banner**: "Loading cache…" visible during background loading
@@ -56,6 +56,7 @@ flutter run
 ## 🧭 Usage - Workspace Filters
 
 Langkah menggunakan filter di `Workspace`:
+
 - Buka view `Workspace` dari menu utama.
 - Pada kartu strategi, scroll ke daftar `Results`.
 - Gunakan `FilterChip` untuk performa: `Profit Only`, `PF > 1`, `Win Rate > 50%`.
@@ -65,11 +66,13 @@ Langkah menggunakan filter di `Workspace`:
 - Daftar hasil akan otomatis terfilter sesuai pilihan.
 
 Catatan:
+
 - Opsi `Symbol/Timeframe` diambil dari data hasil yang tersimpan untuk strategi tersebut.
 - Jika opsi kosong atau terbatas, jalankan backtest agar data tersedia.
 - Tombol `Export CSV` di header daftar hasil mengekspor ringkasan sesuai hasil terfilter (termasuk tanggal).
 
 Export CSV (filtered):
+
 - Gunakan tombol `Export CSV` di header daftar hasil untuk mengekspor ringkasan hasil yang sedang terfilter.
 - Atau, buka menu aksi (`⋮`) pada kartu strategi dan pilih `Export Results (CSV)` untuk hasil terfilter yang sama.
 - File berisi kolom: `Strategy`, `Symbol`, `Timeframe`, `Executed At`, `Total Trades`, `Win Rate %`, `Profit Factor`, `Total PnL`, `Total PnL %`, `Max Drawdown`, `Max DD %`, `Sharpe`.
@@ -78,6 +81,7 @@ Export CSV (filtered):
 ## ⚡ Quick Test & Batch (Workspace)
 
 Gunakan aksi cepat di kartu strategi untuk menjalankan backtest tanpa meninggalkan Workspace:
+
 - Pilih `market data` dari dropdown di area Quick Actions.
 - Klik `Quick Test` untuk menjalankan satu backtest pada data terpilih.
 - Klik `Run Batch` untuk menjalankan backtest berturut pada semua data yang tersedia. Setiap hasil disimpan otomatis ke database dan muncul di daftar hasil.
@@ -86,16 +90,19 @@ Gunakan aksi cepat di kartu strategi untuk menjalankan backtest tanpa meninggalk
 ## 🔧 Usage - Home Cache Warm-up
 
 Kontrol pemuatan cache market data di Home:
+
 - Buka menu `⋮` di `AppBar` Home.
 - Pilih `Pause Background Warm-up` atau `Enable Background Warm-up` untuk menonaktifkan/menyalakan proses background.
 - Klik `Load Cache Now` untuk memaksa pemuatan cache segera.
 - Saat proses berjalan, banner teks `Loading cache…` muncul di kiri bawah layar. Angka quick stats menampilkan skeleton sampai data siap.
 
 Catatan:
+
 - Proses warm-up ditahan bila toggle dimatikan, dan dilanjutkan kembali saat diaktifkan.
 - Throttling & batching mengurangi spike I/O sehingga UI tetap responsif.
 
 Catatan:
+
 - `Run Batch` menggunakan seluruh koleksi data yang tersedia di aplikasi. Jika ingin membatasi jumlah, opsi batas maksimum akan ditambahkan kemudian (planned).
 - Hasil batch langsung tersimpan dan akan ikut terfilter oleh pilihan aktif (Profit/PF/Win Rate, Symbol, Timeframe, Date Range) saat ditampilkan.
 
@@ -186,7 +193,7 @@ dependencies:
   freezed_annotation: ^2.4.1
   json_annotation: ^4.8.1
   uuid: ^4.2.1
-  
+
   # Export (PDF)
   pdf: ^3.10.8
   printing: ^5.12.0
@@ -249,6 +256,67 @@ Date,Open,High,Low,Close,Volume
 
 ## 🔧 Adding New Features
 
+## 🖼️ Golden Tests
+
+Untuk menjaga UI tetap stabil, proyek ini menggunakan golden tests.
+
+Perintah utama:
+
+```bash
+# Jalankan semua golden tests (tag dikonfigurasi di dart_test.yaml)
+flutter test --tags golden
+
+# Update seluruh baseline golden
+flutter test --tags golden --update-goldens
+
+# Update baseline untuk satu file tertentu
+flutter test test/golden/home_view_populated_golden_test.dart --update-goldens
+
+# Jalankan satu test berdasarkan nama (VM)
+dart test test/golden/home_view_populated_golden_test.dart \
+  -p vm --plain-name 'HomeView - populated state'
+```
+
+## 🧪 Performance Tests
+
+- 10k+ candles integration test (Web + Mobile) ensures large dataset stability.
+- 50k candles isolate stress test validates background isolate scalability.
+- 20k candles EMA crossover test broadens indicator coverage.
+- 20k candles RSI threshold test expands indicator scenarios.
+- 100k candles isolate stress test pushes scalability further.
+
+Run individual tests:
+
+```bash
+flutter test test/performance/backtest_large_dataset_test.dart
+flutter test test/performance/backtest_isolate_stress_test.dart
+flutter test test/performance/backtest_ema_20k_test.dart
+flutter test test/performance/backtest_rsi_20k_test.dart
+flutter test test/performance/backtest_isolate_100k_stress_test.dart
+```
+
+Profile with DevTools (see COMMANDS.md for details):
+
+```bash
+# Web (profile mode)
+flutter run -d chrome --profile --web-port 7357
+# Desktop (macOS example)
+flutter run -d macos --profile
+```
+
+Tips snapshot deterministik:
+
+- Kunci viewport: set `SurfaceSize` dan `devicePixelRatio` ke nilai tetap.
+- Hindari `pumpAndSettle`; gunakan beberapa `pump` pendek lalu `expectLater`.
+- Matikan warm‑up background `DataManager` di test.
+- Stub `StorageService` untuk mengontrol data yang ditampilkan.
+
+Troubleshooting:
+
+- `MissingPluginException(getApplicationDocumentsDirectory)`: gunakan helper `mockPathProviderForTests()` di setup test.
+- `databaseFactory not initialized`: bila memakai `sqflite_common_ffi`, set `databaseFactory = databaseFactoryFfi;` di setup.
+- Log bising: panggil `silenceInfoLogsForTests()` untuk menaikkan threshold logger ke `warning`.
+
 ### Create New View (Stacked CLI)
 
 ```bash
@@ -261,6 +329,77 @@ stacked create view strategy_builder
 # Create service
 stacked create service export
 ```
+
+## ⚙️ Performance Best Practices
+
+Tips praktis untuk menjaga UI responsif dan performa stabil di seluruh platform.
+
+- Charts
+
+  - Downsample data: kurangi titik data (mis. setiap N bar) untuk kurva ekuitas dan candlestick saat dataset sangat besar.
+  - Batasi rebuild: bungkus chart dengan `const`/`RepaintBoundary`, gunakan `Selector`/`ValueListenableBuilder` agar hanya bagian yang berubah yang dirender ulang.
+  - Hindari operasi berat di build: precompute seri data di ViewModel/Service lalu kirim final list ke widget chart.
+  - Animasi bijak: matikan animasi chart saat dataset besar atau sedang scroll untuk menghindari jank.
+  - Ukuran tetap: beri `SizedBox` dengan dimensi tetap agar layout tidak trigger layouting berulang.
+
+- Lists (hasil backtest, trades, datasets)
+
+  - Gunakan `ListView.builder`/`SliverList` alih-alih `ListView(children: ...)` untuk daftar panjang.
+  - Beri `itemExtent` atau `prototypeItem` ketika tinggi item seragam untuk mengurangi biaya layout.
+  - Gunakan `const` constructors, `const Text`, dan hindari closure berat di `itemBuilder`.
+  - Memoize data item: format angka/tanggal di ViewModel lalu gunakan langsung di widget item.
+  - Pagination/virtualization: tampilkan batch (mis. 100–200 items) dan sediakan tombol “Load more” bila diperlukan.
+
+- Isolates & Async
+
+  - Jalankan komputasi berat (parsing CSV, backtesting, statistik) di isolate: gunakan `Isolate.run` (Dart 3) atau util khusus seperti `IsolateBacktest.run(...)` agar UI tidak blocking.
+  - Hindari synchronous I/O di thread UI; gunakan API async (`await`) dan tampilkan indikator busy.
+  - Batch & throttle: bagi pekerjaan besar jadi beberapa langkah agar konsumsi CPU/IO stabil.
+
+- Caching & Data Management
+
+  - Cache hasil yang sering dipakai (summary, seri chart) di memori via `DataManager`.
+  - Warm-up background: muat cache secara bertahap dengan kontrol toggle (lihat Home) untuk pengalaman awal yang halus.
+  - Hindari duplikasi parsing: simpan data terstruktur (model) setelah parsing dan referensikan kembali.
+
+- UI Thread Hygiene
+
+  - Minimalkan `setState`/`notifyListeners` beruntun; kumpulkan perubahan dan panggil sekali.
+  - Gunakan `debounce` untuk input/filter agar tidak memicu render berulang.
+  - Gunakan `SnackBar` custom via `stacked_services` untuk feedback ringan tanpa memblokir UI.
+
+- DevTools & Profiling
+
+  - Jalankan `flutter run --profile` untuk mengukur frame time, jank, dan memory.
+  - Aktifkan Performance Overlay di DevTools untuk melihat frame build/raster.
+  - Gunakan `dart:developer` `Timeline` events untuk menandai fase komputasi berat.
+  - Catat metrik sederhana (durasi parsing/backtest) di log untuk pemantauan.
+
+- Web Khusus
+  - Hindari payload JS besar dan pertimbangkan split data (lazy-load) untuk dataset besar.
+  - Gunakan `Blob` + download URL untuk ekspor CSV tanpa menyimpan ke IndexedDB.
+  - Perhatikan batas memori browser; downsample seri sebelum dirender.
+
+Contoh yang dipakai di proyek:
+
+- `IsolateBacktest.run(...)` untuk menjalankan backtest tanpa memblok UI.
+- Warm-up cache terkontrol di Home (toggle dan “Load Now”).
+- Export dan copy summary/trades dilakukan async dan memberi feedback via snackbar.
+
+### Deterministic Golden Tests
+
+Untuk menjaga snapshot UI konsisten lintas mesin:
+
+- Kunci viewport: set `SurfaceSize` dan `devicePixelRatio` ke nilai tetap (mis. `Size(393, 852)`, DPR `1.0`).
+- Hindari `pumpAndSettle` yang rawan timeout; gunakan beberapa `pump` pendek lalu `expectLater(matchesGoldenFile(...))`.
+- Matikan warm-up background di test: panggil `DataManager().setBackgroundWarmupEnabled(false)` sebelum memompa widget.
+- Stub layanan: gunakan mock `StorageService` untuk mengontrol strategi, datasets, dan `latest BacktestResult`.
+- Hindari operasi disk di lingkungan test (VM): jangan memanggil `DataManager.cacheData(...)` jika `path_provider` tidak tersedia.
+
+Troubleshooting:
+
+- `MissingPluginException(getApplicationDocumentsDirectory)`: terjadi di VM test saat `path_provider` tidak aktif. Solusi: abaikan bila tidak memblokir, atau mock/inisialisasi alternatif dan hindari operasi disk.
+- `databaseFactory not initialized`: jika memakai `sqflite_common_ffi`, inisialisasi di setup test (`databaseFactory = databaseFactoryFfi;`).
 
 ### Manual Creation
 
@@ -372,16 +511,16 @@ void main() {
   - Add "Copy Summary" menu to copy comparison stats to clipboard
   - Grouped TF chart CSV export order mirrors UI Sort/Agg selection
   - Persist Compare view Sort/Agg preferences across sessions
- - Loading skeletons for smoother UX:
-   - Workspace results list and quick actions show skeletons on busy
-   - Backtest Result chart area uses AnimatedSwitcher to show skeleton while loading
-   - Busy states wired so skeletons appear on initial load and async actions
- - Chart performance optimization:
-   - Downsample candles in Backtest Result when dataset is large (>1500 points)
-   - Cuts render jank on Flutter Web with big OHLC series
- - Storage performance:
-   - Added SQLite index on `market_data.uploaded_at` for faster sorting
-   - Existing indexes on strategies and backtest_results retained
+- Loading skeletons for smoother UX:
+  - Workspace results list and quick actions show skeletons on busy
+  - Backtest Result chart area uses AnimatedSwitcher to show skeleton while loading
+  - Busy states wired so skeletons appear on initial load and async actions
+- Chart performance optimization:
+  - Downsample candles in Backtest Result when dataset is large (>1500 points)
+  - Cuts render jank on Flutter Web with big OHLC series
+- Storage performance:
+  - Added SQLite index on `market_data.uploaded_at` for faster sorting
+  - Existing indexes on strategies and backtest_results retained
 - Backtest Result improvements:
   - Add "Copy Summary" button to copy backtest stats to clipboard
   - Per‑Timeframe Charts in Backtest Result:
@@ -392,26 +531,27 @@ void main() {
       - `lib/ui/views/backtest_result/backtest_result_viewmodel.dart` → state `selectedTfChartMetric`, `availableTfChartMetrics`, helper `getTfMetricSeries()`
       - `lib/ui/views/backtest_result/backtest_result_view.dart` → dropdown metric + `PerTfBarChart` integration
       - `lib/ui/widgets/per_tf_bar_chart.dart` → simple animated horizontal bar chart widget
- - Workspace results quick actions:
-   - Add "Copy Trades CSV", "Copy Summary", and "Export CSV" buttons on each result
-   - Verified on Web build and preview
- - Workspace results list:
-   - Implement lazy loading with paginated "Load more" to handle large result sets
-   - Shows current count vs total (e.g., 20/200) for clarity
- - Strategy Builder:
-   - Auto-save drafts with debounce to prevent data loss
-   - Validation & UX improvements:
-     - Per-rule warnings/errors displayed on rule cards
-     - Fatal errors block Save and Quick Test actions
-     - Disabled buttons when fatal errors or preview running, with tooltips explaining why
-     - Inline error text on Value, Compare With, and Period fields
-     - Error-highlighted rule cards with red border for visibility
-     - Per-rule timeframe dropdown connected; warning if Rule TF < Base TF
-     - Cross operators (crossAbove/crossBelow): auto-switch Value ke Indicator; Number dimatikan dengan hint
-      - Error summary banner under Save button for quick fix guidance
-      - Save/Test button labels show error count when disabled
-   - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
-   - Verified on Flutter web preview without browser errors
+- Workspace results quick actions:
+  - Add "Copy Trades CSV", "Copy Summary", and "Export CSV" buttons on each result
+  - Verified on Web build and preview
+- Workspace results list:
+  - Implement lazy loading with paginated "Load more" to handle large result sets
+  - Shows current count vs total (e.g., 20/200) for clarity
+- Strategy Builder:
+
+  - Auto-save drafts with debounce to prevent data loss
+  - Validation & UX improvements:
+    - Per-rule warnings/errors displayed on rule cards
+    - Fatal errors block Save and Quick Test actions
+    - Disabled buttons when fatal errors or preview running, with tooltips explaining why
+    - Inline error text on Value, Compare With, and Period fields
+    - Error-highlighted rule cards with red border for visibility
+    - Per-rule timeframe dropdown connected; warning if Rule TF < Base TF
+    - Cross operators (crossAbove/crossBelow): auto-switch Value ke Indicator; Number dimatikan dengan hint
+    - Error summary banner under Save button for quick fix guidance
+    - Save/Test button labels show error count when disabled
+  - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
+  - Verified on Flutter web preview without browser errors
 
 - Workspace results filters:
   - Added Symbol and Timeframe dropdowns in the results list
@@ -434,7 +574,7 @@ void main() {
   - Update `web/index.html` to use `{{flutter_service_worker_version}}` token.
   - Migrate from `FlutterLoader.loadEntrypoint` to `FlutterLoader.load`.
 - Add UI tests focusing on dark mode: equity toggle, candlestick labels, bottom sheets.
- - Integrate Strategy details into PDF export and render rules in `pdf_export_service.dart`.
+- Integrate Strategy details into PDF export and render rules in `pdf_export_service.dart`.
 
 ## 🧭 Theming Guide (Quick Reference)
 

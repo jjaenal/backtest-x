@@ -2,6 +2,8 @@ import 'dart:math';
 import 'package:backtestx/models/candle.dart';
 
 class IndicatorService {
+  // Small epsilon to guard near-zero denominators
+  static const double _eps = 1e-12;
   /// Simple Moving Average
   List<double?> calculateSMA(List<Candle> candles, int period) {
     if (period <= 0) {
@@ -74,7 +76,12 @@ class IndicatorService {
     avgGain /= period;
     avgLoss /= period;
 
-    rsi[period] = avgLoss == 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+    // Guard division-by-zero and near-zero losses
+    if (avgLoss <= _eps) {
+      rsi[period] = 100;
+    } else {
+      rsi[period] = 100 - (100 / (1 + avgGain / avgLoss));
+    }
 
     // Smooth with Wilder's method
     for (var i = period + 1; i < closes.length; i++) {
@@ -87,7 +94,12 @@ class IndicatorService {
       avgGain = (avgGain * (period - 1) + gain) / period;
       avgLoss = (avgLoss * (period - 1) + loss) / period;
 
-      rsi[i] = avgLoss == 0 ? 100 : 100 - (100 / (1 + avgGain / avgLoss));
+      // Guard division-by-zero and near-zero losses
+      if (avgLoss <= _eps) {
+        rsi[i] = 100;
+      } else {
+        rsi[i] = 100 - (100 / (1 + avgGain / avgLoss));
+      }
     }
 
     return rsi;

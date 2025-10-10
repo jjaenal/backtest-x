@@ -27,6 +27,13 @@ class HomeViewModel extends BaseViewModel {
   BacktestResult? lastResult;
   String? lastResultStrategyName;
 
+  // Simple UI error surface state
+  String? uiErrorMessage;
+  void clearUiError() {
+    uiErrorMessage = null;
+    notifyListeners();
+  }
+
   bool get hasResults => testsCount > 0;
   bool get backgroundWarmupEnabled => _dataManager.isBackgroundWarmupEnabled;
   bool get isWarmingUp => _dataManager.isWarmingUp;
@@ -243,6 +250,8 @@ class HomeViewModel extends BaseViewModel {
     } catch (e, stackTrace) {
       debugPrint('❌ Error running strategy: $e');
       debugPrint('Stack trace: $stackTrace');
+      uiErrorMessage = 'Failed to run backtest: $e';
+      notifyListeners();
       _snackbarService.showSnackbar(
         message: 'Failed to run backtest: $e',
         duration: const Duration(seconds: 3),

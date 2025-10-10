@@ -1,0 +1,4 @@
+tags:
+  golden:
+    # Declared to silence tag warnings from golden_toolkit
+    # No special behavior; used only for grouping golden tests

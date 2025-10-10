@@ -26,20 +26,40 @@ class StorageService {
 
   Future<Database> _initDatabase() async {
     String path;
-    if (kIsWeb) {
-      // On web, use a simple name stored in IndexedDB
-      path = 'backtestx.db';
-    } else {
-      final dbPath = await getDatabasesPath();
-      path = join(dbPath, 'backtestx.db');
+    try {
+      if (kIsWeb) {
+        // On web, use a simple name stored in IndexedDB
+        path = 'backtestx.db';
+      } else {
+        final dbPath = await getDatabasesPath();
+        path = join(dbPath, 'backtestx.db');
+      }
+    } catch (_) {
+      // Fallback to in-memory path if resolving DB path fails
+      path = inMemoryDatabasePath;
     }
 
-    return await openDatabase(
-      path,
-      version: 4,
-      onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
-    );
+    try {
+      final db = await openDatabase(
+        path,
+        version: 4,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+      // Post-open schema validation & repair for extra safety
+      await _validateAndRepairSchema(db);
+      return db;
+    } catch (_) {
+      // Fallback: open in-memory database to avoid crashing
+      final db = await openDatabase(
+        inMemoryDatabasePath,
+        version: 4,
+        onCreate: _onCreate,
+        onUpgrade: _onUpgrade,
+      );
+      await _validateAndRepairSchema(db);
+      return db;
+    }
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -159,6 +179,101 @@ class StorageService {
       } catch (_) {
         // Non-critical
       }
+    }
+  }
+
+  /// Validate existence of required tables/columns and repair if needed.
+  /// This complements onCreate/onUpgrade to cover legacy DBs created outside
+  /// expected lifecycle or partially migrated instances.
+  Future<void> _validateAndRepairSchema(Database db) async {
+    try {
+      // Gather existing tables
+      final tableRows = await db.rawQuery(
+          "SELECT name FROM sqlite_master WHERE type='table'");
+      final existingTables =
+          tableRows.map((e) => (e['name'] as String?) ?? '').toSet();
+
+      // Strategies
+      if (!existingTables.contains('strategies')) {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS strategies (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            config TEXT NOT NULL,
+            created_at INTEGER NOT NULL,
+            updated_at INTEGER
+          )
+        ''');
+      }
+
+      // Backtest results (summary only)
+      if (!existingTables.contains('backtest_results')) {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS backtest_results (
+            id TEXT PRIMARY KEY,
+            strategy_id TEXT NOT NULL,
+            market_data_id TEXT,
+            summary TEXT NOT NULL,
+            trades_count INTEGER NOT NULL,
+            created_at INTEGER NOT NULL,
+            FOREIGN KEY (strategy_id) REFERENCES strategies (id) ON DELETE CASCADE
+          )
+        ''');
+      }
+
+      // Market data metadata
+      if (!existingTables.contains('market_data')) {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS market_data (
+            id TEXT PRIMARY KEY,
+            symbol TEXT NOT NULL,
+            timeframe TEXT NOT NULL,
+            candles_count INTEGER NOT NULL,
+            first_date INTEGER NOT NULL,
+            last_date INTEGER NOT NULL,
+            uploaded_at INTEGER NOT NULL
+          )
+        ''');
+      }
+
+      // Strategy drafts (autosave)
+      if (!existingTables.contains('strategy_drafts')) {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS strategy_drafts (
+            id TEXT PRIMARY KEY,
+            strategy_id TEXT,
+            data TEXT NOT NULL,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+      }
+
+      // Ensure required column exists in backtest_results
+      await _ensureBacktestResultsMarketDataIdColumn(db);
+
+      // Create indexes defensively
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_strategy_created ON strategies(created_at DESC)');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_backtest_strategy ON backtest_results(strategy_id, created_at DESC)');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_market_symbol ON market_data(symbol, timeframe)');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_draft_updated ON strategy_drafts(updated_at DESC)');
+      } catch (_) {}
+      try {
+        await db.execute(
+            'CREATE INDEX IF NOT EXISTS idx_market_uploaded ON market_data(uploaded_at DESC)');
+      } catch (_) {}
+    } catch (_) {
+      // Non-fatal; keep DB usable even if validation fails
     }
   }
 

@@ -57,7 +57,8 @@ class DataParserService {
     required String symbol,
     required String timeframe,
   }) {
-    final rows = const CsvToListConverter().convert(content);
+    // Force LF line endings for consistency across platforms/tests
+    final rows = const CsvToListConverter(eol: '\n').convert(content);
 
     if (rows.isEmpty) {
       throw Exception('CSV kosong: tidak ada baris data.');
@@ -67,15 +68,18 @@ class DataParserService {
     final hasHeader = _detectHeader(rows.first);
     final dataRows = hasHeader ? rows.skip(1).toList() : rows;
 
-    // Validate format
-    if (!_validateCsvFormat(dataRows)) {
+    // Validate format with helpful message
+    final formatError = _validateCsvFormatError(dataRows);
+    if (formatError != null) {
       throw Exception(
-        'Format CSV tidak valid. Ekspektasi: Date, Open, High, Low, Close, Volume (opsional).',
+        'Format CSV tidak valid: $formatError\n'
+        'Ekspektasi: kolom berurutan Date, Open, High, Low, Close, Volume (opsional).',
       );
     }
 
     // Parse candles
     final candles = <Candle>[];
+    final rowErrors = <String>[];
     for (var i = 0; i < dataRows.length; i++) {
       final row = dataRows[i];
       final lineNumber = i + (hasHeader ? 2 : 1); // 1-based + header line
@@ -83,14 +87,18 @@ class DataParserService {
         final candle = Candle.fromCsvRow(row);
         candles.add(candle);
       } catch (e) {
-        // Log detail dan berikan pesan yang mudah dipahami
-        debugPrint('Lewati baris #$lineNumber: $row. Error: $e');
+        // Bangun pesan error dengan detail kolom dan nilai yang bermasalah
+        final detailed = _describeRowError(row, lineNumber, e);
+        rowErrors.add(detailed);
+        debugPrint(detailed);
       }
     }
 
     if (candles.isEmpty) {
+      final preview = rowErrors.take(5).join('\n- ');
       throw Exception(
         'Tidak ada baris valid yang berhasil diparsing dari CSV.\n'
+        'Contoh error baris:\n- $preview\n'
         'Hint: Pastikan tiap baris memiliki nilai numerik untuk OHLC dan tanggal valid.',
       );
     }
@@ -118,25 +126,95 @@ class DataParserService {
         firstCell.contains('timestamp');
   }
 
-  /// Validate CSV has required columns
-  bool _validateCsvFormat(List<List<dynamic>> rows) {
-    if (rows.isEmpty) return false;
+  /// Validate CSV has required columns, return error message if invalid
+  String? _validateCsvFormatError(List<List<dynamic>> rows) {
+    if (rows.isEmpty) {
+      return 'Tidak ada baris data setelah header';
+    }
 
     final firstRow = rows.first;
     // Minimum: Date, O, H, L, C (Volume optional)
-    if (firstRow.length < 5) return false;
+    if (firstRow.length < 5) {
+      return 'Jumlah kolom terlalu sedikit (${firstRow.length}). Minimal 5 kolom: Date, Open, High, Low, Close.';
+    }
 
-    // Try parsing first row as validation
+    // Try parsing first row as validation and identify kolom yang gagal
+    String? columnError;
     try {
       DateTime.parse(firstRow[0].toString());
-      double.parse(firstRow[1].toString());
-      double.parse(firstRow[2].toString());
-      double.parse(firstRow[3].toString());
-      double.parse(firstRow[4].toString());
-      return true;
-    } catch (e) {
-      return false;
+    } catch (_) {
+      columnError = "Baris pertama kolom 1 (Date) tidak valid: '${firstRow[0]}'";
     }
+    if (columnError != null) return columnError;
+
+    try {
+      double.parse(firstRow[1].toString());
+    } catch (_) {
+      columnError = "Baris pertama kolom 2 (Open) bukan angka: '${firstRow[1]}'";
+    }
+    if (columnError != null) return columnError;
+
+    try {
+      double.parse(firstRow[2].toString());
+    } catch (_) {
+      columnError = "Baris pertama kolom 3 (High) bukan angka: '${firstRow[2]}'";
+    }
+    if (columnError != null) return columnError;
+
+    try {
+      double.parse(firstRow[3].toString());
+    } catch (_) {
+      columnError = "Baris pertama kolom 4 (Low) bukan angka: '${firstRow[3]}'";
+    }
+    if (columnError != null) return columnError;
+
+    try {
+      double.parse(firstRow[4].toString());
+    } catch (_) {
+      columnError = "Baris pertama kolom 5 (Close) bukan angka: '${firstRow[4]}'";
+    }
+    if (columnError != null) return columnError;
+
+    return null;
+  }
+
+  /// Build detailed row error with line and column context
+  String _describeRowError(List<dynamic> row, int lineNumber, Object error) {
+    // Check each column validity to pin-point failing column
+    String? reason;
+    // Column names
+    const names = ['Date', 'Open', 'High', 'Low', 'Close', 'Volume'];
+
+    // Date
+    try {
+      DateTime.parse(row[0].toString());
+    } catch (_) {
+      reason = "Baris #$lineNumber kolom 1 (${names[0]}) tidak valid: '${row[0]}'";
+      return reason;
+    }
+
+    // Numeric columns
+    for (int i = 1; i <= 4; i++) {
+      try {
+        double.parse(row[i].toString());
+      } catch (_) {
+        reason = "Baris #$lineNumber kolom ${i + 1} (${names[i]}) bukan angka: '${row[i]}'";
+        return reason;
+      }
+    }
+
+    // Volume optional if exists
+    if (row.length > 5) {
+      try {
+        double.parse(row[5].toString());
+      } catch (_) {
+        reason = "Baris #$lineNumber kolom 6 (${names[5]}) bukan angka: '${row[5]}'";
+        return reason;
+      }
+    }
+
+    // Fallback to original error
+    return 'Baris #$lineNumber: $row. Error: $error';
   }
 
   /// Validate candle data integrity

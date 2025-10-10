@@ -10,6 +10,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/ui/common/ui_helpers.dart';
 
 class DataUploadViewModel extends BaseViewModel {
   final _dataParserService = locator<DataParserService>();
@@ -25,6 +26,7 @@ class DataUploadViewModel extends BaseViewModel {
   String? selectedTimeframe = 'H1';
   ValidationResult? validationResult;
   List<MarketDataInfo> recentUploads = [];
+  String? parserErrorMessage;
 
   final List<String> timeframes = [
     '1m',
@@ -46,6 +48,7 @@ class DataUploadViewModel extends BaseViewModel {
   Future<void> initialize() async {
     await _loadRecentUploads();
     _printCacheInfo();
+    parserErrorMessage = null;
   }
 
   void _printCacheInfo() {
@@ -111,6 +114,9 @@ class DataUploadViewModel extends BaseViewModel {
 
     setBusy(true);
     try {
+      // Reset previous parser error
+      parserErrorMessage = null;
+      notifyListeners();
       debugPrint('\n🚀 Starting upload process...');
 
       // Parse CSV
@@ -136,9 +142,13 @@ class DataUploadViewModel extends BaseViewModel {
     } catch (e, stackTrace) {
       debugPrint('❌ Upload error: $e');
       debugPrint('Stack trace: $stackTrace');
-      _snackbarService.showSnackbar(
-        message: 'Upload failed: $e',
-        duration: const Duration(seconds: 3),
+      // Capture detailed parser error for UI display
+      parserErrorMessage = e.toString();
+      notifyListeners();
+      await _snackbarService.showCustomSnackBar(
+        variant: SnackbarType.error,
+        title: 'Upload gagal',
+        message: e.toString(),
       );
     } finally {
       setBusy(false);

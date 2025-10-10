@@ -68,6 +68,39 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
               ),
               const SizedBox(height: 24),
 
+              // Parser Error Info
+              if (viewModel.parserErrorMessage != null) ...[
+                Card(
+                  color: Colors.red.withValues(alpha: 0.08),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: const [
+                            Icon(Icons.error, color: Colors.red),
+                            SizedBox(width: 8),
+                            Text(
+                              'Kesalahan Parsing CSV',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          viewModel.parserErrorMessage!,
+                          style: TextStyle(color: Colors.red.shade700),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+
               // Symbol & Timeframe Input
               if (viewModel.selectedFileName != null) ...[
                 TextField(
