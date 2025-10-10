@@ -389,6 +389,16 @@ class WorkspaceView extends StatelessWidget {
                               ],
                             ),
                           ),
+                          const PopupMenuItem(
+                            value: 'export_tfstats_csv',
+                            child: Row(
+                              children: [
+                                Icon(Icons.stacked_line_chart, size: 20),
+                                SizedBox(width: 12),
+                                Text('Export TF Stats CSV'),
+                              ],
+                            ),
+                          ),
                           PopupMenuItem(
                             value: 'export_results_csv',
                             child: Row(
@@ -456,6 +466,9 @@ class WorkspaceView extends StatelessWidget {
                           switch (value) {
                             case 'export_trades_all':
                               model.exportStrategyTradesCsv(strategy);
+                              break;
+                            case 'export_tfstats_csv':
+                              model.exportFilteredStrategyTfStatsCsv(strategy);
                               break;
                             case 'export_results_csv':
                               model.exportFilteredStrategyResultsCsv(strategy);
@@ -801,14 +814,18 @@ class WorkspaceView extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: [
-                Text(
-                  'Backtest Results (${model.getResultsShownCount(strategy.id)}/${allCount})',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+                Expanded(
+                  child: Text(
+                    'Backtest Results (${model.getResultsShownCount(strategy.id)}/${allCount})',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    softWrap: true,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 8),
                 // Sort results
                 DropdownButtonHideUnderline(
                   child: DropdownButton<ResultSortKey>(
@@ -857,59 +874,116 @@ class WorkspaceView extends StatelessWidget {
               children: [
                 FilterChip(
                   selected: model.filterProfitOnly,
-                  label: const Text('Profit Only'),
+                  label: Text(
+                    'Profit Only',
+                    style: TextStyle(
+                      color: model.filterProfitOnly
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                  selectedColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.15),
+                  checkmarkColor: Theme.of(context).colorScheme.primary,
+                  showCheckmark: true,
                   onSelected: (_) => model.toggleFilterProfitOnly(),
                 ),
                 FilterChip(
                   selected: model.filterPfPositive,
-                  label: const Text('PF > 1'),
+                  label: Text(
+                    'PF > 1',
+                    style: TextStyle(
+                      color: model.filterPfPositive
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                  selectedColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.15),
+                  checkmarkColor: Theme.of(context).colorScheme.primary,
+                  showCheckmark: true,
                   onSelected: (_) => model.toggleFilterPfPositive(),
                 ),
                 FilterChip(
                   selected: model.filterWinRateAbove50,
-                  label: const Text('Win Rate > 50%'),
+                  label: Text(
+                    'Win Rate > 50%',
+                    style: TextStyle(
+                      color: model.filterWinRateAbove50
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                  selectedColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withValues(alpha: 0.15),
+                  checkmarkColor: Theme.of(context).colorScheme.primary,
+                  showCheckmark: true,
                   onSelected: (_) => model.toggleFilterWinRate50(),
                 ),
                 // Symbol dropdown
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String?>(
-                    value: model.selectedSymbolFilter,
-                    hint: const Text('All Symbols'),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text('All Symbols'),
-                      ),
-                      ...model.getAvailableSymbols(strategy.id).map(
+                Builder(
+                  builder: (context) {
+                    final symbols = model.getAvailableSymbols(strategy.id);
+                    // Ensure current value exists exactly once in items; otherwise default to null
+                    final current = model.selectedSymbolFilter;
+                    final effectiveValue =
+                        symbols.contains(current) ? current : null;
+                    return DropdownButtonHideUnderline(
+                      child: DropdownButton<String?>(
+                        value: effectiveValue,
+                        hint: const Text('All Symbols'),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('All Symbols'),
+                          ),
+                          ...symbols.map(
                             (s) => DropdownMenuItem<String?>(
                               value: s,
                               child: Text(s),
                             ),
                           ),
-                    ],
-                    onChanged: (val) => model.setSelectedSymbolFilter(val),
-                  ),
-                ),
-                // Timeframe dropdown
-                DropdownButtonHideUnderline(
-                  child: DropdownButton<String?>(
-                    value: model.selectedTimeframeFilter,
-                    hint: const Text('All TFs'),
-                    items: [
-                      const DropdownMenuItem<String?>(
-                        value: null,
-                        child: Text('All TFs'),
+                        ],
+                        onChanged: (val) => model.setSelectedSymbolFilter(val),
                       ),
-                      ...model.getAvailableTimeframes(strategy.id).map(
-                            (tf) => DropdownMenuItem<String?>(
-                              value: tf,
-                              child: Text(tf),
+                    );
+                  },
+                ),
+                // Timeframe multi-select chips with counts
+                ...(() {
+                  final counts = model.getTimeframeCounts(strategy.id);
+                  return model
+                      .getAvailableTimeframes(strategy.id)
+                      .map((tf) {
+                        final isSelected =
+                            model.selectedTimeframeFilters.contains(tf);
+                        return FilterChip(
+                          selected: isSelected,
+                          label: Text(
+                            '$tf (${counts[tf] ?? 0})',
+                            style: TextStyle(
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : null,
                             ),
                           ),
-                    ],
-                    onChanged: (val) => model.setSelectedTimeframeFilter(val),
-                  ),
-                ),
+                          selectedColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withValues(alpha: 0.15),
+                          checkmarkColor:
+                              Theme.of(context).colorScheme.primary,
+                          showCheckmark: true,
+                          onSelected: (_) => model.toggleTimeframeFilter(tf),
+                        );
+                      }).toList();
+                })(),
                 // Start date picker
                 TextButton.icon(
                   onPressed: () async {
@@ -961,7 +1035,7 @@ class WorkspaceView extends StatelessWidget {
                     model.filterPfPositive ||
                     model.filterWinRateAbove50 ||
                     model.selectedSymbolFilter != null ||
-                    model.selectedTimeframeFilter != null ||
+                    model.selectedTimeframeFilters.isNotEmpty ||
                     model.startDateFilter != null ||
                     model.endDateFilter != null)
                   TextButton.icon(
@@ -1127,6 +1201,9 @@ class WorkspaceView extends StatelessWidget {
                         );
                       },
                     ),
+                    const SizedBox(height: 8),
+                    if ((result.summary.tfStats ?? {}).isNotEmpty)
+                      _buildTfStatsPreview(context, model, result),
                   ],
                 ),
               ),
@@ -1228,6 +1305,62 @@ class WorkspaceView extends StatelessWidget {
   String _formatPnLPercent(double percent) {
     final sign = percent >= 0 ? '+' : '';
     return '$sign${percent.toStringAsFixed(2)}%';
+  }
+
+  // Compact per-timeframe stats chips for each result
+  Widget _buildTfStatsPreview(
+      BuildContext context, WorkspaceViewModel model, BacktestResult result) {
+    final stats = result.summary.tfStats;
+    if (stats == null || stats.isEmpty) return const SizedBox.shrink();
+
+    final entries = stats.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: entries.map((e) {
+        final tf = e.key;
+        final m = e.value;
+        final trades = (m['trades'] ?? 0).toInt();
+        final wins = (m['wins'] ?? 0).toInt();
+        final signals = (m['signals'] ?? 0).toInt();
+        final winRate = ((m['winRate'] ?? 0)).toDouble();
+
+        final label =
+            '$tf: ${trades}T • ${wins}W • ${winRate.toStringAsFixed(0)}%';
+
+        final isSelected = model.selectedTimeframeFilters.contains(tf);
+        final tooltip =
+            'TF $tf • Signals: $signals • Trades: $trades • Wins: $wins • Win Rate: ${winRate.toStringAsFixed(0)}%';
+
+        return Tooltip(
+          message: tooltip,
+          child: FilterChip(
+            label: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
+              ),
+            ),
+            selected: isSelected,
+            onSelected: (_) => model.toggleTimeframeFilter(tf),
+            visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            selectedColor: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.15),
+            checkmarkColor: Theme.of(context).colorScheme.primary,
+            showCheckmark: true,
+          ),
+        );
+      }).toList(),
+    );
   }
 
   // Responsive actions for result item to avoid icon overflow on small screens

@@ -83,6 +83,247 @@ class BacktestResultViewModel extends BaseViewModel {
   DateTime? _lastNotify;
   Timer? _prefetchTimer;
 
+  // Timeframe filter state for tfStats panel
+  final Set<String> _selectedTimeframeFilters = {};
+  Set<String> get selectedTimeframeFilters => _selectedTimeframeFilters;
+
+  void toggleTimeframeFilter(String timeframe) {
+    if (_selectedTimeframeFilters.contains(timeframe)) {
+      _selectedTimeframeFilters.remove(timeframe);
+    } else {
+      _selectedTimeframeFilters.add(timeframe);
+    }
+    notifyListeners();
+  }
+
+  void clearTimeframeFilters() {
+    _selectedTimeframeFilters.clear();
+    notifyListeners();
+  }
+
+  /// Return tfStats filtered by selected timeframes; if none selected, return all
+  Map<String, Map<String, num>> getFilteredTfStats() {
+    final tfStats = result.summary.tfStats ?? {};
+    if (_selectedTimeframeFilters.isEmpty) return tfStats;
+    final filtered = <String, Map<String, num>>{};
+    for (final e in tfStats.entries) {
+      if (_selectedTimeframeFilters.contains(e.key)) {
+        filtered[e.key] = e.value;
+      }
+    }
+    return filtered;
+  }
+
+  /// Export current result's per-timeframe stats to CSV
+  Future<void> exportTfStatsToCsv() async {
+    await exportTfStats(format: 'csv');
+  }
+
+  /// Export current result's per-timeframe stats to CSV/TSV (respects selected TF filters)
+  Future<void> exportTfStats({String format = 'csv'}) async {
+    try {
+      final stats = getFilteredTfStats();
+      if (stats.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'No per-timeframe stats to export',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final rows = <List<String>>[
+        [
+          'Timeframe',
+          'Signals',
+          'Trades',
+          'Wins',
+          'Win Rate',
+          'Profit Factor',
+          'Expectancy',
+          'Avg Win',
+          'Avg Loss',
+          'R/R',
+        ],
+      ];
+      final entries = stats.entries.toList()
+        ..sort((a, b) => a.key.compareTo(b.key));
+      for (final e in entries) {
+        final m = e.value;
+        final signals = (m['signals'] ?? 0).toString();
+        final trades = (m['trades'] ?? 0).toString();
+        final wins = (m['wins'] ?? 0).toString();
+        final winRate = ((m['winRate'] ?? 0)).toString();
+        final profitFactor = ((m['profitFactor'] ?? 0)).toString();
+        final expectancy = ((m['expectancy'] ?? 0)).toString();
+        final avgWin = ((m['avgWin'] ?? 0)).toString();
+        final avgLoss = ((m['avgLoss'] ?? 0)).toString();
+        final rr = ((m['rr'] ?? 0)).toString();
+        rows.add([
+          e.key,
+          signals,
+          trades,
+          wins,
+          winRate,
+          profitFactor,
+          expectancy,
+          avgWin,
+          avgLoss,
+          rr,
+        ]);
+      }
+
+      final isCsv = format.toLowerCase() == 'csv';
+      final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
+      final ext = isCsv ? 'csv' : 'tsv';
+      final fileName = 'backtest_${result.strategyId}_${result.marketDataId}_tfstats.$ext';
+      final content = isCsv
+          ? const ListToCsvConverter().convert(rows)
+          : rows.map((r) => r.join('\t')).join('\n');
+
+      if (kIsWeb) {
+        final blob = html.Blob([content], mime);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(content);
+        await Share.shareXFiles([XFile(path)],
+            subject: 'Backtest per-timeframe stats',
+            text:
+                'Exported per-timeframe stats for strategy ${result.strategyId} on market ${result.marketDataId}',
+        );
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'TF Stats exported',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Return trades filtered by selected timeframe chips (intersection with entryTimeframes)
+  List<Trade> getFilteredTradesBySelectedTF() {
+    final selected = _selectedTimeframeFilters;
+    final closed = result.trades
+        .where((t) => t.status == TradeStatus.closed)
+        .toList();
+    if (selected.isEmpty) return closed;
+    return closed.where((t) {
+      final tfs = t.entryTimeframes ?? const [];
+      if (tfs.isEmpty) return false;
+      for (final tf in tfs) {
+        if (selected.contains(tf)) return true;
+      }
+      return false;
+    }).toList();
+  }
+
+  /// Export Trade History to CSV/TSV respecting selected timeframe filters
+  Future<void> exportTradeHistory({String format = 'csv'}) async {
+    try {
+      final trades = getFilteredTradesBySelectedTF();
+      if (trades.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'No trades to export',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final rows = <List<String>>[
+        [
+          'Strategy',
+          'Symbol',
+          'Timeframe',
+          'Direction',
+          'Entry Date',
+          'Exit Date',
+          'Entry Price',
+          'Exit Price',
+          'PnL',
+          'PnL %',
+          'Duration',
+          'Entry TFs',
+        ],
+      ];
+
+      for (final trade in trades) {
+        String duration = '-';
+        if (trade.exitTime != null) {
+          final diff = trade.exitTime!.difference(trade.entryTime).inHours;
+          duration = '${diff ~/ 24}d ${diff % 24}h';
+        }
+        rows.add([
+          strategyName,
+          symbol,
+          timeframe,
+          trade.direction == TradeDirection.buy ? 'BUY' : 'SELL',
+          trade.entryTime.toString(),
+          trade.exitTime?.toString() ?? '-',
+          trade.entryPrice.toStringAsFixed(4),
+          trade.exitPrice?.toStringAsFixed(4) ?? '-',
+          trade.pnl?.toStringAsFixed(2) ?? '-',
+          trade.pnlPercentage?.toStringAsFixed(2) ?? '-',
+          duration,
+          (trade.entryTimeframes == null || trade.entryTimeframes!.isEmpty)
+              ? '-'
+              : trade.entryTimeframes!.join(', '),
+        ]);
+      }
+
+      final isCsv = format.toLowerCase() == 'csv';
+      final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
+      final ext = isCsv ? 'csv' : 'tsv';
+      final fileName =
+          'backtest_${result.strategyId}_${result.marketDataId}_trades.$ext';
+      final content = isCsv
+          ? const ListToCsvConverter().convert(rows)
+          : rows.map((r) => r.join('\t')).join('\n');
+
+      if (kIsWeb) {
+        final blob = html.Blob([content], mime);
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(content);
+        await Share.shareXFiles([XFile(path)],
+            subject: 'Backtest trades',
+            text:
+                'Exported trades for strategy ${result.strategyId} on market ${result.marketDataId}');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'Trades exported',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
   // API untuk tuning runtime
   void setTuning({
     int? baseBuffer,

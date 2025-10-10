@@ -11,6 +11,8 @@ class Trade with _$Trade {
     required DateTime entryTime,
     required double entryPrice,
     required double lotSize,
+    // Timeframes that contributed to the entry signal (MTF context)
+    List<String>? entryTimeframes,
     DateTime? exitTime,
     double? exitPrice,
     double? stopLoss,

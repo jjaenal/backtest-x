@@ -4,7 +4,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/indicator_service.dart';
-import 'package:backtestx/helpers/timeframe_helper.dart';
+import 'package:backtestx/helpers/mtf_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -19,18 +19,60 @@ class BacktestEngineService {
   Map<String, int> _lastTfTrades = {};
   Map<String, int> _lastTfWins = {};
   Map<String, double> _lastTfWinRate = {};
+  Map<String, double> _lastTfGrossProfit = {};
+  Map<String, double> _lastTfGrossLoss = {};
 
   Map<String, Map<String, num>> get lastTfStats => {
         for (final tf in {
           ..._lastTfSignals.keys,
           ..._lastTfTrades.keys,
           ..._lastTfWins.keys,
+          ..._lastTfGrossProfit.keys,
+          ..._lastTfGrossLoss.keys,
         })
           tf: {
             'signals': (_lastTfSignals[tf] ?? 0),
             'trades': (_lastTfTrades[tf] ?? 0),
             'wins': (_lastTfWins[tf] ?? 0),
             'winRate': (_lastTfWinRate[tf] ?? 0.0),
+            'profitFactor': (() {
+              final gp = _lastTfGrossProfit[tf] ?? 0.0;
+              final gl = (_lastTfGrossLoss[tf] ?? 0.0).abs();
+              if (gl <= 1e-9) return 0.0;
+              return gp / gl;
+            })(),
+            'expectancy': (() {
+              final t = (_lastTfTrades[tf] ?? 0);
+              if (t <= 0) return 0.0;
+              final gp = _lastTfGrossProfit[tf] ?? 0.0;
+              final gl = _lastTfGrossLoss[tf] ?? 0.0;
+              return (gp + gl) / t;
+            })(),
+            'avgWin': (() {
+              final w = (_lastTfWins[tf] ?? 0);
+              if (w <= 0) return 0.0;
+              final gp = _lastTfGrossProfit[tf] ?? 0.0;
+              return gp / w;
+            })(),
+            'avgLoss': (() {
+              final t = (_lastTfTrades[tf] ?? 0);
+              final w = (_lastTfWins[tf] ?? 0);
+              final losses = t - w;
+              if (losses <= 0) return 0.0;
+              final glAbs = (_lastTfGrossLoss[tf] ?? 0.0).abs();
+              return glAbs / losses;
+            })(),
+            'rr': (() {
+              final w = (_lastTfWins[tf] ?? 0);
+              final t = (_lastTfTrades[tf] ?? 0);
+              final losses = t - w;
+              final gp = _lastTfGrossProfit[tf] ?? 0.0;
+              final glAbs = (_lastTfGrossLoss[tf] ?? 0.0).abs();
+              final avgW = w > 0 ? gp / w : 0.0;
+              final avgL = losses > 0 ? glAbs / losses : 0.0;
+              if (avgL <= 0) return 0.0;
+              return avgW / avgL;
+            })(),
           }
       };
 
@@ -47,6 +89,8 @@ class BacktestEngineService {
     _lastTfTrades = {};
     _lastTfWins = {};
     _lastTfWinRate = {};
+    _lastTfGrossProfit = {};
+    _lastTfGrossLoss = {};
     final trades = <Trade>[];
     // Optionally slice candles by date range to reduce memory/CPU on large datasets
     final List<Candle> candles = () {
@@ -54,8 +98,12 @@ class BacktestEngineService {
       if (startDate == null && endDate == null) return all;
       return all.where((c) {
         final ts = c.timestamp;
-        final afterStart = startDate == null || ts.isAfter(startDate!) || ts.isAtSameMomentAs(startDate!);
-        final beforeEnd = endDate == null || ts.isBefore(endDate!) || ts.isAtSameMomentAs(endDate!);
+        final afterStart = startDate == null ||
+            ts.isAfter(startDate) ||
+            ts.isAtSameMomentAs(startDate);
+        final beforeEnd = endDate == null ||
+            ts.isBefore(endDate) ||
+            ts.isAtSameMomentAs(endDate);
         return afterStart && beforeEnd;
       }).toList(growable: false);
     }();
@@ -93,12 +141,11 @@ class BacktestEngineService {
       }
     }
 
-    final tfCandles = <String, List<Candle>>{baseTimeframe: candles};
-    for (final tf in ruleTimeframes) {
-      if (tf != baseTimeframe) {
-        tfCandles[tf] = resampleCandlesToTimeframe(candles, tf);
-      }
-    }
+    final tfCandles = buildTimeframeCandles(
+      candles,
+      baseTimeframe,
+      ruleTimeframes,
+    );
 
     // Pre-calculate indicators per timeframe
     final tfIndicators = <String, Map<String, List<double?>>>{};
@@ -109,43 +156,11 @@ class BacktestEngineService {
     }
 
     // Map base index to index in each timeframe
-    final tfIndexMap = <String, List<int?>>{};
-    tfIndexMap[baseTimeframe] = List<int?>.generate(candles.length, (i) => i);
-    for (final tf in ruleTimeframes) {
-      final target = tfCandles[tf]!;
-      final tsToIdx = <DateTime, int>{};
-      for (var j = 0; j < target.length; j++) {
-        tsToIdx[target[j].timestamp] = j;
-      }
-      // Prepare sorted timestamps for fallback lookup
-      final tsKeys = tsToIdx.keys.toList()..sort((a, b) => a.compareTo(b));
-      int? _findIndexAtOrBefore(DateTime t) {
-        // Binary search for the last timestamp <= t
-        int lo = 0, hi = tsKeys.length - 1;
-        int ans = -1;
-        while (lo <= hi) {
-          final mid = (lo + hi) >> 1;
-          final midTs = tsKeys[mid];
-          if (midTs.isBefore(t) || midTs.isAtSameMomentAs(t)) {
-            ans = mid;
-            lo = mid + 1;
-          } else {
-            hi = mid - 1;
-          }
-        }
-        if (ans >= 0) {
-          return tsToIdx[tsKeys[ans]];
-        }
-        return null;
-      }
-
-      final mapList = List<int?>.filled(candles.length, null);
-      for (var i = 0; i < candles.length; i++) {
-        final bucketTs = floorToTimeframe(candles[i].timestamp, tf);
-        mapList[i] = tsToIdx[bucketTs] ?? _findIndexAtOrBefore(bucketTs);
-      }
-      tfIndexMap[tf] = mapList;
-    }
+    final tfIndexMap = buildTfIndexMap(
+      candles,
+      baseTimeframe,
+      tfCandles,
+    );
 
     if (debug) {
       debugPrint('\n🔍 Debug Mode - First 100 candles:');
@@ -203,6 +218,12 @@ class BacktestEngineService {
             _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
             if (isWin) {
               _lastTfWins[tf] = (_lastTfWins[tf] ?? 0) + 1;
+              _lastTfGrossProfit[tf] =
+                  (_lastTfGrossProfit[tf] ?? 0.0) + (closedTrade.pnl ?? 0.0);
+            }
+            if (!isWin) {
+              _lastTfGrossLoss[tf] =
+                  (_lastTfGrossLoss[tf] ?? 0.0) + (closedTrade.pnl ?? 0.0);
             }
           }
           openTrade = null;
@@ -257,6 +278,10 @@ class BacktestEngineService {
             candle: candle,
             strategy: strategy,
             currentEquity: currentEquity,
+          ).copyWith(
+            entryTimeframes:
+                (contributingTfs.isEmpty ? {baseTimeframe} : contributingTfs)
+                    .toList(),
           );
           // Tie contributing TFs to this open trade
           _tradeEntryTfs[openTrade.id] =
@@ -315,6 +340,11 @@ class BacktestEngineService {
         _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
         if (isWinForced) {
           _lastTfWins[tf] = (_lastTfWins[tf] ?? 0) + 1;
+          _lastTfGrossProfit[tf] =
+              (_lastTfGrossProfit[tf] ?? 0.0) + exitPnl;
+        }
+        if (!isWinForced) {
+          _lastTfGrossLoss[tf] = (_lastTfGrossLoss[tf] ?? 0.0) + exitPnl;
         }
       }
     }

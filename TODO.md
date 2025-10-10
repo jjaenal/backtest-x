@@ -142,6 +142,7 @@
 - [ ] Share via social media
 - [x] Copy trades to clipboard (Workspace)
 - [x] Copy summary to clipboard (Workspace)
+ - [x] Backtest Result: export per‑TF metrics (Avg Win/Loss, R/R) dan Entry TFs
 
 ### Multi-Asset Backtest
 
@@ -259,12 +260,13 @@
 
 ### Next Main Feature Focus: Multi-timeframe Analysis (MVP)
 
-1. Add timeframe selector and multi-select across views
-2. Extend DataManager to aggregate multi-timeframe candles
-3. Update BacktestEngineService to support multi-timeframe conditions
-4. Adjust StrategyBuilder to define MTF rules cleanly
-5. Update Backtest Result to show per-timeframe stats and charts
-6. Enhance Workspace Compare to visualize results across timeframes
+1. Add timeframe selector and multi-select across views — [x]
+2. Extend DataManager to aggregate multi-timeframe candles — [x]
+3. Update BacktestEngineService to support multi-timeframe conditions — [x]
+4. Adjust StrategyBuilder to define MTF rules cleanly — [x]
+5. Update Backtest Result to show per-timeframe stats — [x]
+   - Per‑timeframe charts visualization — [ ] (follow‑up)
+6. Enhance Workspace Compare to visualize results across timeframes — [ ]
 
 ### Day 1-2: Strategy Builder View
 

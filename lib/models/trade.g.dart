@@ -12,6 +12,9 @@ _$TradeImpl _$$TradeImplFromJson(Map<String, dynamic> json) => _$TradeImpl(
       entryTime: DateTime.parse(json['entryTime'] as String),
       entryPrice: (json['entryPrice'] as num).toDouble(),
       lotSize: (json['lotSize'] as num).toDouble(),
+      entryTimeframes: (json['entryTimeframes'] as List<dynamic>?)
+          ?.map((e) => e as String)
+          .toList(),
       exitTime: json['exitTime'] == null
           ? null
           : DateTime.parse(json['exitTime'] as String),
@@ -31,6 +34,7 @@ Map<String, dynamic> _$$TradeImplToJson(_$TradeImpl instance) =>
       'entryTime': instance.entryTime.toIso8601String(),
       'entryPrice': instance.entryPrice,
       'lotSize': instance.lotSize,
+      'entryTimeframes': instance.entryTimeframes,
       'exitTime': instance.exitTime?.toIso8601String(),
       'exitPrice': instance.exitPrice,
       'stopLoss': instance.stopLoss,

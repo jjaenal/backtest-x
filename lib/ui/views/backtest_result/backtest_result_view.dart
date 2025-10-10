@@ -257,9 +257,45 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         const SizedBox(height: 24),
                         if (result.summary.tfStats != null &&
                             result.summary.tfStats!.isNotEmpty) ...[
-                          _buildSectionTitle('Per-Timeframe Stats'),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildSectionTitle('Per-Timeframe Stats'),
+                              PopupMenuButton<String>(
+                                tooltip: 'Export per-timeframe stats',
+                                onSelected: (value) => viewModel.exportTfStats(format: value),
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'csv',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.table_chart, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export CSV'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'tsv',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.grid_on, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export TSV'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                child: TextButton.icon(
+                                  onPressed: null,
+                                  icon: const Icon(Icons.download_rounded, size: 18),
+                                  label: const Text('Export'),
+                                ),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 12),
-                          _buildTfStats(context, result.summary.tfStats!),
+                          _buildTfStats(context, viewModel, result.summary.tfStats!),
                           const SizedBox(height: 24),
                         ],
                         const SizedBox(height: 24),
@@ -271,9 +307,45 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         const SizedBox(height: 12),
                         _buildRiskMetricsCard(context, result.summary),
                         const SizedBox(height: 24),
-                        _buildSectionTitle('Trade History'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildSectionTitle('Trade History'),
+                            PopupMenuButton<String>(
+                              tooltip: 'Export trade history',
+                              onSelected: (value) => viewModel.exportTradeHistory(format: value),
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'csv',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.table_chart, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Export CSV'),
+                                    ],
+                                  ),
+                                ),
+                                const PopupMenuItem(
+                                  value: 'tsv',
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.grid_on, size: 18),
+                                      SizedBox(width: 8),
+                                      Text('Export TSV'),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              child: TextButton.icon(
+                                onPressed: null,
+                                icon: const Icon(Icons.download_rounded, size: 18),
+                                label: const Text('Export'),
+                              ),
+                            ),
+                          ],
+                        ),
                         const SizedBox(height: 12),
-                        _buildTradeHistoryCard(context, result.trades),
+                        _buildTradeHistoryCard(context, viewModel),
                       ],
                     ),
                   ),
@@ -507,10 +579,16 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   }
 
   Widget _buildTfStats(
-      BuildContext context, Map<String, Map<String, num>> tfStats) {
+      BuildContext context,
+      BacktestResultViewModel viewModel,
+      Map<String, Map<String, num>> tfStats) {
     final theme = Theme.of(context);
-    final entries = tfStats.entries.toList()
+    final allEntries = tfStats.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
+    final selected = viewModel.selectedTimeframeFilters;
+    final entries = selected.isEmpty
+        ? allEntries
+        : allEntries.where((e) => selected.contains(e.key)).toList();
     return Card(
       elevation: 1,
       child: Padding(
@@ -518,6 +596,32 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Timeframe selector chips
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: allEntries.map((e) {
+                final tf = e.key;
+                final isSelected = selected.contains(tf);
+                return FilterChip(
+                  label: Text(
+                    tf,
+                    style: TextStyle(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                  selected: isSelected,
+                  onSelected: (_) => viewModel.toggleTimeframeFilter(tf),
+                  selectedColor:
+                      theme.colorScheme.primary.withValues(alpha: 0.12),
+                  checkmarkColor: theme.colorScheme.primary,
+                  showCheckmark: true,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               runSpacing: 8,
@@ -528,14 +632,24 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 final trades = (s['trades'] ?? 0).toInt();
                 final wins = (s['wins'] ?? 0).toInt();
                 final winRate = (s['winRate'] ?? 0).toDouble();
+                final profitFactor = (s['profitFactor'] ?? 0).toDouble();
+                final expectancy = (s['expectancy'] ?? 0).toDouble();
+                final avgWin = (s['avgWin'] ?? 0).toDouble();
+                final avgLoss = (s['avgLoss'] ?? 0).toDouble();
+                final rr = (s['rr'] ?? 0).toDouble();
+                final isSelected = selected.contains(tf);
                 return Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.surface,
                     borderRadius: BorderRadius.circular(8),
-                    border:
-                        Border.all(color: theme.dividerColor.withOpacity(0.3)),
+                    border: Border.all(
+                      color: isSelected
+                          ? theme.colorScheme.primary
+                              .withValues(alpha: 0.4)
+                          : theme.dividerColor.withOpacity(0.3),
+                    ),
                   ),
                   child: Wrap(
                     spacing: 8,
@@ -545,13 +659,31 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                       Text(
                         tf,
                         style: theme.textTheme.bodyMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                            ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : null),
                       ),
                       _statChip(context, 'Signals', signals.toString()),
                       _statChip(context, 'Trades', trades.toString()),
                       _statChip(context, 'Wins', wins.toString()),
                       _statChip(
                           context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
+                      _statChip(
+                          context, 'ProfitFactor', profitFactor.isFinite
+                              ? profitFactor.toStringAsFixed(2)
+                              : '0.00'),
+                      _statChip(
+                          context, 'Expectancy', expectancy.toStringAsFixed(2)),
+                      _statChip(
+                          context, 'AvgWin', avgWin.toStringAsFixed(2)),
+                      _statChip(
+                          context, 'AvgLoss', avgLoss.toStringAsFixed(2)),
+                      _statChip(
+                          context, 'R/R', rr.isFinite
+                              ? rr.toStringAsFixed(2)
+                              : '0.00'),
                     ],
                   ),
                 );
@@ -810,9 +942,16 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     );
   }
 
-  Widget _buildTradeHistoryCard(BuildContext context, List<Trade> trades) {
-    final closedTrades =
-        trades.where((t) => t.status == TradeStatus.closed).toList();
+  Widget _buildTradeHistoryCard(
+      BuildContext context, BacktestResultViewModel viewModel) {
+    final selected = viewModel.selectedTimeframeFilters;
+    final trades = viewModel.result.trades;
+    final closedTrades = trades
+        .where((t) => t.status == TradeStatus.closed)
+        .where((t) => selected.isEmpty
+            ? true
+            : (t.entryTimeframes?.any(selected.contains) ?? false))
+        .toList();
 
     if (closedTrades.isEmpty) {
       return Card(
@@ -1092,6 +1231,13 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                         trade.direction == TradeDirection.buy ? 'BUY' : 'SELL'),
                     _buildDetailRow(
                         context, 'Entry Time', '${trade.entryTime}'),
+                    _buildDetailRow(
+                        context,
+                        'Entry Timeframes',
+                        (trade.entryTimeframes == null ||
+                                trade.entryTimeframes!.isEmpty)
+                            ? '-'
+                            : trade.entryTimeframes!.join(', ')),
                     _buildDetailRow(context, 'Entry Price',
                         trade.entryPrice.toStringAsFixed(4)),
                     _buildDetailRow(context, 'Exit Time',

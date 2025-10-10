@@ -979,6 +979,8 @@ class MockBacktestEngineService extends _i1.Mock
   _i9.Future<_i4.BacktestResult> runBacktest({
     required _i2.MarketData? marketData,
     required _i15.Strategy? strategy,
+    DateTime? startDate,
+    DateTime? endDate,
     bool? debug = false,
   }) =>
       (super.noSuchMethod(
@@ -988,6 +990,8 @@ class MockBacktestEngineService extends _i1.Mock
           {
             #marketData: marketData,
             #strategy: strategy,
+            #startDate: startDate,
+            #endDate: endDate,
             #debug: debug,
           },
         ),
@@ -999,6 +1003,8 @@ class MockBacktestEngineService extends _i1.Mock
             {
               #marketData: marketData,
               #strategy: strategy,
+              #startDate: startDate,
+              #endDate: endDate,
               #debug: debug,
             },
           ),
@@ -1012,6 +1018,8 @@ class MockBacktestEngineService extends _i1.Mock
             {
               #marketData: marketData,
               #strategy: strategy,
+              #startDate: startDate,
+              #endDate: endDate,
               #debug: debug,
             },
           ),
@@ -1099,6 +1107,16 @@ class MockStorageService extends _i1.Mock implements _i16.StorageService {
         returnValue: _i9.Future<_i4.BacktestResult?>.value(),
         returnValueForMissingStub: _i9.Future<_i4.BacktestResult?>.value(),
       ) as _i9.Future<_i4.BacktestResult?>);
+
+  @override
+  _i9.Future<int> getTotalBacktestResultsCount() => (super.noSuchMethod(
+        Invocation.method(
+          #getTotalBacktestResultsCount,
+          [],
+        ),
+        returnValue: _i9.Future<int>.value(0),
+        returnValueForMissingStub: _i9.Future<int>.value(0),
+      ) as _i9.Future<int>);
 
   @override
   _i9.Future<List<_i4.BacktestResult>> getBacktestResultsByStrategy(

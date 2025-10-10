@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 import 'dart:io';
@@ -246,6 +247,47 @@ class DataManager {
     } catch (e) {
       return null;
     }
+  }
+
+  /// Collect multi-timeframe datasets for a symbol.
+  /// Returns a map of timeframe -> MarketData, resampling when necessary.
+  Map<String, MarketData> getMultiTimeframeBySymbol(
+    String symbol,
+    Set<String> timeframes,
+  ) {
+    final result = <String, MarketData>{};
+    final requested = timeframes.map((t) => t.toUpperCase()).toSet();
+    if (requested.isEmpty) return result;
+
+    for (final tf in requested) {
+      final data = findOrResample(symbol, tf);
+      if (data != null) {
+        // Cache resampled datasets in memory for reuse
+        if (data.id.startsWith('resampled_')) {
+          _memoryCache[data.id] = data;
+          // Also persist to disk when available to speed up future sessions
+          // This safely no-ops on web
+          unawaited(_saveToDisk(data));
+        }
+        result[tf] = data;
+        debugPrint('📦 MTF collected: $symbol $tf (${data.candles.length})');
+      } else {
+        debugPrint('⚠️  MTF missing: $symbol $tf');
+      }
+    }
+    return result;
+  }
+
+  /// Collect multi-timeframe datasets from a base MarketData.
+  /// Ensures the base timeframe is included unless suppressed.
+  Map<String, MarketData> getMultiTimeframeFromBase(
+    MarketData base,
+    Set<String> timeframes, {
+    bool includeBase = true,
+  }) {
+    final tfs = timeframes.map((t) => t.toUpperCase()).toSet();
+    if (includeBase) tfs.add(base.timeframe.toUpperCase());
+    return getMultiTimeframeBySymbol(base.symbol, tfs);
   }
 
   /// Check if data exists in cache

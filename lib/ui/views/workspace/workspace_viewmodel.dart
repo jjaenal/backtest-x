@@ -62,8 +62,9 @@ class WorkspaceViewModel extends BaseViewModel {
   // Symbol/Timeframe filters
   String? _selectedSymbolFilter;
   String? get selectedSymbolFilter => _selectedSymbolFilter;
-  String? _selectedTimeframeFilter;
-  String? get selectedTimeframeFilter => _selectedTimeframeFilter;
+  // Multi-select timeframe filters
+  Set<String> _selectedTimeframeFilters = {};
+  Set<String> get selectedTimeframeFilters => _selectedTimeframeFilters;
 
   // Date range filters
   DateTime? _startDateFilter;
@@ -102,7 +103,7 @@ class WorkspaceViewModel extends BaseViewModel {
     _filterPfPositive = false;
     _filterWinRateAbove50 = false;
     _selectedSymbolFilter = null;
-    _selectedTimeframeFilter = null;
+    _selectedTimeframeFilters.clear();
     _startDateFilter = null;
     _endDateFilter = null;
     // Reset pagination for all strategies when filters cleared
@@ -258,6 +259,19 @@ class WorkspaceViewModel extends BaseViewModel {
     if (_expandedStrategies[strategyId] == true) {
       // Initialize pagination for this strategy on expand
       _resultsItemsToShow[strategyId] = resultsPageSize;
+
+      // Ensure active filters remain valid for the expanded strategy
+      // 1) Symbol filter: reset to null if not available in this strategy
+      final symbols = getAvailableSymbols(strategyId);
+      if (_selectedSymbolFilter != null &&
+          !symbols.contains(_selectedSymbolFilter)) {
+        _selectedSymbolFilter = null;
+      }
+
+      // 2) Timeframe filters: remove any TF not present for this strategy
+      final availableTfs = getAvailableTimeframes(strategyId).toSet();
+      _selectedTimeframeFilters
+          .removeWhere((tf) => !availableTfs.contains(tf));
     }
     notifyListeners();
   }
@@ -279,9 +293,9 @@ class WorkspaceViewModel extends BaseViewModel {
           (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) {
         return false;
       }
-      if (_selectedTimeframeFilter != null &&
-          (md?.timeframe ?? 'Unknown') != _selectedTimeframeFilter) {
-        return false;
+      if (_selectedTimeframeFilters.isNotEmpty) {
+        final tf = md?.timeframe ?? 'Unknown';
+        if (!_selectedTimeframeFilters.contains(tf)) return false;
       }
       if (_startDateFilter != null &&
           r.executedAt.isBefore(_startDateFilter!)) {
@@ -379,13 +393,58 @@ class WorkspaceViewModel extends BaseViewModel {
     return list;
   }
 
+  // Calculate counts per timeframe applying all filters except timeframe filter
+  Map<String, int> getTimeframeCounts(String strategyId) {
+    final Map<String, int> counts = {};
+    for (final r in getResults(strategyId)) {
+      final md = _dataManager.getData(r.marketDataId);
+      if (!_passesNonTimeframeFilters(r, md)) continue;
+      final tf = md?.timeframe ?? 'Unknown';
+      counts[tf] = (counts[tf] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  bool _passesNonTimeframeFilters(BacktestResult r, MarketData? md) {
+    final s = r.summary;
+    if (_filterProfitOnly && s.totalPnl <= 0) return false;
+    if (_filterPfPositive && s.profitFactor <= 1) return false;
+    if (_filterWinRateAbove50 && s.winRate <= 50) return false;
+    if (_selectedSymbolFilter != null &&
+        (md?.symbol ?? 'Unknown') != _selectedSymbolFilter) {
+      return false;
+    }
+    if (_startDateFilter != null && r.executedAt.isBefore(_startDateFilter!)) {
+      return false;
+    }
+    if (_endDateFilter != null && r.executedAt.isAfter(_endDateFilter!)) {
+      return false;
+    }
+    return true;
+  }
+
   void setSelectedSymbolFilter(String? symbol) {
     _selectedSymbolFilter = symbol;
     notifyListeners();
   }
 
+  // For backward compatibility with previous single-select dropdown.
+  // Passing null clears all selected TFs; passing a value sets it as the only selected TF.
   void setSelectedTimeframeFilter(String? timeframe) {
-    _selectedTimeframeFilter = timeframe;
+    _selectedTimeframeFilters.clear();
+    if (timeframe != null) {
+      _selectedTimeframeFilters.add(timeframe);
+    }
+    notifyListeners();
+  }
+
+  // Toggle multi-select timeframe chip
+  void toggleTimeframeFilter(String timeframe) {
+    if (_selectedTimeframeFilters.contains(timeframe)) {
+      _selectedTimeframeFilters.remove(timeframe);
+    } else {
+      _selectedTimeframeFilters.add(timeframe);
+    }
     notifyListeners();
   }
 
@@ -778,6 +837,102 @@ class WorkspaceViewModel extends BaseViewModel {
     }
   }
 
+  /// Export per-timeframe stats for filtered results of a strategy to CSV
+  Future<void> exportFilteredStrategyTfStatsCsv(Strategy strategy) async {
+    try {
+      final results = getFilteredResults(strategy.id);
+      if (results.isEmpty) {
+        _snackbarService.showSnackbar(
+          message: 'No results to export for this strategy',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final List<List<dynamic>> rows = [];
+      rows.add([
+        'Strategy',
+        'Symbol',
+        'Base Timeframe',
+        'Executed At',
+        'TF',
+        'Signals',
+        'Trades',
+        'Wins',
+        'Win Rate %',
+      ]);
+
+      for (final result in results) {
+        final marketData = _dataManager.getData(result.marketDataId);
+        final summary = result.summary;
+        final tfStats = summary.tfStats ?? {};
+        if (tfStats.isEmpty) continue;
+
+        final entries = tfStats.entries.toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
+        for (final e in entries) {
+          final tf = e.key;
+          final m = e.value;
+          final signals = (m['signals'] ?? 0).toInt();
+          final trades = (m['trades'] ?? 0).toInt();
+          final wins = (m['wins'] ?? 0).toInt();
+          final winRate = ((m['winRate'] ?? 0)).toDouble();
+
+          rows.add([
+            strategy.name,
+            marketData?.symbol ?? '-',
+            marketData?.timeframe ?? '-',
+            result.executedAt.toIso8601String(),
+            tf,
+            signals,
+            trades,
+            wins,
+            winRate.toStringAsFixed(2),
+          ]);
+        }
+      }
+
+      if (rows.length == 1) {
+        _snackbarService.showSnackbar(
+          message: 'No per-timeframe stats found',
+          duration: const Duration(seconds: 3),
+        );
+        return;
+      }
+
+      final csv = const ListToCsvConverter().convert(rows);
+      final fileName = '${strategy.name}_results_tfstats.csv';
+
+      if (kIsWeb) {
+        final blob = html.Blob([csv], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csv);
+        await Share.shareXFiles([XFile(path)],
+            text: 'BacktestX Results Per-Timeframe Stats');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'TF Stats exported to CSV',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
   // removed alias for cleanliness; use exportFilteredStrategyResultsCsv
 
   /// Export ALL trades across all results for a strategy to a single CSV
@@ -1005,6 +1160,26 @@ class WorkspaceViewModel extends BaseViewModel {
       buffer.writeln(
           'Max Drawdown: ${summary.maxDrawdown.toStringAsFixed(2)} (${summary.maxDrawdownPercentage.toStringAsFixed(2)}%)');
       buffer.writeln('Sharpe Ratio: ${summary.sharpeRatio.toStringAsFixed(2)}');
+
+      // Append per-timeframe stats if available
+      final tfStats = summary.tfStats ?? {};
+      if (tfStats.isNotEmpty) {
+        buffer.writeln('');
+        buffer.writeln('Per-Timeframe Stats:');
+        final entries = tfStats.entries.toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
+        for (final e in entries) {
+          final tf = e.key;
+          final m = e.value;
+          final signals = (m['signals'] ?? 0).toInt();
+          final trades = (m['trades'] ?? 0).toInt();
+          final wins = (m['wins'] ?? 0).toInt();
+          final winRate = ((m['winRate'] ?? 0)).toDouble();
+          final line =
+              '- $tf: ${signals}S, ${trades}T, ${wins}W, ${winRate.toStringAsFixed(2)}% WR';
+          buffer.writeln(line);
+        }
+      }
 
       await Clipboard.setData(ClipboardData(text: buffer.toString()));
       _snackbarService.showSnackbar(

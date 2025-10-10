@@ -24,7 +24,9 @@ mixin _$Trade {
   TradeDirection get direction => throw _privateConstructorUsedError;
   DateTime get entryTime => throw _privateConstructorUsedError;
   double get entryPrice => throw _privateConstructorUsedError;
-  double get lotSize => throw _privateConstructorUsedError;
+  double get lotSize =>
+      throw _privateConstructorUsedError; // Timeframes that contributed to the entry signal (MTF context)
+  List<String>? get entryTimeframes => throw _privateConstructorUsedError;
   DateTime? get exitTime => throw _privateConstructorUsedError;
   double? get exitPrice => throw _privateConstructorUsedError;
   double? get stopLoss => throw _privateConstructorUsedError;
@@ -54,6 +56,7 @@ abstract class $TradeCopyWith<$Res> {
       DateTime entryTime,
       double entryPrice,
       double lotSize,
+      List<String>? entryTimeframes,
       DateTime? exitTime,
       double? exitPrice,
       double? stopLoss,
@@ -84,6 +87,7 @@ class _$TradeCopyWithImpl<$Res, $Val extends Trade>
     Object? entryTime = null,
     Object? entryPrice = null,
     Object? lotSize = null,
+    Object? entryTimeframes = freezed,
     Object? exitTime = freezed,
     Object? exitPrice = freezed,
     Object? stopLoss = freezed,
@@ -114,6 +118,10 @@ class _$TradeCopyWithImpl<$Res, $Val extends Trade>
           ? _value.lotSize
           : lotSize // ignore: cast_nullable_to_non_nullable
               as double,
+      entryTimeframes: freezed == entryTimeframes
+          ? _value.entryTimeframes
+          : entryTimeframes // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
       exitTime: freezed == exitTime
           ? _value.exitTime
           : exitTime // ignore: cast_nullable_to_non_nullable
@@ -163,6 +171,7 @@ abstract class _$$TradeImplCopyWith<$Res> implements $TradeCopyWith<$Res> {
       DateTime entryTime,
       double entryPrice,
       double lotSize,
+      List<String>? entryTimeframes,
       DateTime? exitTime,
       double? exitPrice,
       double? stopLoss,
@@ -191,6 +200,7 @@ class __$$TradeImplCopyWithImpl<$Res>
     Object? entryTime = null,
     Object? entryPrice = null,
     Object? lotSize = null,
+    Object? entryTimeframes = freezed,
     Object? exitTime = freezed,
     Object? exitPrice = freezed,
     Object? stopLoss = freezed,
@@ -221,6 +231,10 @@ class __$$TradeImplCopyWithImpl<$Res>
           ? _value.lotSize
           : lotSize // ignore: cast_nullable_to_non_nullable
               as double,
+      entryTimeframes: freezed == entryTimeframes
+          ? _value._entryTimeframes
+          : entryTimeframes // ignore: cast_nullable_to_non_nullable
+              as List<String>?,
       exitTime: freezed == exitTime
           ? _value.exitTime
           : exitTime // ignore: cast_nullable_to_non_nullable
@@ -266,6 +280,7 @@ class _$TradeImpl implements _Trade {
       required this.entryTime,
       required this.entryPrice,
       required this.lotSize,
+      final List<String>? entryTimeframes,
       this.exitTime,
       this.exitPrice,
       this.stopLoss,
@@ -273,7 +288,8 @@ class _$TradeImpl implements _Trade {
       this.status,
       this.pnl,
       this.pnlPercentage,
-      this.exitReason});
+      this.exitReason})
+      : _entryTimeframes = entryTimeframes;
 
   factory _$TradeImpl.fromJson(Map<String, dynamic> json) =>
       _$$TradeImplFromJson(json);
@@ -288,6 +304,18 @@ class _$TradeImpl implements _Trade {
   final double entryPrice;
   @override
   final double lotSize;
+// Timeframes that contributed to the entry signal (MTF context)
+  final List<String>? _entryTimeframes;
+// Timeframes that contributed to the entry signal (MTF context)
+  @override
+  List<String>? get entryTimeframes {
+    final value = _entryTimeframes;
+    if (value == null) return null;
+    if (_entryTimeframes is EqualUnmodifiableListView) return _entryTimeframes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(value);
+  }
+
   @override
   final DateTime? exitTime;
   @override
@@ -307,7 +335,7 @@ class _$TradeImpl implements _Trade {
 
   @override
   String toString() {
-    return 'Trade(id: $id, direction: $direction, entryTime: $entryTime, entryPrice: $entryPrice, lotSize: $lotSize, exitTime: $exitTime, exitPrice: $exitPrice, stopLoss: $stopLoss, takeProfit: $takeProfit, status: $status, pnl: $pnl, pnlPercentage: $pnlPercentage, exitReason: $exitReason)';
+    return 'Trade(id: $id, direction: $direction, entryTime: $entryTime, entryPrice: $entryPrice, lotSize: $lotSize, entryTimeframes: $entryTimeframes, exitTime: $exitTime, exitPrice: $exitPrice, stopLoss: $stopLoss, takeProfit: $takeProfit, status: $status, pnl: $pnl, pnlPercentage: $pnlPercentage, exitReason: $exitReason)';
   }
 
   @override
@@ -323,6 +351,8 @@ class _$TradeImpl implements _Trade {
             (identical(other.entryPrice, entryPrice) ||
                 other.entryPrice == entryPrice) &&
             (identical(other.lotSize, lotSize) || other.lotSize == lotSize) &&
+            const DeepCollectionEquality()
+                .equals(other._entryTimeframes, _entryTimeframes) &&
             (identical(other.exitTime, exitTime) ||
                 other.exitTime == exitTime) &&
             (identical(other.exitPrice, exitPrice) ||
@@ -348,6 +378,7 @@ class _$TradeImpl implements _Trade {
       entryTime,
       entryPrice,
       lotSize,
+      const DeepCollectionEquality().hash(_entryTimeframes),
       exitTime,
       exitPrice,
       stopLoss,
@@ -380,6 +411,7 @@ abstract class _Trade implements Trade {
       required final DateTime entryTime,
       required final double entryPrice,
       required final double lotSize,
+      final List<String>? entryTimeframes,
       final DateTime? exitTime,
       final double? exitPrice,
       final double? stopLoss,
@@ -400,7 +432,10 @@ abstract class _Trade implements Trade {
   @override
   double get entryPrice;
   @override
-  double get lotSize;
+  double
+      get lotSize; // Timeframes that contributed to the entry signal (MTF context)
+  @override
+  List<String>? get entryTimeframes;
   @override
   DateTime? get exitTime;
   @override
