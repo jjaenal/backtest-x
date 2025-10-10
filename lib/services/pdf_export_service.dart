@@ -3,7 +3,6 @@ import 'package:backtestx/core/data_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/app/app.locator.dart';
@@ -17,24 +16,22 @@ class PdfExportService {
     // Fetch market data info (symbol/timeframe) from cache
     final dataManager = locator<DataManager>();
     final marketData = dataManager.getData(result.marketDataId);
-    // Use Google Noto Sans fonts to support Unicode
-    final baseFont = await PdfGoogleFonts.notoSansRegular();
-    final boldFont = await PdfGoogleFonts.notoSansBold();
-    final italicFont = await PdfGoogleFonts.notoSansItalic();
-
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: baseFont,
-        bold: boldFont,
-        italic: italicFont,
-      ),
-    );
+    // Create document without network font dependencies for testability
+    final pdf = pw.Document(compress: false);
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     final summary = result.summary;
 
     pdf.addPage(
       pw.MultiPage(
+        footer: (context) => pw.Container(
+          padding: const pw.EdgeInsets.symmetric(vertical: 8),
+          alignment: pw.Alignment.center,
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
+          ),
+        ),
         build: (context) {
           return [
             pw.Padding(
@@ -556,15 +553,8 @@ class PdfExportService {
   // Optional title appears above the image.
   Future<Uint8List> buildImageDocument(Uint8List imageBytes,
       {String? title}) async {
-    final baseFont = await PdfGoogleFonts.notoSansRegular();
-    final boldFont = await PdfGoogleFonts.notoSansBold();
-
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(
-        base: baseFont,
-        bold: boldFont,
-      ),
-    );
+    // Create document without network font dependencies for testability
+    final pdf = pw.Document(compress: false);
 
     final img = pw.MemoryImage(imageBytes);
 
@@ -589,6 +579,64 @@ class PdfExportService {
         },
       ),
     );
+
+    return pdf.save();
+  }
+
+  // Build a multi-page PDF embedding multiple PNG images.
+  // Each entry in images corresponds to a page; optional titles appear above images.
+  Future<Uint8List> buildMultiImageDocument(
+    List<Uint8List> images, {
+    List<String?>? titles,
+  }) async {
+    // Create document without network font dependencies for testability
+    final pdf = pw.Document();
+
+    // Older versions of the pdf package may not support PageBreak.
+    // To ensure compatibility, render each image on its own Page
+    // and add a consistent footer manually.
+    for (var i = 0; i < images.length; i++) {
+      final img = pw.MemoryImage(images[i]);
+      final title = titles != null && i < (titles.length) ? titles[i] : null;
+      pdf.addPage(
+        pw.Page(
+          margin: const pw.EdgeInsets.all(24),
+          build: (context) {
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                if (title != null && title.isNotEmpty) ...[
+                  pw.Text(
+                    title,
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 12),
+                ],
+                pw.Center(
+                  child: pw.Container(
+                    height: 400,
+                    child: pw.Image(img, fit: pw.BoxFit.contain),
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(vertical: 8),
+                  alignment: pw.Alignment.center,
+                  child: pw.Text(
+                    'Page ${i + 1} of ${images.length}',
+                    style: const pw.TextStyle(
+                        fontSize: 10, color: PdfColors.grey600),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+    }
 
     return pdf.save();
   }

@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'package:backtestx/services/prefs_service.dart';
 import 'package:backtestx/debug/perf_monitor.dart';
+import 'package:backtestx/helpers/filename_helper.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -40,6 +41,7 @@ class ComparisonViewModel extends BaseViewModel {
     _groupedCache = null;
     _groupedCacheKey = null;
   }
+
   String _computeGroupedCacheKey() {
     final buf = StringBuffer();
     buf.write(_selectedTfMetric);
@@ -166,12 +168,23 @@ class ComparisonViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsBytes(pdf);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Comparison PDF');
+        await Share.shareXFiles([XFile(path)],
+            text: 'BacktestX Comparison PDF');
         return true;
       }
     } catch (_) {
       return false;
     }
+  }
+
+  // Generate sanitized filename for comparison exports with timestamp
+  String generateExportFilename({
+    required String baseLabel,
+    String ext = 'pdf',
+    DateTime? timestamp,
+  }) {
+    return FilenameHelper.build(['comparison', baseLabel],
+        ext: ext, timestamp: timestamp);
   }
 
   String strategyLabelFor(String strategyId) {
@@ -265,7 +278,8 @@ class ComparisonViewModel extends BaseViewModel {
       }
     }
     PerfMonitor.end('groupedTfMetricSeries',
-        context: 'results=${results.length}, tfs=${grouped.length}, metric=$_selectedTfMetric');
+        context:
+            'results=${results.length}, tfs=${grouped.length}, metric=$_selectedTfMetric');
     _groupedCache = grouped;
     _groupedCacheKey = key;
     return grouped;
@@ -313,7 +327,8 @@ class ComparisonViewModel extends BaseViewModel {
       }
       if (aInvalid) return 1; // a goes after b
       if (bInvalid) return -1; // b goes after a
-      final cmp = _groupedTfSort == 'valueAsc' ? va.compareTo(vb) : vb.compareTo(va);
+      final cmp =
+          _groupedTfSort == 'valueAsc' ? va.compareTo(vb) : vb.compareTo(va);
       if (cmp != 0) return cmp;
       // Stable tie-break by timeframe key (ascending)
       return a.compareTo(b);
@@ -514,7 +529,7 @@ class ComparisonViewModel extends BaseViewModel {
           : rows.map((r) => r.join('\t')).join('\n');
       final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
       final ext = isCsv ? 'csv' : 'tsv';
-      final fileName = 'comparison_tfstats.$ext';
+      final fileName = generateExportFilename(baseLabel: 'tfstats', ext: ext);
 
       if (kIsWeb) {
         final blob = html.Blob([content], mime);

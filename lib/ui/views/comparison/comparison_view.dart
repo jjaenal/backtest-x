@@ -1001,8 +1001,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
       final composed = await _composeOpaquePng(context, bytes);
-      final fileName =
-          'comparison_grouped_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName = model.generateExportFilename(
+        baseLabel: 'grouped_${model.selectedTfMetric}',
+        ext: 'png',
+      );
       if (kIsWeb) {
         final blob = html.Blob([composed], 'image/png');
         final url = html.Url.createObjectUrlFromBlob(blob);
@@ -1031,8 +1033,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
       final composed = await _composeOpaquePng(context, bytes);
-      final fileName =
-          'comparison_grouped_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final fileName = model.generateExportFilename(
+        baseLabel: 'grouped_${model.selectedTfMetric}',
+        ext: 'pdf',
+      );
       await model.exportImagePdf(
         composed,
         fileName,
@@ -1062,8 +1066,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         rows.add(row);
       }
       final csvContent = rows.map((r) => r.join(',')).join('\n');
-      final fileName =
-          'grouped_tf_chart_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.csv';
+      final fileName = model.generateExportFilename(
+        baseLabel: 'grouped_${model.selectedTfMetric}',
+        ext: 'csv',
+      );
       if (kIsWeb) {
         final blob = html.Blob([csvContent], 'text/csv');
         final url = html.Url.createObjectUrlFromBlob(blob);
@@ -1099,18 +1105,21 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.insights, color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              Icon(Icons.insights,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               const SizedBox(width: 8),
               Text(
                 'No grouped data to display',
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),

@@ -9,6 +9,7 @@ import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/models/candle.dart';
+import 'package:backtestx/core/data_manager.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
@@ -34,13 +35,35 @@ import 'test_helpers.mocks.dart';
   ],
 )
 void registerServices() {
-  getAndRegisterNavigationService();
-  getAndRegisterBottomSheetService();
-  getAndRegisterDialogService();
-  getAndRegisterDataParserService();
-  getAndRegisterIndicatorService();
-  getAndRegisterBacktestEngineService();
+  if (!locator.isRegistered<NavigationService>()) {
+    getAndRegisterNavigationService();
+  }
+  // Respect any pre-registered BottomSheetService (with custom responses in tests)
+  if (!locator.isRegistered<BottomSheetService>()) {
+    getAndRegisterBottomSheetService();
+  }
+  if (!locator.isRegistered<DialogService>()) {
+    getAndRegisterDialogService();
+  }
+  if (!locator.isRegistered<DataParserService>()) {
+    getAndRegisterDataParserService();
+  }
+  if (!locator.isRegistered<IndicatorService>()) {
+    getAndRegisterIndicatorService();
+  }
+  if (!locator.isRegistered<BacktestEngineService>()) {
+    getAndRegisterBacktestEngineService();
+  }
+  // Always override StorageService with a mock for tests (setupLocator registers real one)
   getAndRegisterStorageService();
+  // Ensure SnackbarService is registered to avoid GetIt errors in tests
+  if (!locator.isRegistered<SnackbarService>()) {
+    locator.registerSingleton<SnackbarService>(SnackbarService());
+  }
+  // Ensure DataManager is registered; HomeViewModel accesses it via locator
+  if (!locator.isRegistered<DataManager>()) {
+    locator.registerSingleton<DataManager>(DataManager());
+  }
 // @stacked-mock-register
 }
 
@@ -140,8 +163,8 @@ void mockPathProviderForTests({String? tempDirPath}) {
   TestWidgetsFlutterBinding.ensureInitialized();
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  final basePath = tempDirPath ??
-      Directory.systemTemp.createTempSync('backtestx_test').path;
+  final basePath =
+      tempDirPath ?? Directory.systemTemp.createTempSync('backtestx_test').path;
 
   messenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
     // path_provider returns a String path; we provide the same.

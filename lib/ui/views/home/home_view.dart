@@ -1,3 +1,4 @@
+import 'package:backtestx/ui/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'home_viewmodel.dart';
@@ -16,6 +17,11 @@ class HomeView extends StackedView<HomeViewModel> {
         title: const Text('Backtest-X'),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Onboarding',
+            onPressed: viewModel.showOnboarding,
+          ),
           // IconButton(
           //   icon: const Icon(Icons.brightness_6),
           //   onPressed: () {
@@ -75,65 +81,17 @@ class HomeView extends StackedView<HomeViewModel> {
         child: Stack(
           children: [
             // Error banner surface
-            if (viewModel.uiErrorMessage != null) ...[
+            if (viewModel.uiErrorMessage != null)
               Positioned(
                 left: 16,
                 right: 16,
                 top: 8,
-                child: Card(
-                  elevation: 3,
-                  color: Theme.of(context).colorScheme.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 10),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Theme.of(context).colorScheme.onErrorContainer,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Error',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                viewModel.uiErrorMessage!,
-                                style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: 'Dismiss',
-                          icon: Icon(
-                            Icons.close,
-                            color:
-                                Theme.of(context).colorScheme.onErrorContainer,
-                          ),
-                          onPressed: viewModel.clearUiError,
-                        ),
-                      ],
-                    ),
-                  ),
+                child: ErrorBanner(
+                  message: viewModel.uiErrorMessage!,
+                  onRetry: viewModel.refresh,
+                  onClose: viewModel.clearUiError,
                 ),
               ),
-            ],
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(

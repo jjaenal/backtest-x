@@ -340,8 +340,7 @@ class BacktestEngineService {
         _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
         if (isWinForced) {
           _lastTfWins[tf] = (_lastTfWins[tf] ?? 0) + 1;
-          _lastTfGrossProfit[tf] =
-              (_lastTfGrossProfit[tf] ?? 0.0) + exitPnl;
+          _lastTfGrossProfit[tf] = (_lastTfGrossProfit[tf] ?? 0.0) + exitPnl;
         }
         if (!isWinForced) {
           _lastTfGrossLoss[tf] = (_lastTfGrossLoss[tf] ?? 0.0) + exitPnl;

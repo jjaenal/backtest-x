@@ -46,6 +46,13 @@ flutter run
   - Copy backtest summary to clipboard from Workspace results
   - Export trades to CSV from Workspace results list
 - PDF report includes Strategy Details section and improved charts (grid, axis labels, date range)
+  
+  PDF Export enhancements:
+  - Multi‑page PDF report (Charts + Indicator Panel)
+  - Pagination/layout optimized for long datasets
+  - Dynamic file naming `
+    <strategy>-<tf>-<date>.pdf` (sanitized)
+  - Unit tests cover naming & PDF generation
 - **Share Results**: Share backtest results with others
 - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 import 'package:backtestx/ui/widgets/skeleton_loader.dart' as x_skeleton;
+import 'package:backtestx/ui/widgets/common/empty_state.dart';
 import 'workspace_viewmodel.dart';
 
 class WorkspaceView extends StatelessWidget {
@@ -278,48 +279,14 @@ class WorkspaceView extends StatelessWidget {
 
   Widget _buildEmptyState(BuildContext context, WorkspaceViewModel model) {
     final isEmpty = model.strategies.isEmpty;
-
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isEmpty ? Icons.folder_open : Icons.search_off,
-            size: 80,
-            color:
-                Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            isEmpty ? 'No strategies yet' : 'No strategies found',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            isEmpty
-                ? 'Create your first trading strategy'
-                : 'Try a different search term',
-            style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7),
-              fontSize: 14,
-            ),
-          ),
-          if (isEmpty) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: model.navigateToCreateStrategy,
-              icon: const Icon(Icons.add),
-              label: const Text('Create Strategy'),
-            ),
-          ],
-        ],
-      ),
+    return EmptyState(
+      icon: isEmpty ? Icons.folder_open : Icons.search_off,
+      title: isEmpty ? 'No strategies yet' : 'No strategies found',
+      message: isEmpty
+          ? 'Create your first trading strategy'
+          : 'Try a different search term',
+      primaryLabel: isEmpty ? 'Create Strategy' : null,
+      onPrimary: isEmpty ? model.navigateToCreateStrategy : null,
     );
   }
 
@@ -958,31 +925,28 @@ class WorkspaceView extends StatelessWidget {
                 // Timeframe multi-select chips with counts
                 ...(() {
                   final counts = model.getTimeframeCounts(strategy.id);
-                  return model
-                      .getAvailableTimeframes(strategy.id)
-                      .map((tf) {
-                        final isSelected =
-                            model.selectedTimeframeFilters.contains(tf);
-                        return FilterChip(
-                          selected: isSelected,
-                          label: Text(
-                            '$tf (${counts[tf] ?? 0})',
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : null,
-                            ),
-                          ),
-                          selectedColor: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.15),
-                          checkmarkColor:
-                              Theme.of(context).colorScheme.primary,
-                          showCheckmark: true,
-                          onSelected: (_) => model.toggleTimeframeFilter(tf),
-                        );
-                      }).toList();
+                  return model.getAvailableTimeframes(strategy.id).map((tf) {
+                    final isSelected =
+                        model.selectedTimeframeFilters.contains(tf);
+                    return FilterChip(
+                      selected: isSelected,
+                      label: Text(
+                        '$tf (${counts[tf] ?? 0})',
+                        style: TextStyle(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : null,
+                        ),
+                      ),
+                      selectedColor: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.15),
+                      checkmarkColor: Theme.of(context).colorScheme.primary,
+                      showCheckmark: true,
+                      onSelected: (_) => model.toggleTimeframeFilter(tf),
+                    );
+                  }).toList();
                 })(),
                 // Start date picker
                 TextButton.icon(
@@ -1342,19 +1306,16 @@ class WorkspaceView extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: isSelected
-                    ? Theme.of(context).colorScheme.primary
-                    : null,
+                color:
+                    isSelected ? Theme.of(context).colorScheme.primary : null,
               ),
             ),
             selected: isSelected,
             onSelected: (_) => model.toggleTimeframeFilter(tf),
             visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            selectedColor: Theme.of(context)
-                .colorScheme
-                .primary
-                .withValues(alpha: 0.15),
+            selectedColor:
+                Theme.of(context).colorScheme.primary.withValues(alpha: 0.15),
             checkmarkColor: Theme.of(context).colorScheme.primary,
             showCheckmark: true,
           ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:backtestx/ui/widgets/error_banner.dart';
+import 'package:backtestx/ui/widgets/common/empty_state.dart';
 import 'package:stacked/stacked.dart';
 import 'data_upload_viewmodel.dart';
 
@@ -70,34 +72,20 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
 
               // Parser Error Info
               if (viewModel.parserErrorMessage != null) ...[
-                Card(
-                  color: Colors.red.withValues(alpha: 0.08),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: const [
-                            Icon(Icons.error, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text(
-                              'Kesalahan Parsing CSV',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        SelectableText(
-                          viewModel.parserErrorMessage!,
-                          style: TextStyle(color: Colors.red.shade700),
-                        ),
-                      ],
-                    ),
-                  ),
+                ErrorBanner(
+                  message: viewModel.parserErrorMessage!,
+                  onRetry: () {
+                    if (viewModel.canUpload && !viewModel.isBusy) {
+                      viewModel.uploadData();
+                    } else {
+                      viewModel.pickFile();
+                    }
+                  },
+                  onClose: () {
+                    // Clear by resetting message and notifying
+                    viewModel.parserErrorMessage = null;
+                    viewModel.notifyListeners();
+                  },
                 ),
               ],
 
@@ -250,6 +238,18 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                         ),
                       );
                     },
+                  ),
+                ),
+              ] else ...[
+                const SizedBox(height: 12),
+                Expanded(
+                  child: EmptyState(
+                    icon: Icons.cloud_upload_outlined,
+                    title: 'Belum ada upload data',
+                    message:
+                        'Pilih file CSV dan isi simbol untuk mengunggah market data.',
+                    primaryLabel: 'Pilih File CSV',
+                    onPrimary: viewModel.isBusy ? null : viewModel.pickFile,
                   ),
                 ),
               ],

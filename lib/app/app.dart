@@ -22,6 +22,7 @@ import 'package:backtestx/ui/views/market_analysis/market_analysis_view.dart';
 import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart';
 import 'package:backtestx/ui/bottom_sheets/indicator_settings/indicator_settings_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick_pattern_guide_sheet.dart';
+import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
 // @stacked-import
 
 @StackedApp(
@@ -58,6 +59,7 @@ import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick
     StackedBottomsheet(classType: IndicatorSettingsSheet),
     StackedBottomsheet(classType: CandlestickPatternGuideSheet),
     StackedBottomsheet(classType: ValidationReportSheet),
+    StackedBottomsheet(classType: OnboardingSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

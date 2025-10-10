@@ -52,9 +52,28 @@
 - Documentation: Theming Guide for contributors
 - Export: combined Chart+Panel multi‑page PDF; dynamic file naming
 
+#### Focused Checklist — Medium Priority
+
+- [x] Tambahkan UI error handling (banner/toast + aksi retry)
+- [x] Implementasikan onboarding tutorial (persist status selesai)
+- [x] Desain & hubungkan empty states (Home, Workspace, Upload)
+- [x] Susun Theming Guide: colorScheme & token system
+- [x] Tambahkan contoh palet terang/gelap beserta panduan penggunaan
+- [x] Dokumentasikan praktik styling komponen dengan contoh
+- [x] Implementasi ekspor PDF multi‑halaman (Chart + Panel)
+- [x] Tambahkan pagination/layout untuk dataset panjang
+- [x] Terapkan penamaan file dinamis `<strategy>-<tf>-<date>.pdf` (sanitize)
+- [x] Tambahkan unit test untuk penamaan & generasi PDF
+
 ### Low Priority
 
 - Social sharing integration
+  - [ ] Mobile share via `share_plus` (Android/iOS)
+  - [ ] Web share via Web Share API, fallback copy link/text
+  - [ ] Share PDF exports and chart snapshot images
+  - [ ] Share summary text and deep links to results/strategies
+  - [ ] Sanitize content, remove PII, validate filenames
+  - [ ] Document usage and examples in README
 
 ## Next Sprint (1–2 weeks)
 

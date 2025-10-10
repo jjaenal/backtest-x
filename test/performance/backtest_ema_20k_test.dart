@@ -36,20 +36,23 @@ void main() {
           StrategyRule(
             indicator: IndicatorType.close,
             operator: ComparisonOperator.crossAbove,
-            value: ConditionValue.indicator(type: IndicatorType.ema, period: 20),
+            value:
+                ConditionValue.indicator(type: IndicatorType.ema, period: 20),
           ),
         ],
         exitRules: const [
           StrategyRule(
             indicator: IndicatorType.close,
             operator: ComparisonOperator.crossBelow,
-            value: ConditionValue.indicator(type: IndicatorType.ema, period: 20),
+            value:
+                ConditionValue.indicator(type: IndicatorType.ema, period: 20),
           ),
         ],
         createdAt: DateTime.now(),
       );
 
-      final engine = BacktestEngineService(indicatorService: IndicatorService());
+      final engine =
+          BacktestEngineService(indicatorService: IndicatorService());
       final sw = Stopwatch()..start();
       final result = await engine.runBacktest(
         marketData: data,

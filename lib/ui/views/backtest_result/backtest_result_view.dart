@@ -279,17 +279,24 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                 tooltip: 'Export per-timeframe stats',
                                 onSelected: (value) async {
                                   if (value == 'png_chart_dialog') {
-                                    await _promptExportChartPng(context);
+                                    await _promptExportChartPng(context, viewModel);
                                   } else if (value == 'png_panel_dialog') {
-                                    await _promptExportPanelPng(context);
+                                    await _promptExportPanelPng(context, viewModel);
                                   } else if (value == 'pdf_chart_dialog') {
-                                    await _promptExportChartPdf(context, viewModel);
+                                    await _promptExportChartPdf(
+                                        context, viewModel);
+                                  } else if (value ==
+                                      'pdf_chart_panel_dialog') {
+                                    await _promptExportChartPanelPdf(
+                                        context, viewModel);
                                   } else if (value == 'pdf_panel_dialog') {
-                                    await _promptExportPanelPdf(context, viewModel);
+                                    await _promptExportPanelPdf(
+                                        context, viewModel);
                                   } else if (value == 'pdf_report') {
                                     await viewModel.exportPdf();
                                   } else {
-                                    await viewModel.exportTfStats(format: value);
+                                    await viewModel.exportTfStats(
+                                        format: value);
                                   }
                                 },
                                 itemBuilder: (context) => [
@@ -327,7 +334,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     value: 'png_panel_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.dashboard_customize, size: 18),
+                                        Icon(Icons.dashboard_customize,
+                                            size: 18),
                                         SizedBox(width: 8),
                                         Text('Export Panel PNG…'),
                                       ],
@@ -344,10 +352,21 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     ),
                                   ),
                                   const PopupMenuItem(
+                                    value: 'pdf_chart_panel_dialog',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.picture_as_pdf, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Chart + Panel PDF…'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
                                     value: 'pdf_panel_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.dashboard_customize, size: 18),
+                                        Icon(Icons.dashboard_customize,
+                                            size: 18),
                                         SizedBox(width: 8),
                                         Text('Export Panel PDF…'),
                                       ],
@@ -448,16 +467,17 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
     );
     final bgPaint = ui.Paint()..color = backgroundColor;
-    canvas.drawRect(ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()), bgPaint);
+    canvas.drawRect(
+        ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()), bgPaint);
     canvas.drawImage(image, ui.Offset.zero, ui.Paint());
     final picture = recorder.endRecording();
     final composed = await picture.toImage(w, h);
-    final byteData =
-        await composed.toByteData(format: ui.ImageByteFormat.png);
+    final byteData = await composed.toByteData(format: ui.ImageByteFormat.png);
     return byteData!.buffer.asUint8List();
   }
 
-  Future<void> _exportTfChartPng({double? pixelRatio}) async {
+  Future<void> _exportTfChartPng(BacktestResultViewModel viewModel,
+      {double? pixelRatio}) async {
     try {
       final renderObject = _tfChartKey.currentContext?.findRenderObject();
       if (renderObject is! RenderRepaintBoundary) {
@@ -468,12 +488,13 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       final image = await renderObject.toImage(pixelRatio: pr);
       // Gunakan warna theme sebagai background; fallback ke putih jika context null
       final ctx = _tfChartKey.currentContext;
-      final themeBg = ctx != null
-          ? Theme.of(ctx).colorScheme.surface
-          : Colors.white;
+      final themeBg =
+          ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
       final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
-      final fileName =
-          'per_timeframe_chart_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName = viewModel.generateExportFilename(
+        baseLabel: 'per_timeframe_chart',
+        ext: 'png',
+      );
 
       // Only perform download on web targets
       if (kIsWeb) {
@@ -499,7 +520,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     }
   }
 
-  Future<void> _exportTfPanelPng({double? pixelRatio}) async {
+  Future<void> _exportTfPanelPng(BacktestResultViewModel viewModel,
+      {double? pixelRatio}) async {
     try {
       final renderObject = _tfPanelKey.currentContext?.findRenderObject();
       if (renderObject is! RenderRepaintBoundary) {
@@ -510,12 +532,13 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       final image = await renderObject.toImage(pixelRatio: pr);
       // Gunakan warna theme sebagai background; fallback ke putih jika context null
       final ctx = _tfPanelKey.currentContext;
-      final themeBg = ctx != null
-          ? Theme.of(ctx).colorScheme.surface
-          : Colors.white;
+      final themeBg =
+          ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
       final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
-      final fileName =
-          'per_timeframe_panel_${DateTime.now().millisecondsSinceEpoch}.png';
+      final fileName = viewModel.generateExportFilename(
+        baseLabel: 'per_timeframe_panel',
+        ext: 'png',
+      );
 
       if (kIsWeb) {
         final blob = html.Blob([bytes], 'image/png');
@@ -540,17 +563,19 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     }
   }
 
-  Future<void> _promptExportChartPng(BuildContext context) async {
+  Future<void> _promptExportChartPng(
+      BuildContext context, BacktestResultViewModel viewModel) async {
     final ratio = await _promptPixelRatio(context, title: 'Export Chart PNG');
     if (ratio != null) {
-      await _exportTfChartPng(pixelRatio: ratio);
+      await _exportTfChartPng(viewModel, pixelRatio: ratio);
     }
   }
 
-  Future<void> _promptExportPanelPng(BuildContext context) async {
+  Future<void> _promptExportPanelPng(
+      BuildContext context, BacktestResultViewModel viewModel) async {
     final ratio = await _promptPixelRatio(context, title: 'Export Panel PNG');
     if (ratio != null) {
-      await _exportTfPanelPng(pixelRatio: ratio);
+      await _exportTfPanelPng(viewModel, pixelRatio: ratio);
     }
   }
 
@@ -571,6 +596,15 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     }
   }
 
+  Future<void> _promptExportChartPanelPdf(
+      BuildContext context, BacktestResultViewModel viewModel) async {
+    final ratio =
+        await _promptPixelRatio(context, title: 'Export Chart + Panel PDF');
+    if (ratio != null) {
+      await _exportTfChartPanelPdf(viewModel, pixelRatio: ratio);
+    }
+  }
+
   Future<void> _exportTfChartPdf(BacktestResultViewModel viewModel,
       {double? pixelRatio}) async {
     try {
@@ -582,15 +616,18 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       final pr = pixelRatio ?? ui.window.devicePixelRatio;
       final image = await renderObject.toImage(pixelRatio: pr);
       final ctx = _tfChartKey.currentContext;
-      final themeBg = ctx != null
-          ? Theme.of(ctx).colorScheme.surface
-          : Colors.white;
-      final pngBytes =
-          await _composeOpaquePng(image, backgroundColor: themeBg);
-      final fileName =
-          'per_timeframe_chart_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await viewModel.exportImagePdf(pngBytes,
-          fileName: fileName, title: 'Per‑Timeframe Chart');
+      final themeBg =
+          ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      final pngBytes = await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName = viewModel.generateExportFilename(
+        baseLabel: 'chart',
+        ext: 'pdf',
+      );
+      await viewModel.exportImagePdf(
+        pngBytes,
+        fileName: fileName,
+        title: 'Per‑Timeframe Chart',
+      );
     } catch (e) {
       debugPrint('Chart PDF export failed: $e');
     }
@@ -607,17 +644,69 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       final pr = pixelRatio ?? ui.window.devicePixelRatio;
       final image = await renderObject.toImage(pixelRatio: pr);
       final ctx = _tfPanelKey.currentContext;
-      final themeBg = ctx != null
-          ? Theme.of(ctx).colorScheme.surface
-          : Colors.white;
-      final pngBytes =
-          await _composeOpaquePng(image, backgroundColor: themeBg);
-      final fileName =
-          'per_timeframe_panel_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      await viewModel.exportImagePdf(pngBytes,
-          fileName: fileName, title: 'Per‑Timeframe Panel');
+      final themeBg =
+          ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      final pngBytes = await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName = viewModel.generateExportFilename(
+        baseLabel: 'panel',
+        ext: 'pdf',
+      );
+      await viewModel.exportImagePdf(
+        pngBytes,
+        fileName: fileName,
+        title: 'Per‑Timeframe Panel',
+      );
     } catch (e) {
       debugPrint('Panel PDF export failed: $e');
+    }
+  }
+
+  Future<void> _exportTfChartPanelPdf(BacktestResultViewModel viewModel,
+      {double? pixelRatio}) async {
+    try {
+      // Capture Chart
+      final chartObj = _tfChartKey.currentContext?.findRenderObject();
+      if (chartObj is! RenderRepaintBoundary) {
+        debugPrint('PDF export failed: Chart boundary not found');
+        return;
+      }
+      final pr = pixelRatio ?? ui.window.devicePixelRatio;
+      final chartImage = await chartObj.toImage(pixelRatio: pr);
+      final chartCtx = _tfChartKey.currentContext;
+      final themeBgChart = chartCtx != null
+          ? Theme.of(chartCtx).colorScheme.surface
+          : Colors.white;
+      final chartPng =
+          await _composeOpaquePng(chartImage, backgroundColor: themeBgChart);
+
+      // Capture Panel
+      final panelObj = _tfPanelKey.currentContext?.findRenderObject();
+      if (panelObj is! RenderRepaintBoundary) {
+        debugPrint('PDF export failed: Panel boundary not found');
+        return;
+      }
+      final panelImage = await panelObj.toImage(pixelRatio: pr);
+      final panelCtx = _tfPanelKey.currentContext;
+      final themeBgPanel = panelCtx != null
+          ? Theme.of(panelCtx).colorScheme.surface
+          : Colors.white;
+      final panelPng =
+          await _composeOpaquePng(panelImage, backgroundColor: themeBgPanel);
+
+      final fileName = viewModel.generateExportFilename(
+        baseLabel: 'chart_panel',
+        ext: 'pdf',
+      );
+
+      await viewModel.exportChartAndPanelPdf(
+        chartPng,
+        panelPng,
+        fileName: fileName,
+        chartTitle: 'Per‑Timeframe Chart',
+        panelTitle: 'Per‑Timeframe Panel',
+      );
+    } catch (e) {
+      debugPrint('Chart+Panel PDF export failed: $e');
     }
   }
 

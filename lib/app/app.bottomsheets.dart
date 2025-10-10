@@ -10,6 +10,7 @@ import 'app.locator.dart';
 import '../ui/bottom_sheets/candlestick_pattern_guide/candlestick_pattern_guide_sheet.dart';
 import '../ui/bottom_sheets/indicator_settings/indicator_settings_sheet.dart';
 import '../ui/bottom_sheets/notice/notice_sheet.dart';
+import '../ui/bottom_sheets/onboarding/onboarding_sheet.dart';
 import '../ui/bottom_sheets/validation_report/validation_report_sheet.dart';
 
 enum BottomSheetType {
@@ -17,6 +18,7 @@ enum BottomSheetType {
   indicatorSettings,
   candlestickPatternGuide,
   validationReport,
+  onboarding,
 }
 
 void setupBottomSheetUi() {
@@ -31,6 +33,8 @@ void setupBottomSheetUi() {
         CandlestickPatternGuideSheet(request: request, completer: completer),
     BottomSheetType.validationReport: (context, request, completer) =>
         ValidationReportSheet(request: request, completer: completer),
+    BottomSheetType.onboarding: (context, request, completer) =>
+        OnboardingSheet(request: request, completer: completer),
   };
 
   bottomsheetService.setCustomSheetBuilders(builders);

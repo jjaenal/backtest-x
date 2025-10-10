@@ -37,21 +37,24 @@ void main() {
           StrategyRule(
             indicator: IndicatorType.close,
             operator: ComparisonOperator.crossAbove,
-            value: ConditionValue.indicator(type: IndicatorType.sma, period: 20),
+            value:
+                ConditionValue.indicator(type: IndicatorType.sma, period: 20),
           ),
         ],
         exitRules: const [
           StrategyRule(
             indicator: IndicatorType.close,
             operator: ComparisonOperator.crossBelow,
-            value: ConditionValue.indicator(type: IndicatorType.sma, period: 20),
+            value:
+                ConditionValue.indicator(type: IndicatorType.sma, period: 20),
           ),
         ],
         createdAt: DateTime.now(),
       );
 
       final sw = Stopwatch()..start();
-      final result = await IsolateBacktest.run(strategy: strategy, marketData: data);
+      final result =
+          await IsolateBacktest.run(strategy: strategy, marketData: data);
       sw.stop();
 
       // Basic invariants

@@ -28,7 +28,8 @@ void main() {
     test('row-level error includes line and column details', () async {
       final service = DataParserService();
       // Header + one bad row (Open not a number) -> no valid candles
-      final csv = 'Date,Open,High,Low,Close,Volume\n2024-01-01,abc,101,99,100,1000\n';
+      final csv =
+          'Date,Open,High,Low,Close,Volume\n2024-01-01,abc,101,99,100,1000\n';
       final bytes = Uint8List.fromList(csv.codeUnits);
 
       expect(
@@ -49,7 +50,8 @@ void main() {
 
     test('valid CSV parses successfully', () async {
       final service = DataParserService();
-      final csv = 'Date,Open,High,Low,Close,Volume\n2024-01-01,100,101,99,100,1000\n';
+      final csv =
+          'Date,Open,High,Low,Close,Volume\n2024-01-01,100,101,99,100,1000\n';
       final bytes = Uint8List.fromList(csv.codeUnits);
 
       final data = await service.parseCsvBytes(

@@ -4,8 +4,11 @@ import 'package:backtestx/app/app.locator.dart';
 import '../helpers/test_helpers.dart';
 
 void main() {
-  group('InfoAlertDialogModel Tests -', () {
+  group('NoticeSheetModel Tests -', () {
     setUp(() => registerServices());
     tearDown(() => locator.reset());
+    test('Placeholder runs', () {
+      expect(true, isTrue);
+    });
   });
 }

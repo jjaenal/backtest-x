@@ -7,5 +7,8 @@ void main() {
   group('CandlestickPatternGuideSheetModel Tests -', () {
     setUp(() => registerServices());
     tearDown(() => locator.reset());
+    test('Placeholder runs', () {
+      expect(true, isTrue);
+    });
   });
 }

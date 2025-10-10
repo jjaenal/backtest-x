@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui' show FontFeature;
 
 class GroupedTfBarChart extends StatelessWidget {
-  final Map<String, Map<String, double>> data; // timeframe -> {seriesLabel -> value}
+  final Map<String, Map<String, double>>
+      data; // timeframe -> {seriesLabel -> value}
   final List<String> seriesOrder; // order of series labels (e.g., R1, R2, ...)
   final List<String>? timeframeOrder; // optional order of timeframe categories
   final String metricLabel;
@@ -134,7 +135,11 @@ class GroupedTfBarChart extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
+        Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+                color: color, borderRadius: BorderRadius.circular(3))),
         const SizedBox(width: 6),
         Text(label, style: Theme.of(context).textTheme.bodySmall),
       ],
@@ -167,7 +172,8 @@ class GroupedTfBarChart extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              padding: EdgeInsets.symmetric(vertical: groupPadding, horizontal: 8),
+              padding:
+                  EdgeInsets.symmetric(vertical: groupPadding, horizontal: 8),
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(6),
@@ -180,7 +186,8 @@ class GroupedTfBarChart extends StatelessWidget {
                       final label = order[i];
                       final val = series[label] ?? 0.0;
                       final ratio = (val.abs() / maxVal).clamp(0.0, 1.0);
-                      final barWidth = (fullWidth - 100) * ratio; // subtract label/spacing
+                      final barWidth =
+                          (fullWidth - 100) * ratio; // subtract label/spacing
                       final color = val < 0
                           ? theme.colorScheme.error.withValues(alpha: 0.70)
                           : colors[i];
@@ -200,9 +207,11 @@ class GroupedTfBarChart extends StatelessWidget {
                                     ),
                                   ),
                                   Tooltip(
-                                    message: '$label: ${_formatVal(val, isPercent)}',
+                                    message:
+                                        '$label: ${_formatVal(val, isPercent)}',
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 300),
+                                      duration:
+                                          const Duration(milliseconds: 300),
                                       curve: Curves.easeOut,
                                       height: barHeight,
                                       width: barWidth,
@@ -222,7 +231,9 @@ class GroupedTfBarChart extends StatelessWidget {
                                 _formatVal(val, isPercent),
                                 textAlign: TextAlign.right,
                                 style: theme.textTheme.bodySmall?.copyWith(
-                                  fontFeatures: const [FontFeature.tabularFigures()],
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures()
+                                  ],
                                 ),
                               ),
                             ),

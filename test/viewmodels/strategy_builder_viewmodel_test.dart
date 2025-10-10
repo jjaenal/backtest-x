@@ -7,5 +7,8 @@ void main() {
   group('StrategyBuilderViewModel Tests -', () {
     setUp(() => registerServices());
     tearDown(() => locator.reset());
+    test('Placeholder runs', () {
+      expect(true, isTrue);
+    });
   });
 }

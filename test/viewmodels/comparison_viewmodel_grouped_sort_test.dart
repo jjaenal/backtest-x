@@ -41,7 +41,9 @@ void main() {
     );
   }
 
-  test('Grouped sorting places invalid (NaN) timeframe last with avg aggregation', () {
+  test(
+      'Grouped sorting places invalid (NaN) timeframe last with avg aggregation',
+      () {
     final r1 = makeResult('1', {
       'M15': {'winRate': 50},
       'H1': {'winRate': 60},
@@ -63,7 +65,8 @@ void main() {
     expect(order, ['H1', 'M15', 'TFX']);
   });
 
-  test('Grouped sorting stable tie-breaking by key for equal values (desc)', () {
+  test('Grouped sorting stable tie-breaking by key for equal values (desc)',
+      () {
     final r1 = makeResult('1', {
       'M15': {'winRate': 50},
       'H1': {'winRate': 50},

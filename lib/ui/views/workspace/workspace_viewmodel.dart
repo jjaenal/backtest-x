@@ -20,6 +20,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     as html;
 import 'dart:io';
+import 'package:backtestx/ui/common/ui_helpers.dart';
 
 class WorkspaceViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
@@ -270,8 +271,7 @@ class WorkspaceViewModel extends BaseViewModel {
 
       // 2) Timeframe filters: remove any TF not present for this strategy
       final availableTfs = getAvailableTimeframes(strategyId).toSet();
-      _selectedTimeframeFilters
-          .removeWhere((tf) => !availableTfs.contains(tf));
+      _selectedTimeframeFilters.removeWhere((tf) => !availableTfs.contains(tf));
     }
     notifyListeners();
   }
@@ -645,17 +645,34 @@ class WorkspaceViewModel extends BaseViewModel {
           notifyListeners();
         } catch (e) {
           debugPrint('Error saving quick test: $e');
-          _snackbarService.showSnackbar(
-            message: 'Failed to save quick test: ${e.toString()}',
-            duration: const Duration(seconds: 3),
+          showErrorWithRetry(
+            title: 'Gagal menyimpan quick test',
+            message: e.toString(),
+            onRetry: () async {
+              try {
+                final existing = await _storageService.getStrategy(strategy.id);
+                if (existing == null) {
+                  await _storageService.saveStrategy(strategy);
+                }
+                await _storageService.saveBacktestResult(result);
+                _strategyResults[strategy.id] = await _storageService
+                    .getBacktestResultsByStrategy(strategy.id);
+                _snackbarService.showSnackbar(
+                  message: 'Quick test saved to database',
+                  duration: const Duration(seconds: 2),
+                );
+                notifyListeners();
+              } catch (_) {}
+            },
           );
         }
       });
     } catch (e) {
       debugPrint('Error running quick test: $e');
-      _snackbarService.showSnackbar(
-        message: 'Error running backtest: ${e.toString()}',
-        duration: const Duration(seconds: 3),
+      showErrorWithRetry(
+        title: 'Quick test gagal',
+        message: e.toString(),
+        onRetry: () => quickRunBacktest(strategy),
       );
     } finally {
       _isRunningQuickTest[strategy.id] = false;

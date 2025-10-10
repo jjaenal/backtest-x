@@ -34,7 +34,9 @@ class PerTfBarChart extends StatelessWidget {
     final capped = maxItems != null && entries.length > (maxItems ?? 0)
         ? entries.sublist(0, maxItems!)
         : entries;
-    final maxVal = entries.map((e) => e.value.abs()).fold<double>(0.0, (p, c) => c > p ? c : p);
+    final maxVal = entries
+        .map((e) => e.value.abs())
+        .fold<double>(0.0, (p, c) => c > p ? c : p);
 
     final chartContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +55,8 @@ class PerTfBarChart extends StatelessWidget {
               children: capped.map((e) {
                 final tf = e.key;
                 final val = e.value;
-                final ratio = maxVal == 0 ? 0.0 : (val.abs() / maxVal).clamp(0.0, 1.0);
+                final ratio =
+                    maxVal == 0 ? 0.0 : (val.abs() / maxVal).clamp(0.0, 1.0);
                 final barWidth = fullWidth * ratio;
                 final isNegative = val < 0;
                 final color = isNegative
@@ -76,10 +79,12 @@ class PerTfBarChart extends StatelessWidget {
                             Container(
                               height: 18,
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest,
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(6),
                                 border: Border.all(
-                                  color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                  color: theme.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.5),
                                 ),
                               ),
                             ),

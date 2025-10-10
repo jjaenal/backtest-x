@@ -17,8 +17,10 @@ import 'dart:typed_data';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     as html;
 import 'package:backtestx/services/pdf_export_service.dart';
+import 'package:backtestx/helpers/filename_helper.dart';
 
 enum ChartMode { equity, drawdown }
+
 enum TfChartSort { timeframe, valueAsc, valueDesc }
 
 class BacktestResultViewModel extends BaseViewModel {
@@ -241,9 +243,8 @@ class BacktestResultViewModel extends BaseViewModel {
       // Respect the current chart order: use getTfMetricSeries() keys
       final orderedTfs = getTfMetricSeries().keys.toList();
       // Fallback to alphabetical if no metric series available
-      final keys = orderedTfs.isNotEmpty
-          ? orderedTfs
-          : (stats.keys.toList()..sort());
+      final keys =
+          orderedTfs.isNotEmpty ? orderedTfs : (stats.keys.toList()..sort());
       for (final tf in keys) {
         final m = stats[tf] ?? const {};
         final signals = (m['signals'] ?? 0).toString();
@@ -272,7 +273,8 @@ class BacktestResultViewModel extends BaseViewModel {
       final isCsv = format.toLowerCase() == 'csv';
       final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
       final ext = isCsv ? 'csv' : 'tsv';
-      final fileName = 'backtest_${result.strategyId}_${result.marketDataId}_tfstats.$ext';
+      final fileName =
+          'backtest_${result.strategyId}_${result.marketDataId}_tfstats.$ext';
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)
           : rows.map((r) => r.join('\t')).join('\n');
@@ -291,10 +293,11 @@ class BacktestResultViewModel extends BaseViewModel {
         final path = '${directory.path}/$fileName';
         final file = File(path);
         await file.writeAsString(content);
-        await Share.shareXFiles([XFile(path)],
-            subject: 'Backtest per-timeframe stats',
-            text:
-                'Exported per-timeframe stats for strategy ${result.strategyId} on market ${result.marketDataId}',
+        await Share.shareXFiles(
+          [XFile(path)],
+          subject: 'Backtest per-timeframe stats',
+          text:
+              'Exported per-timeframe stats for strategy ${result.strategyId} on market ${result.marketDataId}',
         );
       }
 
@@ -313,9 +316,8 @@ class BacktestResultViewModel extends BaseViewModel {
   /// Return trades filtered by selected timeframe chips (intersection with entryTimeframes)
   List<Trade> getFilteredTradesBySelectedTF() {
     final selected = _selectedTimeframeFilters;
-    final closed = result.trades
-        .where((t) => t.status == TradeStatus.closed)
-        .toList();
+    final closed =
+        result.trades.where((t) => t.status == TradeStatus.closed).toList();
     if (selected.isEmpty) return closed;
     return closed.where((t) {
       final tfs = t.entryTimeframes ?? const [];
@@ -463,13 +465,16 @@ class BacktestResultViewModel extends BaseViewModel {
 
     final now = DateTime.now();
     final windowSize = (_windowEndIndex - _windowStartIndex).clamp(1, total);
-    final distToStartEdge = (_chartStartIndex - _windowStartIndex).clamp(0, windowSize);
-    final distToEndEdge = (_windowEndIndex - _chartEndIndex).clamp(0, windowSize);
+    final distToStartEdge =
+        (_chartStartIndex - _windowStartIndex).clamp(0, windowSize);
+    final distToEndEdge =
+        (_windowEndIndex - _chartEndIndex).clamp(0, windowSize);
 
     final desiredStart = (startIndex - _baseBuffer).clamp(0, total);
     final desiredEnd = (endIndex + _baseBuffer).clamp(0, total);
 
-    final movedStart = (desiredStart - _windowStartIndex).abs() > _movementThreshold;
+    final movedStart =
+        (desiredStart - _windowStartIndex).abs() > _movementThreshold;
     final movedEnd = (desiredEnd - _windowEndIndex).abs() > _movementThreshold;
     final nearStartEdge = distToStartEdge < windowSize * _edgePrefetchRatio;
     final nearEndEdge = distToEndEdge < windowSize * _edgePrefetchRatio;
@@ -477,14 +482,17 @@ class BacktestResultViewModel extends BaseViewModel {
     bool updatedWindow = false;
 
     // Throttle window update frequency
-    if (_lastWindowUpdate == null || now.difference(_lastWindowUpdate!).inMilliseconds > _minWindowUpdateIntervalMs) {
+    if (_lastWindowUpdate == null ||
+        now.difference(_lastWindowUpdate!).inMilliseconds >
+            _minWindowUpdateIntervalMs) {
       if (movedStart || movedEnd || nearStartEdge || nearEndEdge) {
         _windowStartIndex = desiredStart;
         _windowEndIndex = desiredEnd;
 
         // Enforce minimum window size
         if (_windowEndIndex - _windowStartIndex < _minWindowSize) {
-          _windowEndIndex = (_windowStartIndex + _minWindowSize).clamp(0, total);
+          _windowEndIndex =
+              (_windowStartIndex + _minWindowSize).clamp(0, total);
         }
         _lastWindowUpdate = now;
         updatedWindow = true;
@@ -493,22 +501,26 @@ class BacktestResultViewModel extends BaseViewModel {
 
     // Prefetch di background jika dekat tepi namun tidak update window karena throttle
     if (!updatedWindow && (nearStartEdge || nearEndEdge)) {
-      _schedulePrefetch(nearStart: nearStartEdge, nearEnd: nearEndEdge, total: total);
+      _schedulePrefetch(
+          nearStart: nearStartEdge, nearEnd: nearEndEdge, total: total);
     }
 
     // Notify UI: always when window updated; otherwise, throttle label updates.
     if (updatedWindow) {
       notifyListeners();
       _lastNotify = now;
-    } else if (_lastNotify == null || now.difference(_lastNotify!).inMilliseconds > _minNotifyIntervalMs) {
+    } else if (_lastNotify == null ||
+        now.difference(_lastNotify!).inMilliseconds > _minNotifyIntervalMs) {
       _lastNotify = now;
       notifyListeners();
     }
   }
 
-  void _schedulePrefetch({required bool nearStart, required bool nearEnd, required int total}) {
+  void _schedulePrefetch(
+      {required bool nearStart, required bool nearEnd, required int total}) {
     _prefetchTimer?.cancel();
-    _prefetchTimer = Timer(Duration(milliseconds: (_minWindowUpdateIntervalMs / 2).round()), () {
+    _prefetchTimer = Timer(
+        Duration(milliseconds: (_minWindowUpdateIntervalMs / 2).round()), () {
       bool changed = false;
       final expandBy = _baseBuffer; // expand satu buffer
 
@@ -776,7 +788,10 @@ Generated by BacktestX
     setBusy(true);
     try {
       final bytes = await _pdfExportService.buildBacktestReport(result);
-      final fileName = '${strategyName}_backtest_report.pdf';
+      final fileName = generateExportFilename(
+        baseLabel: 'backtest_report',
+        ext: 'pdf',
+      );
 
       if (kIsWeb) {
         final blob = html.Blob([bytes], 'application/pdf');
@@ -846,6 +861,62 @@ Generated by BacktestX
     } finally {
       setBusy(false);
     }
+  }
+
+  // Ekspor gabungan Chart + Panel sebagai PDF multi-halaman
+  Future<void> exportChartAndPanelPdf(
+    Uint8List chartBytes,
+    Uint8List panelBytes, {
+    required String fileName,
+    String? chartTitle,
+    String? panelTitle,
+  }) async {
+    setBusy(true);
+    try {
+      final bytes = await _pdfExportService.buildMultiImageDocument(
+        [chartBytes, panelBytes],
+        titles: [chartTitle, panelTitle],
+      );
+
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if (anchor.href != null && anchor.href!.isNotEmpty) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsBytes(bytes, flush: true);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX PDF Export');
+      }
+
+      _snackbarService.showSnackbar(
+        message: 'PDF exported successfully',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export PDF failed: $e',
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Generate sanitized filename with symbol, timeframe and timestamp
+  String generateExportFilename({
+    required String baseLabel,
+    String ext = 'pdf',
+    DateTime? timestamp,
+  }) {
+    return FilenameHelper.build([symbol, timeframe, baseLabel],
+        ext: ext, timestamp: timestamp);
   }
 
   void _saveFileForWeb(String csv, String fileName) {

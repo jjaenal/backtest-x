@@ -4,6 +4,7 @@ import 'package:backtestx/models/candle.dart';
 class IndicatorService {
   // Small epsilon to guard near-zero denominators
   static const double _eps = 1e-12;
+
   /// Simple Moving Average
   List<double?> calculateSMA(List<Candle> candles, int period) {
     if (period <= 0) {

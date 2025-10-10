@@ -72,8 +72,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
     final newLen = widget.candles.length;
     if (oldLen != newLen || oldWidget.candles != widget.candles) {
       // Simpan rentang sebelumnya dan klamp terhadap panjang baru.
-      final prevRange = (_endIndex - _startIndex)
-          .clamp(10, newLen.toDouble());
+      final prevRange = (_endIndex - _startIndex).clamp(10, newLen.toDouble());
       // Jika sebelumnya endIndex di luar batas, klamp ke panjang baru.
       _endIndex = _endIndex.clamp(0, newLen.toDouble());
       if (_endIndex == 0 && newLen > 0) {
@@ -170,7 +169,9 @@ class _CandlestickChartState extends State<CandlestickChart> {
                       // Hitung pergeseran berdasarkan piksel -> jumlah candle.
                       final candlePerPixel = 1 / candleWidth;
                       final range = _endIndex - _startIndex;
-                      var shift = -details.delta.dx * candlePerPixel * widget.panSensitivity;
+                      var shift = -details.delta.dx *
+                          candlePerPixel *
+                          widget.panSensitivity;
                       // Batasi pergeseran per event agar tidak terasa terlalu licin.
                       const maxShiftPerEvent = 50.0; // dalam satu event drag
                       if (shift > maxShiftPerEvent) shift = maxShiftPerEvent;

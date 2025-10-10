@@ -188,8 +188,8 @@ class StorageService {
   Future<void> _validateAndRepairSchema(Database db) async {
     try {
       // Gather existing tables
-      final tableRows = await db.rawQuery(
-          "SELECT name FROM sqlite_master WHERE type='table'");
+      final tableRows = await db
+          .rawQuery("SELECT name FROM sqlite_master WHERE type='table'");
       final existingTables =
           tableRows.map((e) => (e['name'] as String?) ?? '').toSet();
 
@@ -439,7 +439,8 @@ class StorageService {
   /// Get total count of backtest results (fast COUNT query)
   Future<int> getTotalBacktestResultsCount() async {
     final db = await database;
-    final res = await db.rawQuery('SELECT COUNT(*) as cnt FROM backtest_results');
+    final res =
+        await db.rawQuery('SELECT COUNT(*) as cnt FROM backtest_results');
     if (res.isEmpty) return 0;
     final value = res.first['cnt'];
     if (value is int) return value;

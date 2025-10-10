@@ -17,9 +17,9 @@ import '../services/backtest_engine_service.dart';
 import '../services/data_parser_service.dart';
 import '../services/data_validation_service.dart';
 import '../services/indicator_service.dart';
+import '../services/pdf_export_service.dart';
 import '../services/storage_service.dart';
 import '../services/theme_service.dart';
-import '../services/pdf_export_service.dart';
 
 final locator = StackedLocator.instance;
 

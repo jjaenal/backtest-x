@@ -8,13 +8,18 @@ import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/services/prefs_service.dart';
+import 'package:backtestx/ui/common/ui_helpers.dart';
+import 'package:backtestx/app/app.bottomsheets.dart';
 
 class HomeViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
   final _dialogService = locator<DialogService>();
+  final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = locator<DataManager>();
+  final _prefs = PrefsService();
 
   bool _isRunningBacktest = false;
   bool get isRunningBacktest => _isRunningBacktest;
@@ -52,6 +57,21 @@ class HomeViewModel extends BaseViewModel {
       setBusy(true);
       await _loadStats();
       setBusy(false);
+
+      // Onboarding tutorial dialog (one-time)
+      try {
+        final done = await _prefs.getString('onboarding.completed');
+        if (done != 'true') {
+          final response = await _bottomSheetService.showCustomSheet(
+            variant: BottomSheetType.onboarding,
+            barrierDismissible: true,
+            isScrollControlled: true,
+          );
+          if (response?.confirmed == true) {
+            await _prefs.setString('onboarding.completed', 'true');
+          }
+        }
+      } catch (_) {}
     });
   }
 
@@ -129,6 +149,19 @@ class HomeViewModel extends BaseViewModel {
     _navigationService
         .navigateToStrategyBuilderView(strategyId: strategyId)
         .whenComplete(() => refresh());
+  }
+
+  Future<void> showOnboarding() async {
+    final response = await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.onboarding,
+      barrierDismissible: true,
+      isScrollControlled: true,
+    );
+    if (response?.confirmed == true) {
+      try {
+        await _prefs.setString('onboarding.completed', 'true');
+      } catch (_) {}
+    }
   }
 
   // Background warm-up controls
@@ -252,9 +285,10 @@ class HomeViewModel extends BaseViewModel {
       debugPrint('Stack trace: $stackTrace');
       uiErrorMessage = 'Failed to run backtest: $e';
       notifyListeners();
-      _snackbarService.showSnackbar(
+      showErrorWithRetry(
+        title: 'Backtest gagal',
         message: 'Failed to run backtest: $e',
-        duration: const Duration(seconds: 3),
+        onRetry: () => runStrategy(strategyId, _strategiesIndex),
       );
     } finally {
       setBusy(false);

@@ -143,21 +143,24 @@ class DataParserService {
     try {
       DateTime.parse(firstRow[0].toString());
     } catch (_) {
-      columnError = "Baris pertama kolom 1 (Date) tidak valid: '${firstRow[0]}'";
+      columnError =
+          "Baris pertama kolom 1 (Date) tidak valid: '${firstRow[0]}'";
     }
     if (columnError != null) return columnError;
 
     try {
       double.parse(firstRow[1].toString());
     } catch (_) {
-      columnError = "Baris pertama kolom 2 (Open) bukan angka: '${firstRow[1]}'";
+      columnError =
+          "Baris pertama kolom 2 (Open) bukan angka: '${firstRow[1]}'";
     }
     if (columnError != null) return columnError;
 
     try {
       double.parse(firstRow[2].toString());
     } catch (_) {
-      columnError = "Baris pertama kolom 3 (High) bukan angka: '${firstRow[2]}'";
+      columnError =
+          "Baris pertama kolom 3 (High) bukan angka: '${firstRow[2]}'";
     }
     if (columnError != null) return columnError;
 
@@ -171,7 +174,8 @@ class DataParserService {
     try {
       double.parse(firstRow[4].toString());
     } catch (_) {
-      columnError = "Baris pertama kolom 5 (Close) bukan angka: '${firstRow[4]}'";
+      columnError =
+          "Baris pertama kolom 5 (Close) bukan angka: '${firstRow[4]}'";
     }
     if (columnError != null) return columnError;
 
@@ -189,7 +193,8 @@ class DataParserService {
     try {
       DateTime.parse(row[0].toString());
     } catch (_) {
-      reason = "Baris #$lineNumber kolom 1 (${names[0]}) tidak valid: '${row[0]}'";
+      reason =
+          "Baris #$lineNumber kolom 1 (${names[0]}) tidak valid: '${row[0]}'";
       return reason;
     }
 
@@ -198,7 +203,8 @@ class DataParserService {
       try {
         double.parse(row[i].toString());
       } catch (_) {
-        reason = "Baris #$lineNumber kolom ${i + 1} (${names[i]}) bukan angka: '${row[i]}'";
+        reason =
+            "Baris #$lineNumber kolom ${i + 1} (${names[i]}) bukan angka: '${row[i]}'";
         return reason;
       }
     }
@@ -208,7 +214,8 @@ class DataParserService {
       try {
         double.parse(row[5].toString());
       } catch (_) {
-        reason = "Baris #$lineNumber kolom 6 (${names[5]}) bukan angka: '${row[5]}'";
+        reason =
+            "Baris #$lineNumber kolom 6 (${names[5]}) bukan angka: '${row[5]}'";
         return reason;
       }
     }

@@ -145,7 +145,7 @@ class DataUploadViewModel extends BaseViewModel {
       // Capture detailed parser error for UI display
       parserErrorMessage = e.toString();
       notifyListeners();
-      await _snackbarService.showCustomSnackBar(
+      _snackbarService.showCustomSnackBar(
         variant: SnackbarType.error,
         title: 'Upload gagal',
         message: e.toString(),

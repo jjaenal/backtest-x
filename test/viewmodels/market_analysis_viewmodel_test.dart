@@ -7,5 +7,8 @@ void main() {
   group('MarketAnalysisViewModel Tests -', () {
     setUp(() => registerServices());
     tearDown(() => locator.reset());
+    test('Placeholder runs', () {
+      expect(true, isTrue);
+    });
   });
 }

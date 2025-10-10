@@ -150,3 +150,52 @@ void setupSnackbarUi() {
     ),
   );
 }
+
+/// Helper to show error-styled snackbar with a retry action
+typedef ShowCustomSnackBar = void Function({
+  dynamic variant,
+  String? title,
+  String? message,
+  String? mainButtonTitle,
+  VoidCallback? onMainButtonTapped,
+  Duration? duration,
+});
+
+void showErrorWithRetry({
+  String title = 'Terjadi error',
+  required String message,
+  required VoidCallback onRetry,
+  ShowCustomSnackBar? customShowFn,
+}) {
+  // Lightweight telemetry: log show and retry taps
+  debugPrint('[Telemetry] Error snackbar shown: ' + title + ' | ' + message);
+  final onTap = () {
+    debugPrint('[Telemetry] Retry tapped for: ' + title);
+    try {
+      onRetry();
+    } catch (e) {
+      debugPrint('[Telemetry] Retry handler error: ' + e.toString());
+    }
+  };
+
+  if (customShowFn != null) {
+    customShowFn(
+      variant: SnackbarType.error,
+      title: title,
+      message: message,
+      mainButtonTitle: 'Coba lagi',
+      onMainButtonTapped: onTap,
+      duration: const Duration(seconds: 3),
+    );
+  } else {
+    final service = locator<SnackbarService>();
+    service.showCustomSnackBar(
+      variant: SnackbarType.error,
+      title: title,
+      message: message,
+      mainButtonTitle: 'Coba lagi',
+      onMainButtonTapped: onTap,
+      duration: const Duration(seconds: 3),
+    );
+  }
+}

@@ -15,9 +15,7 @@ import '../helpers/test_helpers.dart';
 class MockSnackbarService extends Mock implements SnackbarService {}
 
 void main() {
-
   group('DataUploadViewModel - Error Handling', () {
-
     setUp(() {
       // Register base mocks
       registerServices();
@@ -48,7 +46,8 @@ void main() {
       vm.selectedTimeframe = 'H1';
       vm.symbolController.text = 'TEST';
 
-      await vm.uploadData();
+      // Ensure method completes without throwing; errors handled internally
+      await expectLater(vm.uploadData(), completes);
 
       expect(vm.parserErrorMessage, isNotEmpty);
       expect(vm.parserErrorMessage, contains('Format CSV tidak valid'));

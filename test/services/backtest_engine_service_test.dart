@@ -39,7 +39,8 @@ void main() {
       );
     });
 
-    test('Returns safe empty result when only a single candle is provided', () async {
+    test('Returns safe empty result when only a single candle is provided',
+        () async {
       final service = BacktestEngineService();
       final now = DateTime.now();
       final md = MarketData(
@@ -71,7 +72,8 @@ void main() {
         createdAt: now,
       );
 
-      final result = await service.runBacktest(marketData: md, strategy: strategy);
+      final result =
+          await service.runBacktest(marketData: md, strategy: strategy);
 
       expect(result.trades, isEmpty);
       expect(result.equityCurve, isEmpty);

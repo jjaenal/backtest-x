@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:uuid/uuid.dart';
+import 'package:backtestx/ui/common/ui_helpers.dart';
 
 class RuleBuilder {
   IndicatorType indicator;
@@ -397,9 +398,10 @@ class StrategyBuilderViewModel extends BaseViewModel {
       _navigationService.back();
     } catch (e) {
       debugPrint('Error saving strategy: $e');
-      _snackbarService.showSnackbar(
-        message: 'Failed to save strategy: $e',
-        duration: const Duration(seconds: 3),
+      showErrorWithRetry(
+        title: 'Gagal menyimpan strategi',
+        message: e.toString(),
+        onRetry: () => saveStrategy(context),
       );
     } finally {
       setBusy(false);
@@ -532,9 +534,10 @@ class StrategyBuilderViewModel extends BaseViewModel {
       );
     } catch (e) {
       debugPrint('Error running preview backtest: $e');
-      _snackbarService.showSnackbar(
-        message: 'Failed to run preview: $e',
-        duration: const Duration(seconds: 3),
+      showErrorWithRetry(
+        title: 'Preview backtest gagal',
+        message: e.toString(),
+        onRetry: () => quickPreviewBacktest(),
       );
       previewResult = null;
     } finally {
