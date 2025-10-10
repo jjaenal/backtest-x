@@ -111,9 +111,7 @@ class HomeViewModel extends BaseViewModel {
   }
 
   void navigateToMarketAnalysis() {
-    _navigationService
-        .navigateToMarketAnalysisView()
-        .whenComplete(() => refresh());
+    _navigationService.navigateToMarketAnalysisView();
   }
 
   void navigateToWorkspace() {

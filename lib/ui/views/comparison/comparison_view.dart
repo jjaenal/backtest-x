@@ -686,11 +686,70 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         children: [
           _buildSectionTitle('Per-Timeframe Stats'),
           const SizedBox(height: 12),
+          // Global TF filter chips and actions
+          Builder(builder: (context) {
+            final tfs = model.getAllAvailableTimeframes();
+            if (tfs.isEmpty) return const SizedBox.shrink();
+            final counts = model.getTimeframeCountsAcrossResults();
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    ...tfs.map((tf) {
+                      final isSelected =
+                          model.selectedTimeframeFilters.contains(tf);
+                      return FilterChip(
+                        selected: isSelected,
+                        showCheckmark: true,
+                        label: Text(
+                          '$tf (${counts[tf] ?? 0})',
+                          style: TextStyle(
+                            color: isSelected
+                                ? Theme.of(context).colorScheme.primary
+                                : null,
+                          ),
+                        ),
+                        onSelected: (_) => model.toggleTimeframeFilter(tf),
+                        selectedColor: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withValues(alpha: 0.12),
+                        checkmarkColor: Theme.of(context).colorScheme.primary,
+                      );
+                    }),
+                    if (model.selectedTimeframeFilters.isNotEmpty)
+                      TextButton.icon(
+                        onPressed: model.clearTimeframeFilters,
+                        icon: const Icon(Icons.clear),
+                        label: const Text('Clear filters'),
+                      ),
+                    const SizedBox(width: 12),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          model.exportComparisonTfStats(format: 'csv'),
+                      icon: const Icon(Icons.download),
+                      label: const Text('Export CSV'),
+                    ),
+                    OutlinedButton(
+                      onPressed: () =>
+                          model.exportComparisonTfStats(format: 'tsv'),
+                      child: const Text('Export TSV'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            );
+          }),
           Column(
             children: List.generate(results.length, (index) {
               final r = results[index];
-              final stats = r.summary.tfStats;
-              if (stats == null || stats.isEmpty) {
+              final stats = model.getFilteredTfStatsFor(r);
+              if (stats.isEmpty) {
                 return const SizedBox.shrink();
               }
               final entries = stats.entries.toList()
@@ -721,6 +780,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                           final trades = (s['trades'] ?? 0).toInt();
                           final wins = (s['wins'] ?? 0).toInt();
                           final wr = (s['winRate'] ?? 0).toDouble();
+                          final pf = (s['profitFactor'] ?? 0).toDouble();
+                          final ex = (s['expectancy'] ?? 0).toDouble();
+                          final avgW = (s['avgWin'] ?? 0).toDouble();
+                          final avgL = (s['avgLoss'] ?? 0).toDouble();
+                          final rr = (s['rr'] ?? 0).toDouble();
                           return _tfStatChip(
                             context,
                             tf,
@@ -728,6 +792,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                             trades,
                             wins,
                             wr,
+                            pf,
+                            ex,
+                            avgW,
+                            avgL,
+                            rr,
                           );
                         }).toList(),
                       ),
@@ -749,6 +818,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     int trades,
     int wins,
     double winRate,
+    double profitFactor,
+    double expectancy,
+    double avgWin,
+    double avgLoss,
+    double rr,
   ) {
     final theme = Theme.of(context);
     return Container(
@@ -772,6 +846,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
           _statChip(context, 'Trades', trades.toString()),
           _statChip(context, 'Wins', wins.toString()),
           _statChip(context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
+          _statChip(context, 'PF', profitFactor.toStringAsFixed(2)),
+          _statChip(context, 'Expectancy', expectancy.toStringAsFixed(2)),
+          _statChip(context, 'AvgWin', avgWin.toStringAsFixed(2)),
+          _statChip(context, 'AvgLoss', avgLoss.toStringAsFixed(2)),
+          _statChip(context, 'R/R', rr.toStringAsFixed(2)),
         ],
       ),
     );

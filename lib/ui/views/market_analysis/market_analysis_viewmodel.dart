@@ -69,7 +69,7 @@ class MarketAnalysisViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
   final _indicatorService = locator<IndicatorService>();
   final _bottomSheetService = locator<BottomSheetService>();
-  final _dataManager = DataManager();
+  final _dataManager = locator<DataManager>();
   MarketData? _marketData;
   MarketData? get marketData => _marketData;
 
@@ -213,10 +213,53 @@ class MarketAnalysisViewModel extends BaseViewModel {
   }
 
   void showIndicatorSettings() {
-    _bottomSheetService.showCustomSheet(
-        variant: BottomSheetType.indicatorSettings,
-        title: 'Chart Indicators',
-        barrierDismissible: true,
-        isScrollControlled: true);
+    _bottomSheetService
+        .showCustomSheet(
+      variant: BottomSheetType.indicatorSettings,
+      title: 'Chart Indicators',
+      barrierDismissible: true,
+      isScrollControlled: true,
+    )
+        .then((response) async {
+      if (response?.confirmed == true && _marketData != null) {
+        // Recalculate indicators based on user prefs
+        final data = response!.data as Map<String, dynamic>;
+
+        // Apply visibility and period preferences
+        final smaPeriod = data['smaPeriod'] as int? ?? 20;
+        final emaPeriod = data['emaPeriod'] as int? ?? 50;
+        final bbPeriod = data['bbPeriod'] as int? ?? 20;
+        final bbStdDev = data['bbStdDev'] as double? ?? 2.0;
+        final rsiPeriod = data['rsiPeriod'] as int? ?? 14;
+        final macdFast = data['macdFast'] as int? ?? 12;
+        final macdSlow = data['macdSlow'] as int? ?? 26;
+        final macdSignal = data['macdSignal'] as int? ?? 9;
+
+        final candles = _marketData!.candles;
+        sma20 = data['showSMA'] == true
+            ? _indicatorService.calculateSMA(candles, smaPeriod)
+            : null;
+        ema50 = data['showEMA'] == true
+            ? _indicatorService.calculateEMA(candles, emaPeriod)
+            : null;
+        bb = data['showBB'] == true
+            ? _indicatorService.calculateBollingerBands(
+                candles, bbPeriod, bbStdDev)
+            : null;
+        rsi = data['showRSI'] == true
+            ? _indicatorService.calculateRSI(candles, rsiPeriod)
+            : null;
+        macd = data['showMACD'] == true
+            ? _indicatorService.calculateMACD(
+                candles,
+                fastPeriod: macdFast,
+                slowPeriod: macdSlow,
+                signalPeriod: macdSignal,
+              )
+            : null;
+
+        notifyListeners();
+      }
+    });
   }
 }

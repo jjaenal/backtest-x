@@ -60,6 +60,30 @@ class _CandlestickChartState extends State<CandlestickChart> {
     });
   }
 
+  @override
+  void didUpdateWidget(covariant CandlestickChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // When candle data changes (e.g., user selects a different market),
+    // reset the visible range to the latest candles to avoid empty view.
+    final oldLen = oldWidget.candles.length;
+    final newLen = widget.candles.length;
+    if (oldLen != newLen || oldWidget.candles != widget.candles) {
+      const visibleCount = 100.0;
+      _endIndex = newLen.toDouble();
+      _startIndex = (_endIndex - visibleCount).clamp(0, _endIndex);
+      _localHighQuality = widget.highQuality;
+      // Notify parent of the new range after the frame to keep things in sync.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _notifyRangeChange();
+      });
+      setState(() {});
+    } else if (oldWidget.highQuality != widget.highQuality) {
+      setState(() {
+        _localHighQuality = widget.highQuality;
+      });
+    }
+  }
+
   void _notifyRangeChange() {
     widget.onRangeChanged?.call(_startIndex.toInt(), _endIndex.toInt());
   }

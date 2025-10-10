@@ -1,3 +1,4 @@
+import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
@@ -148,8 +149,8 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                   candles: model.marketData!.candles,
                   sma: model.sma20,
                   ema: model.ema50,
-                  // bollingerBands: model.bb,
-                  showVolume: false, //model.marketData!.hasVolumeData,
+                  bollingerBands: model.bb,
+                  showVolume: model.marketData!.hasVolumeData,
                   title:
                       '${model.analysisData!.symbol} (${model.analysisData!.timeframe})',
                   onRangeChanged: (startIndex, endIndex) {
