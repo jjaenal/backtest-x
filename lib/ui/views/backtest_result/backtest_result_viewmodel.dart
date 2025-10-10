@@ -164,10 +164,38 @@ class BacktestResultViewModel extends BaseViewModel {
         entries.sort((a, b) => a.key.compareTo(b.key));
         break;
       case TfChartSort.valueAsc:
-        entries.sort((a, b) => a.value.compareTo(b.value));
+        entries.sort((a, b) {
+          final av = a.value;
+          final bv = b.value;
+          final af = av.isFinite;
+          final bf = bv.isFinite;
+          if (af && bf) {
+            final cmp = av.compareTo(bv);
+            return cmp != 0 ? cmp : a.key.compareTo(b.key);
+          }
+          // Place non‑finite (NaN/Infinity) values at the end
+          if (af && !bf) return -1;
+          if (!af && bf) return 1;
+          // Both non‑finite: tie‑break by key
+          return a.key.compareTo(b.key);
+        });
         break;
       case TfChartSort.valueDesc:
-        entries.sort((a, b) => b.value.compareTo(a.value));
+        entries.sort((a, b) {
+          final av = a.value;
+          final bv = b.value;
+          final af = av.isFinite;
+          final bf = bv.isFinite;
+          if (af && bf) {
+            final cmp = bv.compareTo(av);
+            return cmp != 0 ? cmp : a.key.compareTo(b.key);
+          }
+          // Place non‑finite (NaN/Infinity) values at the end
+          if (af && !bf) return -1;
+          if (!af && bf) return 1;
+          // Both non‑finite: tie‑break by key
+          return a.key.compareTo(b.key);
+        });
         break;
     }
 
@@ -210,10 +238,14 @@ class BacktestResultViewModel extends BaseViewModel {
           'R/R',
         ],
       ];
-      final entries = stats.entries.toList()
-        ..sort((a, b) => a.key.compareTo(b.key));
-      for (final e in entries) {
-        final m = e.value;
+      // Respect the current chart order: use getTfMetricSeries() keys
+      final orderedTfs = getTfMetricSeries().keys.toList();
+      // Fallback to alphabetical if no metric series available
+      final keys = orderedTfs.isNotEmpty
+          ? orderedTfs
+          : (stats.keys.toList()..sort());
+      for (final tf in keys) {
+        final m = stats[tf] ?? const {};
         final signals = (m['signals'] ?? 0).toString();
         final trades = (m['trades'] ?? 0).toString();
         final wins = (m['wins'] ?? 0).toString();
@@ -224,7 +256,7 @@ class BacktestResultViewModel extends BaseViewModel {
         final avgLoss = ((m['avgLoss'] ?? 0)).toString();
         final rr = ((m['rr'] ?? 0)).toString();
         rows.add([
-          e.key,
+          tf,
           signals,
           trades,
           wins,

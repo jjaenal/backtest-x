@@ -745,3 +745,27 @@ xl: 32px
 - [x] Batasi lebar HUD (`maxWidth: 200`) dan `ellipsis`
 - [x] Set lebar slider ke `200` agar proporsional
 - [x] Verifikasi di Flutter Web preview pada lebar sempit; tidak ada overflow
+
+---
+
+## 🎯 Focused Checklist — Backtest Result: Per‑TF Sorting
+
+ - [x] Tambah state sort di ViewModel (Value ↑/↓, Timeframe)
+ - [x] Urutkan series di helper sesuai sort terpilih
+ - [x] Tambah dropdown sort di Backtest Result view
+ - [x] Pastikan `PerTfBarChart` render mengikuti urutan input
+ - [x] Sinkronkan urutan ekspor CSV per‑TF dengan urutan chart
+ - [x] Unit test untuk logika pengurutan (NaN, ties, empty)
+
+---
+
+## 🎯 Focused Checklist — Workspace Compare: MTF Visualization
+
+- [ ] Tambah panel Grouped TF Chart di Comparison View
+- [ ] Dropdown metrik untuk grouped chart (winRate, PF, expectancy, rr)
+- [ ] Opsi sort (Timeframe, Value ↑/↓) dan agregasi (Sum/Avg)
+- [ ] Sinkronkan urutan ekspor CSV dengan urutan chart grouped
+- [ ] Export PNG untuk grouped chart (panel dan chart saja)
+- [ ] Unit test untuk agregasi dan pengurutan grouped
+- [ ] Empty state & tooltip deskripsi metrik di Comparison View
+- [ ] Batasi item dan responsif untuk dataset besar

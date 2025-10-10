@@ -29,13 +29,8 @@ class PerTfBarChart extends StatelessWidget {
     }
 
     final theme = Theme.of(context);
+    // Preserve insertion order of provided series (ViewModel already sorted)
     final entries = series.entries.toList();
-    if (sortByValue) {
-      entries.sort((a, b) =>
-          descending ? b.value.compareTo(a.value) : a.value.compareTo(b.value));
-    } else {
-      entries.sort((a, b) => a.key.compareTo(b.key));
-    }
     final capped = maxItems != null && entries.length > (maxItems ?? 0)
         ? entries.sublist(0, maxItems!)
         : entries;
