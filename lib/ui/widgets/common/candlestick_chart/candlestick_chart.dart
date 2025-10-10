@@ -18,6 +18,8 @@ class CandlestickChart extends StatefulWidget {
   final bool highQuality;
   // Tampilkan/hidden slider zoom di kontrol chart.
   final bool showZoomSlider;
+  // Sensitivitas panning horizontal (semakin kecil semakin tidak licin).
+  final double panSensitivity;
 
   const CandlestickChart({
     Key? key,
@@ -32,6 +34,7 @@ class CandlestickChart extends StatefulWidget {
     this.maxDrawCandles = 1500,
     this.highQuality = false,
     this.showZoomSlider = false,
+    this.panSensitivity = 1.0,
   }) : super(key: key);
 
   @override
@@ -63,14 +66,20 @@ class _CandlestickChartState extends State<CandlestickChart> {
   @override
   void didUpdateWidget(covariant CandlestickChart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // When candle data changes (e.g., user selects a different market),
-    // reset the visible range to the latest candles to avoid empty view.
+    // Ketika data candle berubah, jangan paksa viewport kembali ke akhir.
+    // Pertahankan rentang yang sedang terlihat sehingga user bisa scroll mundur.
     final oldLen = oldWidget.candles.length;
     final newLen = widget.candles.length;
     if (oldLen != newLen || oldWidget.candles != widget.candles) {
-      const visibleCount = 100.0;
-      _endIndex = newLen.toDouble();
-      _startIndex = (_endIndex - visibleCount).clamp(0, _endIndex);
+      // Simpan rentang sebelumnya dan klamp terhadap panjang baru.
+      final prevRange = (_endIndex - _startIndex)
+          .clamp(10, newLen.toDouble());
+      // Jika sebelumnya endIndex di luar batas, klamp ke panjang baru.
+      _endIndex = _endIndex.clamp(0, newLen.toDouble());
+      if (_endIndex == 0 && newLen > 0) {
+        _endIndex = newLen.toDouble();
+      }
+      _startIndex = (_endIndex - prevRange).clamp(0, _endIndex);
       _localHighQuality = widget.highQuality;
       // Notify parent of the new range after the frame to keep things in sync.
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -151,9 +160,21 @@ class _CandlestickChartState extends State<CandlestickChart> {
                   },
                   onHorizontalDragUpdate: (details) {
                     setState(() {
-                      final delta = -details.delta.dx;
+                      final visibleCount = (_endIndex - _startIndex)
+                          .toInt()
+                          .clamp(1, widget.candles.length);
+                      const labelWidth = 70.0; // keep in sync with painter
+                      final candleWidth =
+                          ((_chartWidth - labelWidth) / visibleCount)
+                              .clamp(1, _chartWidth);
+                      // Hitung pergeseran berdasarkan piksel -> jumlah candle.
+                      final candlePerPixel = 1 / candleWidth;
                       final range = _endIndex - _startIndex;
-                      final shift = (delta / 300) * range;
+                      var shift = -details.delta.dx * candlePerPixel * widget.panSensitivity;
+                      // Batasi pergeseran per event agar tidak terasa terlalu licin.
+                      const maxShiftPerEvent = 50.0; // dalam satu event drag
+                      if (shift > maxShiftPerEvent) shift = maxShiftPerEvent;
+                      if (shift < -maxShiftPerEvent) shift = -maxShiftPerEvent;
 
                       _startIndex = (_startIndex + shift)
                           .clamp(0, widget.candles.length - range);

@@ -1,5 +1,28 @@
 # TODO - Implementation Checklist
 
+## Top Priorities (Sorted)
+
+### High Priority
+- Workspace Compare: visualize results across timeframes
+- Backtest Result: per‑TF chart sorting by metric value
+- Performance: memory optimization for large datasets (>10k candles)
+- Known Issues: BacktestEngine edge cases; division by zero; parser messages; storage migration
+
+### Medium Priority
+- UI/UX: error handling UI; onboarding tutorial; empty states
+- Documentation: Theming Guide for contributors
+- Export: combined Chart+Panel multi‑page PDF; dynamic file naming
+
+### Low Priority
+- Social sharing integration
+
+## Next Sprint (1–2 weeks)
+
+- Deliver Workspace Compare MTF visualization (charts + summary)
+- Implement per‑TF chart sorting by selected metric
+- Tackle memory optimization for 10k+ candles datasets
+- Draft Theming Guide section (colorScheme, opacity rationale)
+
 ## ✅ Completed (Phase 0)
 
 - [x] Project structure setup
@@ -268,7 +291,10 @@
 3. Update BacktestEngineService to support multi-timeframe conditions — [x]
 4. Adjust StrategyBuilder to define MTF rules cleanly — [x]
 5. Update Backtest Result to show per-timeframe stats — [x]
-   - Per‑timeframe charts visualization — [ ] (follow‑up)
+   - Per‑timeframe charts visualization — [x]
+     • Dropdown metrik (winRate, profitFactor, expectancy, rr, trades, wins, signals, avgWin/avgLoss)
+     • Chart bar horizontal sederhana di panel TF Stats
+     • Follow‑up: sorting by nilai, export gambar chart
 6. Enhance Workspace Compare to visualize results across timeframes — [ ]
 
 ### Day 1-2: Strategy Builder View

@@ -551,6 +551,47 @@ class PdfExportService {
         return 'OR';
     }
   }
+
+  // Build a simple single-page PDF that embeds a PNG image
+  // Optional title appears above the image.
+  Future<Uint8List> buildImageDocument(Uint8List imageBytes,
+      {String? title}) async {
+    final baseFont = await PdfGoogleFonts.notoSansRegular();
+    final boldFont = await PdfGoogleFonts.notoSansBold();
+
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(
+        base: baseFont,
+        bold: boldFont,
+      ),
+    );
+
+    final img = pw.MemoryImage(imageBytes);
+
+    pdf.addPage(
+      pw.Page(
+        margin: const pw.EdgeInsets.all(24),
+        build: (context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              if (title != null && title.isNotEmpty) ...[
+                pw.Text(title,
+                    style: pw.TextStyle(
+                        fontSize: 14, fontWeight: pw.FontWeight.bold)),
+                pw.SizedBox(height: 12),
+              ],
+              pw.Center(
+                child: pw.Image(img, fit: pw.BoxFit.contain),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    return pdf.save();
+  }
 }
 
 // Painter function (typedef) compatible with pdf package

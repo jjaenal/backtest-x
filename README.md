@@ -382,6 +382,14 @@ void main() {
    - Existing indexes on strategies and backtest_results retained
 - Backtest Result improvements:
   - Add "Copy Summary" button to copy backtest stats to clipboard
+  - Per‑Timeframe Charts in Backtest Result:
+    - Dropdown metric selector in TF Stats panel: `winRate`, `profitFactor`, `expectancy`, `rr`, `trades`, `signals`, `wins`, `avgWin`, `avgLoss`
+    - Horizontal bar chart visualization without extra dependencies
+    - Respects selected timeframe chips; updates in real time
+    - Code refs:
+      - `lib/ui/views/backtest_result/backtest_result_viewmodel.dart` → state `selectedTfChartMetric`, `availableTfChartMetrics`, helper `getTfMetricSeries()`
+      - `lib/ui/views/backtest_result/backtest_result_view.dart` → dropdown metric + `PerTfBarChart` integration
+      - `lib/ui/widgets/per_tf_bar_chart.dart` → simple animated horizontal bar chart widget
  - Workspace results quick actions:
    - Add "Copy Trades CSV", "Copy Summary", and "Export CSV" buttons on each result
    - Verified on Web build and preview

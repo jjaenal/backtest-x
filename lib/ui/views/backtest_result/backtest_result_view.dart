@@ -1,15 +1,29 @@
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/ui/widgets/equity_curve_chart.dart';
 import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
+import 'package:backtestx/ui/widgets/per_tf_bar_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
+    as html;
+import 'dart:ui' as ui;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+import 'dart:typed_data';
+import 'dart:io' as io;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:backtestx/ui/widgets/skeleton_loader.dart' as x_skeleton;
 import 'package:stacked/stacked.dart';
 import 'backtest_result_viewmodel.dart';
 
 class BacktestResultView extends StackedView<BacktestResultViewModel> {
   final BacktestResult result;
+  // GlobalKey untuk menangkap tampilan chart per‑timeframe (PNG export)
+  final GlobalKey _tfChartKey = GlobalKey();
+  // GlobalKey untuk menangkap seluruh panel Per‑Timeframe sebagai PNG
+  final GlobalKey _tfPanelKey = GlobalKey();
 
-  const BacktestResultView({
+  BacktestResultView({
     Key? key,
     required this.result,
   }) : super(key: key);
@@ -202,7 +216,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               Expanded(
                                 child: AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 200),
-                                    child: viewModel.isBusy
+                                  child: viewModel.isBusy
                                       ? x_skeleton.SkeletonLoader.box(
                                           context,
                                           height: double.infinity,
@@ -213,8 +227,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                           title:
                                               'Price Action with Entry/Exit Points',
                                           showVolume: false,
-                                          onRangeChanged: (start, end) => viewModel
-                                              .updateChartRange(
+                                          onRangeChanged: (start, end) =>
+                                              viewModel.updateChartRange(
                                                   viewModel.windowStartIndex +
                                                       start,
                                                   viewModel.windowStartIndex +
@@ -263,7 +277,21 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               _buildSectionTitle('Per-Timeframe Stats'),
                               PopupMenuButton<String>(
                                 tooltip: 'Export per-timeframe stats',
-                                onSelected: (value) => viewModel.exportTfStats(format: value),
+                                onSelected: (value) async {
+                                  if (value == 'png_chart_dialog') {
+                                    await _promptExportChartPng(context);
+                                  } else if (value == 'png_panel_dialog') {
+                                    await _promptExportPanelPng(context);
+                                  } else if (value == 'pdf_chart_dialog') {
+                                    await _promptExportChartPdf(context, viewModel);
+                                  } else if (value == 'pdf_panel_dialog') {
+                                    await _promptExportPanelPdf(context, viewModel);
+                                  } else if (value == 'pdf_report') {
+                                    await viewModel.exportPdf();
+                                  } else {
+                                    await viewModel.exportTfStats(format: value);
+                                  }
+                                },
                                 itemBuilder: (context) => [
                                   const PopupMenuItem(
                                     value: 'csv',
@@ -285,17 +313,69 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                       ],
                                     ),
                                   ),
+                                  const PopupMenuItem(
+                                    value: 'png_chart_dialog',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.bar_chart, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Chart PNG…'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'png_panel_dialog',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.dashboard_customize, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Panel PNG…'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'pdf_chart_dialog',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.bar_chart, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Chart PDF…'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'pdf_panel_dialog',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.dashboard_customize, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Panel PDF…'),
+                                      ],
+                                    ),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'pdf_report',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.picture_as_pdf, size: 18),
+                                        SizedBox(width: 8),
+                                        Text('Export Backtest PDF'),
+                                      ],
+                                    ),
+                                  ),
                                 ],
                                 child: TextButton.icon(
                                   onPressed: null,
-                                  icon: const Icon(Icons.download_rounded, size: 18),
+                                  icon: const Icon(Icons.download_rounded,
+                                      size: 18),
                                   label: const Text('Export'),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 12),
-                          _buildTfStats(context, viewModel, result.summary.tfStats!),
+                          _buildTfStats(
+                              context, viewModel, result.summary.tfStats!),
                           const SizedBox(height: 24),
                         ],
                         const SizedBox(height: 24),
@@ -313,7 +393,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                             _buildSectionTitle('Trade History'),
                             PopupMenuButton<String>(
                               tooltip: 'Export trade history',
-                              onSelected: (value) => viewModel.exportTradeHistory(format: value),
+                              onSelected: (value) =>
+                                  viewModel.exportTradeHistory(format: value),
                               itemBuilder: (context) => [
                                 const PopupMenuItem(
                                   value: 'csv',
@@ -338,7 +419,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               ],
                               child: TextButton.icon(
                                 onPressed: null,
-                                icon: const Icon(Icons.download_rounded, size: 18),
+                                icon: const Icon(Icons.download_rounded,
+                                    size: 18),
                                 label: const Text('Export'),
                               ),
                             ),
@@ -352,6 +434,216 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                 ],
               ),
             ),
+    );
+  }
+
+  // Komposisi gambar dengan background solid saat ekspor (tanpa mengubah UI)
+  Future<Uint8List> _composeOpaquePng(ui.Image image,
+      {Color backgroundColor = Colors.white}) async {
+    final w = image.width;
+    final h = image.height;
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(
+      recorder,
+      ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()),
+    );
+    final bgPaint = ui.Paint()..color = backgroundColor;
+    canvas.drawRect(ui.Rect.fromLTWH(0, 0, w.toDouble(), h.toDouble()), bgPaint);
+    canvas.drawImage(image, ui.Offset.zero, ui.Paint());
+    final picture = recorder.endRecording();
+    final composed = await picture.toImage(w, h);
+    final byteData =
+        await composed.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+  Future<void> _exportTfChartPng({double? pixelRatio}) async {
+    try {
+      final renderObject = _tfChartKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderRepaintBoundary) {
+        debugPrint('PNG export failed: RenderRepaintBoundary not found');
+        return;
+      }
+      final pr = pixelRatio ?? ui.window.devicePixelRatio;
+      final image = await renderObject.toImage(pixelRatio: pr);
+      // Gunakan warna theme sebagai background; fallback ke putih jika context null
+      final ctx = _tfChartKey.currentContext;
+      final themeBg = ctx != null
+          ? Theme.of(ctx).colorScheme.surface
+          : Colors.white;
+      final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName =
+          'per_timeframe_chart_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      // Only perform download on web targets
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'image/png');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..download = fileName
+          ..style.display = 'none';
+        html.document.body?.append(anchor);
+        anchor.click();
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      } else {
+        // Mobile/Desktop: simpan file lalu buka share sheet
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = io.File(path);
+        await file.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Chart PNG');
+      }
+    } catch (e) {
+      debugPrint('PNG export failed: $e');
+    }
+  }
+
+  Future<void> _exportTfPanelPng({double? pixelRatio}) async {
+    try {
+      final renderObject = _tfPanelKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderRepaintBoundary) {
+        debugPrint('PNG export failed: Panel RenderRepaintBoundary not found');
+        return;
+      }
+      final pr = pixelRatio ?? ui.window.devicePixelRatio;
+      final image = await renderObject.toImage(pixelRatio: pr);
+      // Gunakan warna theme sebagai background; fallback ke putih jika context null
+      final ctx = _tfPanelKey.currentContext;
+      final themeBg = ctx != null
+          ? Theme.of(ctx).colorScheme.surface
+          : Colors.white;
+      final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName =
+          'per_timeframe_panel_${DateTime.now().millisecondsSinceEpoch}.png';
+
+      if (kIsWeb) {
+        final blob = html.Blob([bytes], 'image/png');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..download = fileName
+          ..style.display = 'none';
+        html.document.body?.append(anchor);
+        anchor.click();
+        anchor.remove();
+        html.Url.revokeObjectUrl(url);
+      } else {
+        // Mobile/Desktop: simpan file lalu buka share sheet
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = io.File(path);
+        await file.writeAsBytes(bytes);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Panel PNG');
+      }
+    } catch (e) {
+      debugPrint('PNG export failed: $e');
+    }
+  }
+
+  Future<void> _promptExportChartPng(BuildContext context) async {
+    final ratio = await _promptPixelRatio(context, title: 'Export Chart PNG');
+    if (ratio != null) {
+      await _exportTfChartPng(pixelRatio: ratio);
+    }
+  }
+
+  Future<void> _promptExportPanelPng(BuildContext context) async {
+    final ratio = await _promptPixelRatio(context, title: 'Export Panel PNG');
+    if (ratio != null) {
+      await _exportTfPanelPng(pixelRatio: ratio);
+    }
+  }
+
+  // ==== Export Chart/Panel as PDF (single page) ====
+  Future<void> _promptExportChartPdf(
+      BuildContext context, BacktestResultViewModel viewModel) async {
+    final ratio = await _promptPixelRatio(context, title: 'Export Chart PDF');
+    if (ratio != null) {
+      await _exportTfChartPdf(viewModel, pixelRatio: ratio);
+    }
+  }
+
+  Future<void> _promptExportPanelPdf(
+      BuildContext context, BacktestResultViewModel viewModel) async {
+    final ratio = await _promptPixelRatio(context, title: 'Export Panel PDF');
+    if (ratio != null) {
+      await _exportTfPanelPdf(viewModel, pixelRatio: ratio);
+    }
+  }
+
+  Future<void> _exportTfChartPdf(BacktestResultViewModel viewModel,
+      {double? pixelRatio}) async {
+    try {
+      final renderObject = _tfChartKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderRepaintBoundary) {
+        debugPrint('PDF export failed: RenderRepaintBoundary not found');
+        return;
+      }
+      final pr = pixelRatio ?? ui.window.devicePixelRatio;
+      final image = await renderObject.toImage(pixelRatio: pr);
+      final ctx = _tfChartKey.currentContext;
+      final themeBg = ctx != null
+          ? Theme.of(ctx).colorScheme.surface
+          : Colors.white;
+      final pngBytes =
+          await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName =
+          'per_timeframe_chart_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await viewModel.exportImagePdf(pngBytes,
+          fileName: fileName, title: 'Per‑Timeframe Chart');
+    } catch (e) {
+      debugPrint('Chart PDF export failed: $e');
+    }
+  }
+
+  Future<void> _exportTfPanelPdf(BacktestResultViewModel viewModel,
+      {double? pixelRatio}) async {
+    try {
+      final renderObject = _tfPanelKey.currentContext?.findRenderObject();
+      if (renderObject is! RenderRepaintBoundary) {
+        debugPrint('PDF export failed: Panel RenderRepaintBoundary not found');
+        return;
+      }
+      final pr = pixelRatio ?? ui.window.devicePixelRatio;
+      final image = await renderObject.toImage(pixelRatio: pr);
+      final ctx = _tfPanelKey.currentContext;
+      final themeBg = ctx != null
+          ? Theme.of(ctx).colorScheme.surface
+          : Colors.white;
+      final pngBytes =
+          await _composeOpaquePng(image, backgroundColor: themeBg);
+      final fileName =
+          'per_timeframe_panel_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await viewModel.exportImagePdf(pngBytes,
+          fileName: fileName, title: 'Per‑Timeframe Panel');
+    } catch (e) {
+      debugPrint('Panel PDF export failed: $e');
+    }
+  }
+
+  Future<double?> _promptPixelRatio(BuildContext context,
+      {required String title}) async {
+    return showDialog<double>(
+      context: context,
+      builder: (ctx) {
+        return SimpleDialog(
+          title: Text(title),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, 1.0),
+              child: const Text('Quality 1x (smaller file)'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, 2.0),
+              child: const Text('Quality 2x (balanced)'),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, 4.0),
+              child: const Text('Quality 4x (sharp, larger file)'),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -578,9 +870,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     );
   }
 
-  Widget _buildTfStats(
-      BuildContext context,
-      BacktestResultViewModel viewModel,
+  Widget _buildTfStats(BuildContext context, BacktestResultViewModel viewModel,
       Map<String, Map<String, num>> tfStats) {
     final theme = Theme.of(context);
     final allEntries = tfStats.entries.toList()
@@ -589,13 +879,102 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     final entries = selected.isEmpty
         ? allEntries
         : allEntries.where((e) => selected.contains(e.key)).toList();
-    return Card(
-      elevation: 1,
+    return RepaintBoundary(
+      key: _tfPanelKey,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Judul panel + watermark kecil di pojok kanan atas
+            Stack(
+              children: [
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildSectionTitle('Per-Timeframe Stats'),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Opacity(
+                    opacity: 0.6,
+                    child: Text(
+                      'BacktestX • ${DateTime.now().toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 10),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Chart metric selector
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Chart metric:',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 180,
+                      child: DropdownButton<String>(
+                        isExpanded: true,
+                        value: viewModel.selectedTfChartMetric,
+                        items: BacktestResultViewModel.availableTfChartMetrics
+                            .map((m) => DropdownMenuItem<String>(
+                                  value: m,
+                                  child: Text(m),
+                                ))
+                            .toList(),
+                        onChanged: (v) {
+                          if (v != null) viewModel.setSelectedTfChartMetric(v);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Sort:',
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 160,
+                      child: DropdownButton<TfChartSort>(
+                        isExpanded: true,
+                        value: viewModel.tfChartSort,
+                        items: const [
+                          DropdownMenuItem(
+                            value: TfChartSort.timeframe,
+                            child: Text('Timeframe'),
+                          ),
+                          DropdownMenuItem(
+                            value: TfChartSort.valueAsc,
+                            child: Text('Value ↑'),
+                          ),
+                          DropdownMenuItem(
+                            value: TfChartSort.valueDesc,
+                            child: Text('Value ↓'),
+                          ),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) viewModel.setTfChartSort(v);
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
             // Timeframe selector chips
             Wrap(
               spacing: 8,
@@ -607,9 +986,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   label: Text(
                     tf,
                     style: TextStyle(
-                      color: isSelected
-                          ? theme.colorScheme.primary
-                          : null,
+                      color: isSelected ? theme.colorScheme.primary : null,
                     ),
                   ),
                   selected: isSelected,
@@ -620,6 +997,19 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                   showCheckmark: true,
                 );
               }).toList(),
+            ),
+            const SizedBox(height: 12),
+            // Per-timeframe bar chart visualization for selected metric
+            PerTfBarChart(
+              series: viewModel.getTfMetricSeries(),
+              metricLabel: viewModel.selectedTfChartMetric,
+              maxItems: 12,
+              sortByValue: viewModel.tfChartSort != TfChartSort.timeframe,
+              descending: viewModel.tfChartSort == TfChartSort.valueDesc,
+              isPercent: viewModel.selectedTfChartMetric == 'winRate',
+              repaintKey: _tfChartKey,
+              overlayWatermark:
+                  'BacktestX • ${viewModel.selectedTfChartMetric} • ${DateTime.now().toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -646,8 +1036,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
                       color: isSelected
-                          ? theme.colorScheme.primary
-                              .withValues(alpha: 0.4)
+                          ? theme.colorScheme.primary.withValues(alpha: 0.4)
                           : theme.dividerColor.withOpacity(0.3),
                     ),
                   ),
@@ -658,12 +1047,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     children: [
                       Text(
                         tf,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : null),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color:
+                                isSelected ? theme.colorScheme.primary : null),
                       ),
                       _statChip(context, 'Signals', signals.toString()),
                       _statChip(context, 'Trades', trades.toString()),
@@ -671,19 +1058,17 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                       _statChip(
                           context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
                       _statChip(
-                          context, 'ProfitFactor', profitFactor.isFinite
+                          context,
+                          'ProfitFactor',
+                          profitFactor.isFinite
                               ? profitFactor.toStringAsFixed(2)
                               : '0.00'),
                       _statChip(
                           context, 'Expectancy', expectancy.toStringAsFixed(2)),
-                      _statChip(
-                          context, 'AvgWin', avgWin.toStringAsFixed(2)),
-                      _statChip(
-                          context, 'AvgLoss', avgLoss.toStringAsFixed(2)),
-                      _statChip(
-                          context, 'R/R', rr.isFinite
-                              ? rr.toStringAsFixed(2)
-                              : '0.00'),
+                      _statChip(context, 'AvgWin', avgWin.toStringAsFixed(2)),
+                      _statChip(context, 'AvgLoss', avgLoss.toStringAsFixed(2)),
+                      _statChip(context, 'R/R',
+                          rr.isFinite ? rr.toStringAsFixed(2) : '0.00'),
                     ],
                   ),
                 );
