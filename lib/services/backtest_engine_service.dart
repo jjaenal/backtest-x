@@ -38,6 +38,8 @@ class BacktestEngineService {
   Future<BacktestResult> runBacktest({
     required MarketData marketData,
     required Strategy strategy,
+    DateTime? startDate, // Optional: limit by start date
+    DateTime? endDate, // Optional: limit by end date
     bool debug = false, // Add debug flag
   }) async {
     // Reset last-run per‑TF stats
@@ -46,7 +48,17 @@ class BacktestEngineService {
     _lastTfWins = {};
     _lastTfWinRate = {};
     final trades = <Trade>[];
-    final candles = marketData.candles;
+    // Optionally slice candles by date range to reduce memory/CPU on large datasets
+    final List<Candle> candles = () {
+      final all = marketData.candles;
+      if (startDate == null && endDate == null) return all;
+      return all.where((c) {
+        final ts = c.timestamp;
+        final afterStart = startDate == null || ts.isAfter(startDate!) || ts.isAtSameMomentAs(startDate!);
+        final beforeEnd = endDate == null || ts.isBefore(endDate!) || ts.isAtSameMomentAs(endDate!);
+        return afterStart && beforeEnd;
+      }).toList(growable: false);
+    }();
     final baseTimeframe = marketData.timeframe;
 
     // Guard: empty or too-short data

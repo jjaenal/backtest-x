@@ -512,3 +512,13 @@ For issues or questions:
 ---
 
 **Built with ❤️ using Flutter & Stacked**
+
+## Performance & UI Update — Candlestick Controls
+
+- Compact control bar: text labels replaced with icons + tooltips.
+- Removed HQ switch; single toggle icon controls quality/performance mode.
+- Responsive layout using `Wrap` with compact density to avoid overflow.
+- HUD constrained to `maxWidth: 200` with ellipsis; slider width set to `200`.
+- Active/inactive states use theme `colorScheme` for consistent dark/light.
+- Verified on Flutter Web preview at narrow widths; no overflow warnings.
+- Code reference: `lib/ui/widgets/common/candlestick_chart/candlestick_chart.dart` (`_buildZoomControls`).

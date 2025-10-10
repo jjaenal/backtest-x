@@ -237,7 +237,7 @@
 
 ### Performance
 
-- [ ] Optimize backtest loop (use Isolate)
+ - [x] Optimize backtest loop (use Isolate)
  - [x] Database indexing
 - [x] Background cache warm-up throttling & batching (kurangi jank)
 - [ ] Lazy loading for large datasets
@@ -701,3 +701,12 @@ xl: 32px
 - Solo founder = prioritize ruthlessly
 
 **Next Step:** Start building Strategy Builder View! 🚀
+
+### Checklist Update — Performance (Candlestick Controls)
+
+- [x] Ganti label teks kontrol chart dengan ikon + tooltip
+- [x] Hapus Switch HQ; gunakan satu ikon toggle untuk mode kualitas/performa
+- [x] Kompakkan kontrol pakai `Wrap` + visual density kecil agar tidak overflow
+- [x] Batasi lebar HUD (`maxWidth: 200`) dan `ellipsis`
+- [x] Set lebar slider ke `200` agar proporsional
+- [x] Verifikasi di Flutter Web preview pada lebar sempit; tidak ada overflow

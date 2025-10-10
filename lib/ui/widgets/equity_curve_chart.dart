@@ -8,6 +8,8 @@ class EquityCurveChart extends StatelessWidget {
   final double initialCapital;
   final bool showDrawdown;
   final ChartMode? chartMode;
+  // Batas maksimum jumlah titik yang digambar untuk performa.
+  final int maxPoints;
 
   const EquityCurveChart({
     Key? key,
@@ -15,6 +17,7 @@ class EquityCurveChart extends StatelessWidget {
     required this.initialCapital,
     this.showDrawdown = true,
     this.chartMode,
+    this.maxPoints = 3000,
   }) : super(key: key);
 
   @override
@@ -145,11 +148,14 @@ class EquityCurveChart extends StatelessWidget {
   }
 
   LineChartData _buildEquityChartData(BuildContext context) {
-    final spots = equityCurve
-        .asMap()
-        .entries
-        .map((e) => FlSpot(e.key.toDouble(), e.value.equity))
-        .toList();
+    // Downsampling berbasis stride agar kurva dengan titik sangat banyak tetap ringan.
+    final stride = equityCurve.length > maxPoints
+        ? (equityCurve.length / maxPoints).ceil()
+        : 1;
+    final spots = <FlSpot>[];
+    for (int i = 0; i < equityCurve.length; i += stride) {
+      spots.add(FlSpot(i.toDouble(), equityCurve[i].equity));
+    }
 
     final minEquity =
         equityCurve.map((e) => e.equity).reduce((a, b) => a < b ? a : b);
@@ -267,11 +273,13 @@ class EquityCurveChart extends StatelessWidget {
   }
 
   LineChartData _buildDrawdownChartData() {
-    final spots = equityCurve
-        .asMap()
-        .entries
-        .map((e) => FlSpot(e.key.toDouble(), -e.value.drawdown))
-        .toList();
+    final stride = equityCurve.length > maxPoints
+        ? (equityCurve.length / maxPoints).ceil()
+        : 1;
+    final spots = <FlSpot>[];
+    for (int i = 0; i < equityCurve.length; i += stride) {
+      spots.add(FlSpot(i.toDouble(), -equityCurve[i].drawdown));
+    }
 
     final maxDD =
         equityCurve.map((e) => e.drawdown).reduce((a, b) => a > b ? a : b);

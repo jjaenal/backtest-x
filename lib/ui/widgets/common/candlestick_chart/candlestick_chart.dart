@@ -12,6 +12,12 @@ class CandlestickChart extends StatefulWidget {
   final bool showVolume;
   final String? title;
   final Function(int startIndex, int endIndex)? onRangeChanged;
+  // Batas maksimum candle yang digambar untuk menjaga performa saat dataset besar.
+  final int maxDrawCandles;
+  // Mode kualitas tinggi: nonaktifkan downsampling agar detail maksimal.
+  final bool highQuality;
+  // Tampilkan/hidden slider zoom di kontrol chart.
+  final bool showZoomSlider;
 
   const CandlestickChart({
     Key? key,
@@ -23,6 +29,9 @@ class CandlestickChart extends StatefulWidget {
     this.showVolume = true,
     this.title,
     this.onRangeChanged,
+    this.maxDrawCandles = 1500,
+    this.highQuality = false,
+    this.showZoomSlider = false,
   }) : super(key: key);
 
   @override
@@ -34,6 +43,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
   double _endIndex = 100;
   int? _hoveredIndex;
   double _chartWidth = 0;
+  bool _localHighQuality = false;
 
   @override
   void initState() {
@@ -42,6 +52,7 @@ class _CandlestickChartState extends State<CandlestickChart> {
     const visibleCount = 100.0;
     _endIndex = widget.candles.length.toDouble();
     _startIndex = (_endIndex - visibleCount).clamp(0, _endIndex);
+    _localHighQuality = widget.highQuality;
 
     // Notify parent
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -144,6 +155,9 @@ class _CandlestickChartState extends State<CandlestickChart> {
                           .colorScheme
                           .outline
                           .withValues(alpha: 0.4),
+                      maxDrawCandles: widget.maxDrawCandles,
+                      highQuality: _localHighQuality,
+                      devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
                     ),
                     child: Container(),
                   ),
@@ -171,32 +185,62 @@ class _CandlestickChartState extends State<CandlestickChart> {
       _endIndex.toInt().clamp(0, widget.candles.length),
     );
 
-    final maxVolume = visibleCandles.isEmpty
+    // Downsampling adaptif berbasis lebar piksel dan batas jumlah.
+    final dpr = MediaQuery.of(context).devicePixelRatio;
+    final minBarPx = (2.0 / dpr).clamp(1.0, 2.0);
+    const labelWidth = 70.0;
+    final maxBarsByPx = ((_chartWidth - labelWidth) / minBarPx)
+        .floor()
+        .clamp(1, visibleCandles.length);
+    final strideByPx = visibleCandles.length > maxBarsByPx
+        ? (visibleCandles.length / maxBarsByPx).ceil()
+        : 1;
+    final strideByCount = visibleCandles.length > widget.maxDrawCandles
+        ? (visibleCandles.length / widget.maxDrawCandles).ceil()
+        : 1;
+    final stride = _localHighQuality
+        ? 1
+        : (strideByPx > strideByCount ? strideByPx : strideByCount);
+
+    // Agregasi volume per bucket agar konsisten dengan downsampling candle.
+    final List<double> bucketVolumes = [];
+    final List<Color> bucketColors = [];
+    for (int i = 0; i < visibleCandles.length; i += stride) {
+      final bucketStart = i;
+      final bucketEnd = (i + stride - 1).clamp(0, visibleCandles.length - 1);
+      double sumVol = 0;
+      double open = visibleCandles[bucketStart].open;
+      double close = visibleCandles[bucketEnd].close;
+      for (int j = bucketStart; j <= bucketEnd; j++) {
+        sumVol += visibleCandles[j].volume;
+      }
+      bucketVolumes.add(sumVol);
+      bucketColors.add(close >= open
+          ? Colors.green.withValues(alpha: 0.5)
+          : Colors.red.withValues(alpha: 0.5));
+    }
+
+    final maxVolume = bucketVolumes.isEmpty
         ? 1.0
-        : visibleCandles.map((c) => c.volume).reduce((a, b) => a > b ? a : b);
+        : bucketVolumes.reduce((a, b) => a > b ? a : b);
 
     return BarChartData(
       alignment: BarChartAlignment.spaceAround,
       maxY: maxVolume * 1.2,
       minY: 0,
-      barGroups: List.generate(
-        visibleCandles.length,
-        (index) {
-          final candle = visibleCandles[index];
-          return BarChartGroupData(
-            x: index,
+      barGroups: [
+        for (int bi = 0; bi < bucketVolumes.length; bi++)
+          BarChartGroupData(
+            x: bi,
             barRods: [
               BarChartRodData(
-                toY: candle.volume,
-                color: candle.isBullish
-                    ? Colors.green.withValues(alpha: 0.5)
-                    : Colors.red.withValues(alpha: 0.5),
+                toY: bucketVolumes[bi],
+                color: bucketColors[bi],
                 width: 3,
               ),
             ],
-          );
-        },
-      ),
+          ),
+      ],
       gridData: FlGridData(show: true, horizontalInterval: maxVolume / 3),
       titlesData: FlTitlesData(
         rightTitles: AxisTitles(
@@ -222,29 +266,126 @@ class _CandlestickChartState extends State<CandlestickChart> {
   Widget _buildZoomControls() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
+      child: Wrap(
+        alignment: WrapAlignment.start,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 6,
+        runSpacing: 4,
         children: [
-          IconButton(icon: const Icon(Icons.zoom_out), onPressed: _zoomOut),
-          Expanded(
-            child: Slider(
-              value: (_endIndex - _startIndex)
-                  .clamp(10, widget.candles.length.toDouble()),
-              min: 10,
-              max: widget.candles.length.toDouble(),
-              onChanged: (value) {
-                setState(() {
-                  final center = (_startIndex + _endIndex) / 2;
-                  _startIndex = (center - value / 2)
-                      .clamp(0, widget.candles.length.toDouble());
-                  _endIndex = (center + value / 2)
-                      .clamp(0, widget.candles.length.toDouble());
-                  _notifyRangeChange();
-                });
-              },
+          Tooltip(
+            message: 'Perkecil',
+            child: IconButton(
+              icon: const Icon(Icons.zoom_out),
+              onPressed: _zoomOut,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             ),
           ),
-          IconButton(icon: const Icon(Icons.zoom_in), onPressed: _zoomIn),
-          IconButton(icon: const Icon(Icons.fit_screen), onPressed: _resetZoom),
+          Tooltip(
+            message: _localHighQuality ? 'Kualitas' : 'Performa',
+            child: IconButton(
+              icon: Icon(
+                Icons.high_quality,
+                color: _localHighQuality
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.5),
+              ),
+              onPressed: () {
+                setState(() {
+                  _localHighQuality = !_localHighQuality;
+                });
+              },
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            ),
+          ),
+          if (widget.showZoomSlider)
+            Tooltip(
+              message: 'Rentang zoom',
+              child: SizedBox(
+                width: 200,
+                child: Slider(
+                  value: (_endIndex - _startIndex)
+                      .clamp(10, widget.candles.length.toDouble()),
+                  min: 10,
+                  max: widget.candles.length.toDouble(),
+                  onChanged: (value) {
+                    setState(() {
+                      final center = (_startIndex + _endIndex) / 2;
+                      _startIndex = (center - value / 2)
+                          .clamp(0, widget.candles.length.toDouble());
+                      _endIndex = (center + value / 2)
+                          .clamp(0, widget.candles.length.toDouble());
+                      _notifyRangeChange();
+                    });
+                  },
+                ),
+              ),
+            ),
+          Tooltip(
+            message: 'Perbesar',
+            child: IconButton(
+              icon: const Icon(Icons.zoom_in),
+              onPressed: _zoomIn,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            ),
+          ),
+          Tooltip(
+            message: 'Reset zoom',
+            child: IconButton(
+              icon: const Icon(Icons.fit_screen),
+              onPressed: _resetZoom,
+              visualDensity: VisualDensity.compact,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints.tightFor(width: 36, height: 36),
+            ),
+          ),
+          // Switch HQ dihapus; status ditandai warna ikon Performa/Kualitas
+          // Builder(builder: (context) {
+          //   final visibleCount = (_endIndex - _startIndex)
+          //       .toInt()
+          //       .clamp(1, widget.candles.length);
+          //   const labelWidth = 70.0;
+          //   final dpr = MediaQuery.of(context).devicePixelRatio;
+          //   final chartAreaWidth = (_chartWidth - labelWidth).clamp(0, _chartWidth);
+          //   final minBarPx = (2.0 / dpr).clamp(1.0, 2.0);
+          //   final maxBarsByPx = (chartAreaWidth / minBarPx)
+          //       .floor()
+          //       .clamp(1, visibleCount);
+          //   final strideByPx = visibleCount > maxBarsByPx
+          //       ? (visibleCount / maxBarsByPx).ceil()
+          //       : 1;
+          //   final strideByCount = visibleCount > widget.maxDrawCandles
+          //       ? (visibleCount / widget.maxDrawCandles).ceil()
+          //       : 1;
+          //   final stride = _localHighQuality
+          //       ? 1
+          //       : (strideByPx > strideByCount ? strideByPx : strideByCount);
+          //   final bucketCount = (visibleCount / stride).ceil();
+          //   return ConstrainedBox(
+          //     constraints: const BoxConstraints(maxWidth: 200),
+          //     child: Text(
+          //       'Vis: $visibleCount  Stride: $stride  Buckets: $bucketCount',
+          //       maxLines: 1,
+          //       softWrap: false,
+          //       overflow: TextOverflow.ellipsis,
+          //       style: TextStyle(
+          //         fontSize: 11,
+          //         color: Theme.of(context)
+          //             .colorScheme
+          //             .onSurface
+          //             .withValues(alpha: 0.6),
+          //       ),
+          //     ),
+          //   );
+          // }),
         ],
       ),
     );
@@ -306,6 +447,12 @@ class CandlestickPainter extends CustomPainter {
   final double chartWidth;
   final Color labelColor;
   final Color gridColor;
+  // Batas maksimum jumlah candle yang digambar (untuk downsampling berbasis stride)
+  final int maxDrawCandles;
+  // Mode kualitas tinggi: menggambar semua titik tanpa downsampling.
+  final bool highQuality;
+  // Untuk menghitung minimum lebar bar dalam logical pixel yang ramah DPI.
+  final double devicePixelRatio;
 
   CandlestickPainter({
     required this.candles,
@@ -319,6 +466,9 @@ class CandlestickPainter extends CustomPainter {
     this.chartWidth = 0,
     required this.labelColor,
     required this.gridColor,
+    this.maxDrawCandles = 1500,
+    this.highQuality = false,
+    this.devicePixelRatio = 1.0,
   });
 
   @override
@@ -384,13 +534,48 @@ class CandlestickPainter extends CustomPainter {
           1);
     }
 
-    // Draw candles
-    for (int i = 0; i < visibleCandles.length; i++) {
-      final candle = visibleCandles[i];
+    // Draw candles dengan downsampling adaptif berbasis piksel dan agregasi OHLC.
+    final minBarPx = (2.0 / devicePixelRatio).clamp(1.0, 2.0);
+    final maxBarsByPx =
+        (chartArea.width / minBarPx).floor().clamp(1, visibleCandles.length);
+    final strideByPx = visibleCandles.length > maxBarsByPx
+        ? (visibleCandles.length / maxBarsByPx).ceil()
+        : 1;
+    final strideByCount = visibleCandles.length > maxDrawCandles
+        ? (visibleCandles.length / maxDrawCandles).ceil()
+        : 1;
+    final stride = highQuality
+        ? 1
+        : (strideByPx > strideByCount ? strideByPx : strideByCount);
+
+    for (int i = 0; i < visibleCandles.length; i += stride) {
+      final bucketStart = i;
+      final bucketEnd = (i + stride - 1).clamp(0, visibleCandles.length - 1);
+      double high = visibleCandles[bucketStart].high;
+      double low = visibleCandles[bucketStart].low;
+      for (int j = bucketStart; j <= bucketEnd; j++) {
+        final c = visibleCandles[j];
+        if (c.high > high) high = c.high;
+        if (c.low < low) low = c.low;
+      }
+      final open = visibleCandles[bucketStart].open;
+      final close = visibleCandles[bucketEnd].close;
+      final isBullish = close >= open;
       final x = (i + 0.5) * candleWidth;
 
-      _drawCandle(
-          canvas, candle, x, bodyWidth, chartArea.height, minPrice, maxPrice);
+      _drawBucketCandle(
+        canvas,
+        x,
+        bodyWidth,
+        chartArea.height,
+        minPrice,
+        maxPrice,
+        open,
+        high,
+        low,
+        close,
+        isBullish,
+      );
     }
 
     // Draw entry/exit markers
@@ -424,29 +609,38 @@ class CandlestickPainter extends CustomPainter {
     }
   }
 
-  void _drawCandle(Canvas canvas, Candle candle, double x, double bodyWidth,
-      double height, double minPrice, double maxPrice) {
+  void _drawBucketCandle(
+      Canvas canvas,
+      double x,
+      double bodyWidth,
+      double height,
+      double minPrice,
+      double maxPrice,
+      double open,
+      double high,
+      double low,
+      double close,
+      bool isBullish) {
     final priceRange = maxPrice - minPrice;
 
-    final highY = height - ((candle.high - minPrice) / priceRange * height);
-    final lowY = height - ((candle.low - minPrice) / priceRange * height);
-    final openY = height - ((candle.open - minPrice) / priceRange * height);
-    final closeY = height - ((candle.close - minPrice) / priceRange * height);
+    final highY = height - ((high - minPrice) / priceRange * height);
+    final lowY = height - ((low - minPrice) / priceRange * height);
+    final openY = height - ((open - minPrice) / priceRange * height);
+    final closeY = height - ((close - minPrice) / priceRange * height);
 
     final wickPaint = Paint()
-      ..color = candle.isBullish ? Colors.green : Colors.red
+      ..color = isBullish ? Colors.green : Colors.red
       ..strokeWidth = 1;
 
-    // Draw wick
+    // Wick
     canvas.drawLine(Offset(x, highY), Offset(x, lowY), wickPaint);
 
-    // Draw body
     final bodyPaint = Paint()
-      ..color = candle.isBullish ? Colors.green : Colors.red
+      ..color = isBullish ? Colors.green : Colors.red
       ..style = PaintingStyle.fill;
 
-    final bodyTop = candle.isBullish ? closeY : openY;
-    final bodyBottom = candle.isBullish ? openY : closeY;
+    final bodyTop = isBullish ? closeY : openY;
+    final bodyBottom = isBullish ? openY : closeY;
     final bodyHeight = (bodyBottom - bodyTop).abs().clamp(1, height);
 
     canvas.drawRect(
@@ -475,8 +669,12 @@ class CandlestickPainter extends CustomPainter {
     final priceRange = maxPrice - minPrice;
     final path = Path();
     bool pathStarted = false;
+    // Downsample titik indikator mengikuti stride adaptif berbasis lebar chart.
+    final minBarPx = (2.0 / devicePixelRatio).clamp(1.0, 2.0);
+    final maxBarsByPx = (chartArea.width / minBarPx).floor().clamp(1, count);
+    final stride = count > maxBarsByPx ? (count / maxBarsByPx).ceil() : 1;
 
-    for (int i = 0; i < count; i++) {
+    for (int i = 0; i < count; i += stride) {
       final globalIndex = offset + i;
       if (globalIndex >= indicator.length) break;
 
