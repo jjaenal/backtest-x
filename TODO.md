@@ -166,6 +166,7 @@
 - [x] Copy trades to clipboard (Workspace)
 - [x] Copy summary to clipboard (Workspace)
  - [x] Backtest Result: export per‑TF metrics (Avg Win/Loss, R/R) dan Entry TFs
+ - [x] Comparison CSV respects chart order (Sort/Agg) on grouped TF chart
 
 ### Multi-Asset Backtest
 
@@ -204,6 +205,7 @@
  - [x] Save/Test button labels show error count when disabled
 - [ ] Add Theming Guide docs for contributors
 - [ ] UI tests for dark mode components (toggle, sheets, chart labels)
+ - [x] Persist Compare view preferences (Sort/Agg) across sessions
 
 ### Data Management
 

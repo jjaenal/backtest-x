@@ -370,6 +370,8 @@ void main() {
 - Comparison View improvements:
   - Show human-readable strategy names in cards and table
   - Add "Copy Summary" menu to copy comparison stats to clipboard
+  - Grouped TF chart CSV export order mirrors UI Sort/Agg selection
+  - Persist Compare view Sort/Agg preferences across sessions
  - Loading skeletons for smoother UX:
    - Workspace results list and quick actions show skeletons on busy
    - Backtest Result chart area uses AnimatedSwitcher to show skeleton while loading

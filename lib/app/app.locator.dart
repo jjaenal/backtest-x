@@ -19,6 +19,7 @@ import '../services/data_validation_service.dart';
 import '../services/indicator_service.dart';
 import '../services/storage_service.dart';
 import '../services/theme_service.dart';
+import '../services/pdf_export_service.dart';
 
 final locator = StackedLocator.instance;
 
@@ -42,4 +43,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => DataValidationService());
   locator.registerLazySingleton(() => DataManager());
   locator.registerLazySingleton(() => ThemeService());
+  locator.registerLazySingleton(() => PdfExportService());
 }

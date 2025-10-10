@@ -2,6 +2,7 @@ import 'package:backtestx/models/trade.dart';
 import 'package:stacked/stacked.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/services/pdf_export_service.dart';
 import 'package:csv/csv.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -9,6 +10,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/services.dart';
+import 'package:backtestx/services/prefs_service.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -16,11 +18,66 @@ class ComparisonViewModel extends BaseViewModel {
   ComparisonViewModel(this.results);
 
   final _storageService = locator<StorageService>();
+  final _pdfExportService = locator<PdfExportService>();
+  final _prefs = PrefsService();
   final Map<String, String> _strategyNames = {};
 
   // Global timeframe filters for per‑TF comparison section
   final Set<String> _selectedTimeframeFilters = {};
   Set<String> get selectedTimeframeFilters => _selectedTimeframeFilters;
+
+  // Per‑TF comparison: selectable metric
+  static const List<String> availableTfMetrics = [
+    'winRate',
+    'profitFactor',
+    'expectancy',
+    'rr',
+    'trades',
+    'signals',
+    'wins',
+    'avgWin',
+    'avgLoss',
+  ];
+
+  String _selectedTfMetric = 'winRate';
+  String get selectedTfMetric => _selectedTfMetric;
+  void setSelectedTfMetric(String metric) {
+    _selectedTfMetric = metric;
+    notifyListeners();
+  }
+
+  // Grouped chart sorting mode
+  static const List<String> groupedSortOptions = [
+    'timeframe',
+    'valueAsc',
+    'valueDesc',
+  ];
+  String _groupedTfSort = 'timeframe';
+  String get groupedTfSort => _groupedTfSort;
+  void setGroupedTfSort(String mode) {
+    if (groupedSortOptions.contains(mode)) {
+      _groupedTfSort = mode;
+      // Persist preference
+      _prefs.setString('compare.groupedTfSort', mode);
+      notifyListeners();
+    }
+  }
+
+  // Aggregation mode for grouped chart sorting (Avg vs Max)
+  static const List<String> groupedAggOptions = [
+    'avg',
+    'max',
+  ];
+  String _groupedTfAgg = 'avg';
+  String get groupedTfAgg => _groupedTfAgg;
+  void setGroupedTfAgg(String mode) {
+    if (groupedAggOptions.contains(mode)) {
+      _groupedTfAgg = mode;
+      // Persist preference
+      _prefs.setString('compare.groupedTfAgg', mode);
+      notifyListeners();
+    }
+  }
 
   Future<void> initialize() async {
     // Load human-readable strategy names for all result.strategyId
@@ -34,7 +91,50 @@ class ComparisonViewModel extends BaseViewModel {
         }
       } catch (_) {}
     }
+    // Load persisted preferences (if present)
+    try {
+      final savedSort = await _prefs.getString('compare.groupedTfSort');
+      if (savedSort != null && groupedSortOptions.contains(savedSort)) {
+        _groupedTfSort = savedSort;
+      }
+      final savedAgg = await _prefs.getString('compare.groupedTfAgg');
+      if (savedAgg != null && groupedAggOptions.contains(savedAgg)) {
+        _groupedTfAgg = savedAgg;
+      }
+    } catch (_) {}
     notifyListeners();
+  }
+
+  // Export a single image into a one‑page PDF
+  Future<bool> exportImagePdf(Uint8List imageBytes, String fileName,
+      {String? title}) async {
+    try {
+      final pdf = await _pdfExportService.buildImageDocument(
+        imageBytes,
+        title: title,
+      );
+
+      if (kIsWeb) {
+        final blob = html.Blob([pdf], 'application/pdf');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if ((anchor.href ?? '').isNotEmpty) {
+          html.Url.revokeObjectUrl(url);
+        }
+        return true;
+      } else {
+        final directory = await getApplicationDocumentsDirectory();
+        final path = '${directory.path}/$fileName';
+        final file = File(path);
+        await file.writeAsBytes(pdf);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Comparison PDF');
+        return true;
+      }
+    } catch (_) {
+      return false;
+    }
   }
 
   String strategyLabelFor(String strategyId) {
@@ -90,6 +190,94 @@ class ComparisonViewModel extends BaseViewModel {
       }
     }
     return filtered;
+  }
+
+  // Series labels per result, e.g., R1: StrategyName
+  List<String> getSeriesLabels() {
+    final labels = <String>[];
+    for (int i = 0; i < results.length; i++) {
+      final r = results[i];
+      final name = strategyLabelFor(r.strategyId);
+      labels.add('R${i + 1}: $name');
+    }
+    return labels;
+  }
+
+  // Build grouped series: timeframe -> { seriesLabel -> metricValue }
+  Map<String, Map<String, double>> getGroupedTfMetricSeries() {
+    final Map<String, Map<String, double>> grouped = {};
+    for (int i = 0; i < results.length; i++) {
+      final r = results[i];
+      final label = 'R${i + 1}: ${strategyLabelFor(r.strategyId)}';
+      final stats = getFilteredTfStatsFor(r);
+      for (final e in stats.entries) {
+        final tf = e.key;
+        final m = e.value;
+        final val = _resolveMetricValue(m, _selectedTfMetric);
+        grouped[tf] ??= {};
+        grouped[tf]![label] = val;
+      }
+    }
+    return grouped;
+  }
+
+  // Compute timeframe order for grouped chart based on sorting mode
+  List<String> getTimeframeOrderForGrouped() {
+    final grouped = getGroupedTfMetricSeries();
+    final tfs = grouped.keys.toList();
+    if (tfs.isEmpty) return [];
+    if (_groupedTfSort == 'timeframe') {
+      tfs.sort();
+      return tfs;
+    }
+    final scoreByTf = <String, double>{};
+    for (final tf in tfs) {
+      final m = grouped[tf] ?? {};
+      if (m.isEmpty) {
+        scoreByTf[tf] = 0.0;
+        continue;
+      }
+      final values = m.values.toList();
+      double score;
+      if (_groupedTfAgg == 'max') {
+        score = values.reduce((a, b) => a > b ? a : b);
+      } else {
+        // Default to average
+        score = values.reduce((a, b) => a + b) / values.length;
+      }
+      scoreByTf[tf] = score;
+    }
+    tfs.sort((a, b) {
+      final va = scoreByTf[a] ?? 0.0;
+      final vb = scoreByTf[b] ?? 0.0;
+      return _groupedTfSort == 'valueAsc' ? va.compareTo(vb) : vb.compareTo(va);
+    });
+    return tfs;
+  }
+
+  double _resolveMetricValue(Map<String, num> m, String metric) {
+    switch (metric) {
+      case 'winRate':
+        return (m['winRate'] ?? 0).toDouble();
+      case 'profitFactor':
+        return (m['profitFactor'] ?? 0).toDouble();
+      case 'expectancy':
+        return (m['expectancy'] ?? 0).toDouble();
+      case 'rr':
+        return (m['rr'] ?? 0).toDouble();
+      case 'trades':
+        return (m['trades'] ?? 0).toDouble();
+      case 'signals':
+        return (m['signals'] ?? 0).toDouble();
+      case 'wins':
+        return (m['wins'] ?? 0).toDouble();
+      case 'avgWin':
+        return (m['avgWin'] ?? 0).toDouble();
+      case 'avgLoss':
+        return (m['avgLoss'] ?? 0).toDouble();
+      default:
+        return 0.0;
+    }
   }
 
   Future<bool> copySummaryToClipboard() async {

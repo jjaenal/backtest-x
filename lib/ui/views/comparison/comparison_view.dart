@@ -1,9 +1,21 @@
 import 'package:backtestx/models/trade.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:ui' as ui;
+import 'dart:typed_data';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:universal_html/html.dart' as html;
+import 'package:flutter/rendering.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
 
 import 'comparison_viewmodel.dart';
+import '../../widgets/grouped_tf_bar_chart.dart';
+
+// Global repaint key for grouped per‑TF chart capture
+final GlobalKey _groupedTfChartKey = GlobalKey();
 
 class ComparisonView extends StackedView<ComparisonViewModel> {
   final List<BacktestResult> results;
@@ -742,6 +754,99 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                // Metric selector and grouped per‑TF chart
+                Row(
+                  children: [
+                    Text('Chart Metric:',
+                        style: Theme.of(context).textTheme.bodyMedium),
+                    const SizedBox(width: 8),
+                    DropdownButton<String>(
+                      value: model.selectedTfMetric,
+                      items: ComparisonViewModel.availableTfMetrics
+                          .map((m) => DropdownMenuItem(
+                                value: m,
+                                child: Text(m),
+                              ))
+                          .toList(),
+                      onChanged: (v) {
+                        if (v != null) model.setSelectedTfMetric(v);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Builder(builder: (context) {
+                  final grouped = model.getGroupedTfMetricSeries();
+                  final labels = model.getSeriesLabels();
+                  final tfOrder = model.getTimeframeOrderForGrouped();
+                  return GroupedTfBarChart(
+                    data: grouped,
+                    seriesOrder: labels,
+                    timeframeOrder: tfOrder,
+                    metricLabel: model.selectedTfMetric,
+                    isPercent: model.selectedTfMetric == 'winRate',
+                    repaintKey: _groupedTfChartKey,
+                    overlayWatermark:
+                        'BacktestX • ${model.selectedTfMetric} • ${DateTime.now().toIso8601String().replaceFirst('T', ' ').substring(0, 16)}',
+                  );
+                }),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    // Sorting dropdown
+                    DropdownButton<String>(
+                      value: model.groupedTfSort,
+                      items: const [
+                        DropdownMenuItem(
+                            value: 'timeframe', child: Text('Sort: TF')),
+                        DropdownMenuItem(
+                            value: 'valueAsc', child: Text('Sort: Value ↑')),
+                        DropdownMenuItem(
+                            value: 'valueDesc', child: Text('Sort: Value ↓')),
+                      ],
+                      onChanged: (v) =>
+                          v != null ? model.setGroupedTfSort(v) : null,
+                    ),
+                    // Aggregation dropdown (Avg vs Max)
+                    DropdownButton<String>(
+                      value: model.groupedTfAgg,
+                      items: const [
+                        DropdownMenuItem(value: 'avg', child: Text('Agg: Avg')),
+                        DropdownMenuItem(value: 'max', child: Text('Agg: Max')),
+                      ],
+                      onChanged: (v) =>
+                          v != null ? model.setGroupedTfAgg(v) : null,
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _exportGroupedChartPng(
+                        context,
+                        model,
+                        pixelRatio: 2.0,
+                      ),
+                      icon: const Icon(Icons.image),
+                      label: const Text('Export Chart PNG'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _exportGroupedChartPdf(
+                        context,
+                        model,
+                        pixelRatio: 2.0,
+                      ),
+                      icon: const Icon(Icons.picture_as_pdf),
+                      label: const Text('Export Chart PDF'),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () => _exportGroupedChartCsv(
+                        context,
+                        model,
+                      ),
+                      icon: const Icon(Icons.table_chart),
+                      label: const Text('Export Chart CSV'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
               ],
             );
           }),
@@ -878,5 +983,134 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         ],
       ),
     );
+  }
+
+  Future<void> _exportGroupedChartPng(
+    BuildContext context,
+    ComparisonViewModel model, {
+    double pixelRatio = 2.0,
+  }) async {
+    try {
+      final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
+      if (bytes == null) return;
+      final composed = await _composeOpaquePng(context, bytes);
+      final fileName =
+          'comparison_grouped_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.png';
+      if (kIsWeb) {
+        final blob = html.Blob([composed], 'image/png');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if ((anchor.href ?? '').isNotEmpty) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        final path = '${dir.path}/$fileName';
+        final file = File(path);
+        await file.writeAsBytes(composed);
+        await Share.shareXFiles([XFile(path)], text: 'BacktestX Grouped Chart');
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _exportGroupedChartPdf(
+    BuildContext context,
+    ComparisonViewModel model, {
+    double pixelRatio = 2.0,
+  }) async {
+    try {
+      final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
+      if (bytes == null) return;
+      final composed = await _composeOpaquePng(context, bytes);
+      final fileName =
+          'comparison_grouped_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      await model.exportImagePdf(
+        composed,
+        fileName,
+        title: 'Grouped Per‑TF: ${model.selectedTfMetric}',
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _exportGroupedChartCsv(
+    BuildContext context,
+    ComparisonViewModel model,
+  ) async {
+    try {
+      final grouped = model.getGroupedTfMetricSeries();
+      final labels = model.getSeriesLabels();
+      // Respect the current timeframe ordering used in the chart
+      final tfs = model.getTimeframeOrderForGrouped();
+      final rows = <List<String>>[];
+      rows.add(['Timeframe', ...labels]);
+      for (final tf in tfs) {
+        final m = grouped[tf] ?? {};
+        final row = <String>[tf];
+        for (final label in labels) {
+          final v = m[label];
+          row.add(v == null ? '' : v.toString());
+        }
+        rows.add(row);
+      }
+      final csvContent = rows.map((r) => r.join(',')).join('\n');
+      final fileName =
+          'grouped_tf_chart_${model.selectedTfMetric}_${DateTime.now().millisecondsSinceEpoch}.csv';
+      if (kIsWeb) {
+        final blob = html.Blob([csvContent], 'text/csv');
+        final url = html.Url.createObjectUrlFromBlob(blob);
+        final anchor = html.AnchorElement(href: url)
+          ..setAttribute('download', fileName)
+          ..click();
+        if ((anchor.href ?? '').isNotEmpty) {
+          html.Url.revokeObjectUrl(url);
+        }
+      } else {
+        final dir = await getApplicationDocumentsDirectory();
+        final path = '${dir.path}/$fileName';
+        final file = File(path);
+        await file.writeAsString(csvContent);
+        await Share.shareXFiles([XFile(path)],
+            text: 'BacktestX Grouped TF Chart CSV');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export CSV gagal: $e')),
+        );
+      }
+    }
+  }
+
+  Future<Uint8List?> _captureWidgetPng(GlobalKey key, double pixelRatio) async {
+    try {
+      final boundary =
+          key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) return null;
+      final image = await boundary.toImage(pixelRatio: pixelRatio);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      return byteData?.buffer.asUint8List();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<Uint8List> _composeOpaquePng(
+      BuildContext context, Uint8List rawPngBytes) async {
+    final uiImage = await decodeImageFromList(rawPngBytes);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final paint = Paint()..color = Theme.of(context).colorScheme.surface;
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, uiImage.width.toDouble(), uiImage.height.toDouble()),
+      paint,
+    );
+    canvas.drawImage(uiImage, const Offset(0, 0), Paint());
+    final picture = recorder.endRecording();
+    final composedImage = await picture.toImage(uiImage.width, uiImage.height);
+    final byteData =
+        await composedImage.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
   }
 }
