@@ -529,3 +529,12 @@ For issues or questions:
 - Active/inactive states use theme `colorScheme` for consistent dark/light.
 - Verified on Flutter Web preview at narrow widths; no overflow warnings.
 - Code reference: `lib/ui/widgets/common/candlestick_chart/candlestick_chart.dart` (`_buildZoomControls`).
+
+## Startup View — Animation & Layout
+
+- Centered step display using `AnimatedSwitcher`; shows one active step at a time with smooth fade/slide.
+- Removed loader (candlestick animation and "Memuat…" text) for cleaner focus.
+- Removed check icons; progress is shown compactly as `(x/y)` next to step text.
+- Micro-delay pacing between steps handled in `StartupViewModel` for natural rhythm.
+- Branding header retained: logo glow, gradient title, accent divider, and subtle background pattern.
+- Code reference: `lib/ui/views/startup/startup_view.dart`, `lib/ui/views/startup/startup_viewmodel.dart`.

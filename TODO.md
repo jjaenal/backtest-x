@@ -156,6 +156,9 @@
 - [ ] Onboarding tutorial
 - [ ] Empty states
 - [x] Loading skeletons
+ - [x] Startup view: centered animated steps (AnimatedSwitcher)
+ - [x] Startup view: remove loader and check icon
+ - [x] Startup view: micro-delay pacing for smoother transitions
 - [x] Home: "Loading cache..." banner saat warm-up background
 - [x] Home: kontrol AppBar untuk pause/enable dan Load Now
 - [x] Home: skeleton angka quick stats saat busy
