@@ -1,12 +1,22 @@
 import 'dart:typed_data';
+import 'package:backtestx/core/data_manager.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:backtestx/models/trade.dart';
+import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/services/storage_service.dart';
 
 class PdfExportService {
   Future<Uint8List> buildBacktestReport(BacktestResult result) async {
+    // Fetch full strategy details if available
+    final storage = locator<StorageService>();
+    final Strategy? strategy = await storage.getStrategy(result.strategyId);
+    // Fetch market data info (symbol/timeframe) from cache
+    final dataManager = locator<DataManager>();
+    final marketData = dataManager.getData(result.marketDataId);
     // Use Google Noto Sans fonts to support Unicode
     final baseFont = await PdfGoogleFonts.notoSansRegular();
     final boldFont = await PdfGoogleFonts.notoSansBold();
@@ -28,7 +38,7 @@ class PdfExportService {
         build: (context) {
           return [
             pw.Padding(
-              padding: const pw.EdgeInsets.all(24),
+              padding: const pw.EdgeInsets.all(16),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
@@ -45,8 +55,21 @@ class PdfExportService {
                                 fontWeight: pw.FontWeight.bold,
                               )),
                           pw.SizedBox(height: 4),
-                          pw.Text('Strategy: ${result.strategyId}',
+                          pw.Text(
+                              'Strategy: ${strategy?.name ?? result.strategyId}',
                               style: const pw.TextStyle(fontSize: 12)),
+                          pw.SizedBox(height: 2),
+                          pw.Text(
+                              'Symbol: ${marketData?.symbol ?? 'Unknown'} (${marketData?.timeframe ?? 'Unknown'})',
+                              style: const pw.TextStyle(fontSize: 10)),
+                          if (result.equityCurve.isNotEmpty)
+                            pw.Padding(
+                              padding: const pw.EdgeInsets.only(top: 2),
+                              child: pw.Text(
+                                'Data Range: ${dateFormat.format(result.equityCurve.first.timestamp)} — ${dateFormat.format(result.equityCurve.last.timestamp)}',
+                                style: const pw.TextStyle(fontSize: 9),
+                              ),
+                            ),
                         ],
                       ),
                       pw.Text(
@@ -56,6 +79,70 @@ class PdfExportService {
                     ],
                   ),
                   pw.SizedBox(height: 16),
+
+                  // Strategy Details (if available)
+                  if (strategy != null) ...[
+                    pw.Container(
+                      decoration: pw.BoxDecoration(
+                        border:
+                            pw.Border.all(color: PdfColors.grey300, width: 0.5),
+                        borderRadius: pw.BorderRadius.circular(8),
+                      ),
+                      padding: const pw.EdgeInsets.all(12),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('Strategy Details',
+                              style: pw.TextStyle(
+                                fontSize: 14,
+                                fontWeight: pw.FontWeight.bold,
+                              )),
+                          pw.SizedBox(height: 8),
+                          _summaryRow('Name', strategy.name),
+                          _summaryRow('Initial Capital',
+                              _fmtCurrencyUsd(strategy.initialCapital)),
+                          _summaryRow(
+                              'Created', dateFormat.format(strategy.createdAt)),
+                          _summaryRow(
+                              'Updated',
+                              strategy.updatedAt != null
+                                  ? dateFormat.format(strategy.updatedAt!)
+                                  : '-'),
+                          pw.SizedBox(height: 8),
+                          pw.Text('Risk Management',
+                              style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold)),
+                          ..._riskRows(strategy.riskManagement),
+                          pw.SizedBox(height: 8),
+                          pw.Text('Entry Rules',
+                              style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold)),
+                          ...strategy.entryRules
+                              .map((r) => pw.Padding(
+                                    padding: const pw.EdgeInsets.symmetric(
+                                        vertical: 2),
+                                    child: pw.Text('• ${_ruleLabel(r)}'),
+                                  ))
+                              .toList(),
+                          pw.SizedBox(height: 8),
+                          pw.Text('Exit Rules',
+                              style: pw.TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: pw.FontWeight.bold)),
+                          ...strategy.exitRules
+                              .map((r) => pw.Padding(
+                                    padding: const pw.EdgeInsets.symmetric(
+                                        vertical: 2),
+                                    child: pw.Text('• ${_ruleLabel(r)}'),
+                                  ))
+                              .toList(),
+                        ],
+                      ),
+                    ),
+                    pw.SizedBox(height: 16),
+                  ],
 
                   // Summary
                   pw.Container(
@@ -128,6 +215,9 @@ class PdfExportService {
                     ),
                   ),
                   pw.SizedBox(height: 16),
+
+                  // Charts (Equity & Drawdown)
+                  ..._buildCharts(result),
 
                   // Trades table
                   pw.Text('Trade History',
@@ -220,4 +310,354 @@ class PdfExportService {
     final f = NumberFormat.currency(symbol: '\$');
     return f.format(value);
   }
+
+  // ===== Charts (PDF) =====
+  List<pw.Widget> _buildCharts(BacktestResult result) {
+    final eqPoints = result.equityCurve;
+    if (eqPoints.isEmpty) {
+      return [
+        pw.Text('Charts',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        pw.Text('No equity curve data available.'),
+        pw.SizedBox(height: 16),
+      ];
+    }
+
+    // Map to primitive series for plotting
+    final equitySeries = eqPoints.map((p) => p.equity).toList();
+    final drawdown = _computeDrawdownPercent(equitySeries);
+    final minEq = equitySeries.reduce((a, b) => a < b ? a : b);
+    final maxEq = equitySeries.reduce((a, b) => a > b ? a : b);
+    final minDD = drawdown.reduce((a, b) => a < b ? a : b);
+    final maxDD = drawdown.reduce((a, b) => a > b ? a : b);
+    final fmtDate = DateFormat('yyyy-MM-dd');
+    final startDate = fmtDate.format(eqPoints.first.timestamp);
+    final endDate = fmtDate.format(eqPoints.last.timestamp);
+    final nfEquity = NumberFormat('#,##0');
+    final nfPercent = NumberFormat('0.0');
+
+    return [
+      pw.Text('Charts',
+          style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
+      pw.SizedBox(height: 8),
+      // Chart 1: Equity Curve (full width)
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Equity Curve',
+              style:
+                  pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          pw.Container(
+            height: 230,
+            width: double.infinity,
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            padding: const pw.EdgeInsets.all(10),
+            child: pw.CustomPaint(
+              painter: _lineChartPainter(
+                equitySeries,
+                PdfColors.blue,
+                showZeroLine: false,
+                showGrid: true,
+                gridCount: 4,
+                showVerticalGrid: true,
+                vGridCount: 4,
+              ),
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('Y Min: ${nfEquity.format(minEq)}',
+                  style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('Y Max: ${nfEquity.format(maxEq)}',
+                  style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('X Min: $startDate',
+                  style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('X Max: $endDate',
+                  style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 12),
+      // Chart 2: Drawdown % (full width)
+      pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          pw.Text('Drawdown %',
+              style:
+                  pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          pw.Container(
+            height: 230,
+            width: double.infinity,
+            decoration: pw.BoxDecoration(
+              border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+              borderRadius: pw.BorderRadius.circular(8),
+            ),
+            padding: const pw.EdgeInsets.all(10),
+            child: pw.CustomPaint(
+              painter: _lineChartPainter(
+                drawdown,
+                PdfColors.red,
+                invertY: true,
+                showZeroLine: true,
+                showGrid: true,
+                gridCount: 4,
+                showVerticalGrid: true,
+                vGridCount: 4,
+              ),
+            ),
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('Y Min: ${nfPercent.format(minDD)}%',
+                  style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('Y Max: ${nfPercent.format(maxDD)}%',
+                  style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+          pw.SizedBox(height: 4),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text('X Min: $startDate',
+                  style: const pw.TextStyle(fontSize: 9)),
+              pw.Text('X Max: $endDate',
+                  style: const pw.TextStyle(fontSize: 9)),
+            ],
+          ),
+        ],
+      ),
+      pw.SizedBox(height: 16),
+    ];
+  }
+
+  List<double> _computeDrawdownPercent(List<double> equity) {
+    final result = <double>[];
+    double peak = equity.first;
+    for (final v in equity) {
+      if (v > peak) peak = v;
+      final dd = peak == 0 ? 0.0 : (peak - v) / peak * 100.0;
+      result.add(dd);
+    }
+    return result;
+  }
+
+  List<pw.Widget> _riskRows(RiskManagement rm) {
+    final riskTypeLabel =
+        rm.riskType == RiskType.fixedLot ? 'Fixed Lot' : 'Percentage Risk';
+    final riskValueLabel = rm.riskType == RiskType.fixedLot
+        ? rm.riskValue.toStringAsFixed(2)
+        : '${rm.riskValue.toStringAsFixed(2)}%';
+
+    final rows = <pw.Widget>[
+      _summaryRow('Risk Type', riskTypeLabel),
+      _summaryRow('Risk Value', riskValueLabel),
+      if (rm.stopLoss != null)
+        _summaryRow('Stop Loss', rm.stopLoss!.toStringAsFixed(2)),
+      if (rm.takeProfit != null)
+        _summaryRow('Take Profit', rm.takeProfit!.toStringAsFixed(2)),
+      _summaryRow(
+        'Trailing Stop',
+        rm.useTrailingStop
+            ? 'On${rm.trailingStopDistance != null ? ' (${rm.trailingStopDistance!.toStringAsFixed(2)})' : ''}'
+            : 'Off',
+      ),
+    ];
+    return rows;
+  }
+
+  String _ruleLabel(StrategyRule r) {
+    final tf = r.timeframe != null ? '[${r.timeframe}] ' : '';
+    final indicator = _indicatorLabel(r.indicator);
+    final op = _operatorLabel(r.operator);
+    final valueText = r.value.when(
+      number: (v) => v.toStringAsFixed(2),
+      indicator: (type, period) {
+        final base = _indicatorLabel(type);
+        return period != null ? '$base($period)' : base;
+      },
+    );
+    final logic = r.logicalOperator != null
+        ? ' ${_logicalLabel(r.logicalOperator!)}'
+        : '';
+    return '$tf$indicator $op $valueText$logic';
+  }
+
+  String _indicatorLabel(IndicatorType i) {
+    switch (i) {
+      case IndicatorType.sma:
+        return 'SMA';
+      case IndicatorType.ema:
+        return 'EMA';
+      case IndicatorType.rsi:
+        return 'RSI';
+      case IndicatorType.macd:
+        return 'MACD';
+      case IndicatorType.atr:
+        return 'ATR';
+      case IndicatorType.bollingerBands:
+        return 'Bollinger Bands';
+      case IndicatorType.close:
+        return 'Close';
+      case IndicatorType.open:
+        return 'Open';
+      case IndicatorType.high:
+        return 'High';
+      case IndicatorType.low:
+        return 'Low';
+    }
+  }
+
+  String _operatorLabel(ComparisonOperator o) {
+    switch (o) {
+      case ComparisonOperator.greaterThan:
+        return '>';
+      case ComparisonOperator.lessThan:
+        return '<';
+      case ComparisonOperator.greaterThanOrEqual:
+        return '≥';
+      case ComparisonOperator.lessThanOrEqual:
+        return '≤';
+      case ComparisonOperator.equals:
+        return '=';
+      case ComparisonOperator.crossAbove:
+        return 'crosses above';
+      case ComparisonOperator.crossBelow:
+        return 'crosses below';
+    }
+  }
+
+  String _logicalLabel(LogicalOperator l) {
+    switch (l) {
+      case LogicalOperator.and:
+        return 'AND';
+      case LogicalOperator.or:
+        return 'OR';
+    }
+  }
+}
+
+// Painter function (typedef) compatible with pdf package
+pw.CustomPainter _lineChartPainter(
+  List<double> series,
+  PdfColor color, {
+  bool invertY = false,
+  bool showZeroLine = false,
+  bool showGrid = true,
+  int gridCount = 4,
+  bool showVerticalGrid = false,
+  int vGridCount = 4,
+}) {
+  return (PdfGraphics canvas, PdfPoint size) {
+    final width = size.x;
+    final height = size.y;
+
+    // Border
+    canvas
+      ..setStrokeColor(PdfColors.grey300)
+      ..setLineWidth(0.5)
+      ..moveTo(0, 0)
+      ..lineTo(width, 0)
+      ..lineTo(width, height)
+      ..lineTo(0, height)
+      ..closePath()
+      ..strokePath();
+
+    if (series.length < 2) return;
+
+    final minVal = series.reduce((a, b) => a < b ? a : b);
+    final maxVal = series.reduce((a, b) => a > b ? a : b);
+    final span = (maxVal - minVal).abs() < 1e-9 ? 1.0 : (maxVal - minVal);
+
+    const left = 4.0;
+    final right = width - 4.0;
+    const top = 4.0;
+    final bottom = height - 4.0;
+    final chartW = right - left;
+    final chartH = bottom - top;
+
+    // Grid lines (horizontal)
+    if (showGrid && gridCount > 1) {
+      canvas
+        ..setStrokeColor(PdfColors.grey200)
+        ..setLineWidth(0.3);
+      for (int i = 1; i < gridCount; i++) {
+        final y = top + chartH * (i / gridCount);
+        canvas
+          ..moveTo(left, y)
+          ..lineTo(right, y)
+          ..strokePath();
+      }
+    }
+
+    // Grid lines (vertical)
+    if (showVerticalGrid && vGridCount > 1) {
+      canvas
+        ..setStrokeColor(PdfColors.grey200)
+        ..setLineWidth(0.3);
+      for (int i = 1; i < vGridCount; i++) {
+        final x = left + chartW * (i / vGridCount);
+        canvas
+          ..moveTo(x, top)
+          ..lineTo(x, bottom)
+          ..strokePath();
+      }
+    }
+
+    // Optional zero line (for drawdown)
+    if (showZeroLine) {
+      canvas
+        ..setStrokeColor(PdfColors.grey400)
+        ..setLineWidth(0.5)
+        ..moveTo(left, bottom)
+        ..lineTo(right, bottom)
+        ..strokePath();
+    }
+
+    final stepX = chartW / (series.length - 1);
+
+    // Draw polyline
+    canvas
+      ..setStrokeColor(color)
+      ..setLineWidth(1.0);
+
+    double x0 = left;
+    double y0 = _mapY(series.first, minVal, span, top, chartH, invertY);
+    canvas.moveTo(x0, y0);
+    for (int i = 1; i < series.length; i++) {
+      final x1 = left + stepX * i;
+      final y1 = _mapY(series[i], minVal, span, top, chartH, invertY);
+      canvas.lineTo(x1, y1);
+    }
+    canvas.strokePath();
+  };
+}
+
+double _mapY(
+  double v,
+  double minVal,
+  double span,
+  double top,
+  double height,
+  bool invert,
+) {
+  final norm = (v - minVal) / span;
+  final y = top + (invert ? norm : (1 - norm)) * height;
+  return y;
 }

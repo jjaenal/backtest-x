@@ -134,11 +134,11 @@
 
 - [x] Export trades to CSV
 - [x] Export comparison to CSV
-- [x] Generate PDF report (basic)
+- [x] Generate PDF report (enhanced)
   - [x] Summary stats
   - [x] Trade list
-  - [ ] Strategy details (Next task)
-  - [ ] Charts
+  - [x] Strategy details
+  - [x] Charts (grid vertikal/horizontal, X/Y min–max, rentang tanggal)
 - [ ] Share via social media
 - [x] Copy trades to clipboard (Workspace)
 - [x] Copy summary to clipboard (Workspace)
