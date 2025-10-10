@@ -98,15 +98,15 @@
 - [x] View historical results per strategy
 - [x] Compare results
 - [x] Quick run backtest
- - [x] Quick batch backtest (Run Batch)
- - [x] Disable quick actions while running (spinner/progress)
- - [x] Copy trades CSV from results list
- - [x] Copy summary from results list
- - [x] Export trades CSV from results list
- - [x] Filter results by Profit Only, PF > 1, Win Rate > 50%
- - [x] Filter results by Symbol and Timeframe
- - [x] Filter results by Date Range (Start/End)
- - [x] Export filtered results CSV from results list
+- [x] Quick batch backtest (Run Batch)
+- [x] Disable quick actions while running (spinner/progress)
+- [x] Copy trades CSV from results list
+- [x] Copy summary from results list
+- [x] Export trades CSV from results list
+- [x] Filter results by Profit Only, PF > 1, Win Rate > 50%
+- [x] Filter results by Symbol and Timeframe
+- [x] Filter results by Date Range (Start/End)
+- [x] Export filtered results CSV from results list
 
 **Estimated Time:** 1-2 days
 
@@ -137,11 +137,11 @@
 - [x] Generate PDF report (basic)
   - [x] Summary stats
   - [x] Trade list
-  - [ ] Strategy details
+  - [ ] Strategy details (Next task)
   - [ ] Charts
 - [ ] Share via social media
- - [x] Copy trades to clipboard (Workspace)
- - [x] Copy summary to clipboard (Workspace)
+- [x] Copy trades to clipboard (Workspace)
+- [x] Copy summary to clipboard (Workspace)
 
 ### Multi-Asset Backtest
 
@@ -154,7 +154,7 @@
 
 - [ ] Onboarding tutorial
 - [ ] Empty states
- - [x] Loading skeletons
+- [x] Loading skeletons
 - [x] Home: "Loading cache..." banner saat warm-up background
 - [x] Home: kontrol AppBar untuk pause/enable dan Load Now
 - [x] Home: skeleton angka quick stats saat busy
@@ -168,11 +168,13 @@
 - [x] Disable Save/Test buttons when fatal errors; show tooltips
 - [x] Inline errorText on problematic fields (Value, Compare With, Period)
 - [x] Red border highlight on rule cards with errors
- - [x] Operator-specific validation for crossAbove/crossBelow
- - [ ] Add Base TF vs Rule TF badge in preview results
- - [x] Tooltip for timeframe dropdown explaining correction behavior
- - [x] Auto-switch Value ke Indicator untuk operator crossAbove/crossBelow
- - [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
+- [x] Operator-specific validation for crossAbove/crossBelow
+- [ ] Add Base TF vs Rule TF badge in preview results
+- [x] Tooltip for timeframe dropdown explaining correction behavior
+- [x] Auto-switch Value ke Indicator untuk operator crossAbove/crossBelow
+- [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
+ - [x] Strategy Builder: error summary banner under Save button
+ - [x] Save/Test button labels show error count when disabled
 - [ ] Add Theming Guide docs for contributors
 - [ ] UI tests for dark mode components (toggle, sheets, chart labels)
 
@@ -237,12 +239,12 @@
 
 ### Performance
 
- - [x] Optimize backtest loop (use Isolate)
- - [x] Database indexing
+- [x] Optimize backtest loop (use Isolate)
+- [x] Database indexing
 - [x] Background cache warm-up throttling & batching (kurangi jank)
-- [ ] Lazy loading for large datasets
- - [ ] Memory optimization
-   - [x] Chart rendering optimizations for >1000 candles
+- [x] Lazy loading for large datasets — Workspace results list (Load more)
+- [ ] Memory optimization
+  - [x] Chart rendering optimizations for >1000 candles
 
 ### Code Quality
 
@@ -388,7 +390,7 @@
 - [ ] PWA configuration
 - [ ] IndexedDB for storage
 - [ ] File download/upload
- - [ ] Address web init warnings (service worker token, FlutterLoader.load)
+- [ ] Address web init warnings (service worker token, FlutterLoader.load)
 
 ---
 

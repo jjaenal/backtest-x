@@ -783,7 +783,8 @@ class WorkspaceView extends StatelessWidget {
     WorkspaceViewModel model,
     Strategy strategy,
   ) {
-    final results = model.getFilteredResults(strategy.id);
+    final allCount = model.getFilteredResults(strategy.id).length;
+    final results = model.getPagedFilteredResults(strategy.id);
 
     return Container(
       decoration: BoxDecoration(
@@ -801,7 +802,7 @@ class WorkspaceView extends StatelessWidget {
             child: Row(
               children: [
                 Text(
-                  'Backtest Results (${results.length})',
+                  'Backtest Results (${model.getResultsShownCount(strategy.id)}/${allCount})',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -982,6 +983,18 @@ class WorkspaceView extends StatelessWidget {
               return _buildResultItem(context, model, result);
             },
           ),
+          if (model.isMoreResultsAvailable(strategy.id))
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Align(
+                alignment: Alignment.center,
+                child: OutlinedButton.icon(
+                  onPressed: () => model.loadMoreResults(strategy.id),
+                  icon: const Icon(Icons.unfold_more),
+                  label: const Text('Load more'),
+                ),
+              ),
+            ),
         ],
       ),
     );

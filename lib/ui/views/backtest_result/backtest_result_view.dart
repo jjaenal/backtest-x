@@ -202,19 +202,42 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                               Expanded(
                                 child: AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 200),
-                                  child: viewModel.isBusy
+                                    child: viewModel.isBusy
                                       ? x_skeleton.SkeletonLoader.box(
                                           context,
                                           height: double.infinity,
                                         )
                                       : CandlestickChart(
-                                          candles: viewModel.getCandles(),
+                                          candles: viewModel.getWindowCandles(),
                                           trades: result.trades,
                                           title:
                                               'Price Action with Entry/Exit Points',
                                           showVolume: false,
+                                          onRangeChanged: (start, end) => viewModel
+                                              .updateChartRange(
+                                                  viewModel.windowStartIndex +
+                                                      start,
+                                                  viewModel.windowStartIndex +
+                                                      end),
                                         ),
                                 ),
+                              ),
+                              const SizedBox(height: 6),
+                              Builder(
+                                builder: (context) {
+                                  return Text(
+                                    'Menampilkan ${viewModel.chartStartIndex + 1}–${viewModel.chartEndIndex} dari ${viewModel.totalCandlesCount}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withValues(alpha: 0.6),
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  );
+                                },
                               ),
                             ],
                           ),

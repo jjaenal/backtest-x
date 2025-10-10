@@ -45,6 +45,7 @@ flutter run
   - Copy trades CSV to clipboard from Workspace results
   - Copy backtest summary to clipboard from Workspace results
   - Export trades to CSV from Workspace results list
+  - Planned next: PDF report includes Strategy Details section
 - **Share Results**: Share backtest results with others
  - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
@@ -384,6 +385,9 @@ void main() {
  - Workspace results quick actions:
    - Add "Copy Trades CSV", "Copy Summary", and "Export CSV" buttons on each result
    - Verified on Web build and preview
+ - Workspace results list:
+   - Implement lazy loading with paginated "Load more" to handle large result sets
+   - Shows current count vs total (e.g., 20/200) for clarity
  - Strategy Builder:
    - Auto-save drafts with debounce to prevent data loss
    - Validation & UX improvements:
@@ -394,6 +398,8 @@ void main() {
      - Error-highlighted rule cards with red border for visibility
      - Per-rule timeframe dropdown connected; warning if Rule TF < Base TF
      - Cross operators (crossAbove/crossBelow): auto-switch Value ke Indicator; Number dimatikan dengan hint
+      - Error summary banner under Save button for quick fix guidance
+      - Save/Test button labels show error count when disabled
    - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
    - Verified on Flutter web preview without browser errors
 
@@ -418,6 +424,7 @@ void main() {
   - Update `web/index.html` to use `{{flutter_service_worker_version}}` token.
   - Migrate from `FlutterLoader.loadEntrypoint` to `FlutterLoader.load`.
 - Add UI tests focusing on dark mode: equity toggle, candlestick labels, bottom sheets.
+ - Integrate Strategy details into PDF export and render rules in `pdf_export_service.dart`.
 
 ## 🧭 Theming Guide (Quick Reference)
 

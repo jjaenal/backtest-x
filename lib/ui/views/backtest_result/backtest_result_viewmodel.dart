@@ -11,6 +11,7 @@ import 'package:csv/csv.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
+import 'dart:async';
 import 'dart:math';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     as html;
@@ -56,6 +57,175 @@ class BacktestResultViewModel extends BaseViewModel {
   String get endDate =>
       marketData?.candles.last.timestamp.toString().split(' ')[0] ??
       result.executedAt.toString().split(' ')[0];
+
+  // State untuk range chart (visible window)
+  int _chartStartIndex = 0;
+  int _chartEndIndex = 0;
+  int get chartStartIndex => _chartStartIndex;
+  int get chartEndIndex => _chartEndIndex;
+  int get totalCandlesCount => marketData?.candles.length ?? 0;
+
+  // Windowed candles state (subset loaded into chart)
+  int _windowStartIndex = 0;
+  int _windowEndIndex = 0;
+  bool _windowInitialized = false;
+  int get windowStartIndex => _windowStartIndex;
+  int get windowEndIndex => _windowEndIndex;
+
+  // Tuning konfigurasi (mutable) & throttling
+  int _baseBuffer = 400; // default buffer around viewport
+  int _minWindowSize = 300; // minimum window span
+  int _movementThreshold = 100; // candles threshold before window update
+  double _edgePrefetchRatio = 0.2; // prefetch when within 20% from edge
+  int _minWindowUpdateIntervalMs = 100; // throttle window updates
+  int _minNotifyIntervalMs = 80; // throttle UI notify for label updates
+  DateTime? _lastWindowUpdate;
+  DateTime? _lastNotify;
+  Timer? _prefetchTimer;
+
+  // API untuk tuning runtime
+  void setTuning({
+    int? baseBuffer,
+    int? minWindowSize,
+    int? movementThreshold,
+    double? edgePrefetchRatio,
+    int? minWindowUpdateIntervalMs,
+    int? minNotifyIntervalMs,
+  }) {
+    if (baseBuffer != null) _baseBuffer = baseBuffer;
+    if (minWindowSize != null) _minWindowSize = minWindowSize;
+    if (movementThreshold != null) _movementThreshold = movementThreshold;
+    if (edgePrefetchRatio != null) _edgePrefetchRatio = edgePrefetchRatio;
+    if (minWindowUpdateIntervalMs != null) {
+      _minWindowUpdateIntervalMs = minWindowUpdateIntervalMs;
+    }
+    if (minNotifyIntervalMs != null) _minNotifyIntervalMs = minNotifyIntervalMs;
+    notifyListeners();
+  }
+
+  // Update range chart dari widget CandlestickChart
+  void updateChartRange(int startIndex, int endIndex) {
+    _chartStartIndex = startIndex;
+    _chartEndIndex = endIndex;
+
+    final total = totalCandlesCount;
+    if (total == 0) return;
+
+    // Initialize window on first update
+    if (!_windowInitialized) {
+      final desiredStart = (startIndex - _baseBuffer).clamp(0, total);
+      final desiredEnd = (endIndex + _baseBuffer).clamp(0, total);
+      _windowStartIndex = desiredStart;
+      _windowEndIndex = desiredEnd;
+      _windowInitialized = true;
+      _lastWindowUpdate = DateTime.now();
+      notifyListeners();
+      return;
+    }
+
+    final now = DateTime.now();
+    final windowSize = (_windowEndIndex - _windowStartIndex).clamp(1, total);
+    final distToStartEdge = (_chartStartIndex - _windowStartIndex).clamp(0, windowSize);
+    final distToEndEdge = (_windowEndIndex - _chartEndIndex).clamp(0, windowSize);
+
+    final desiredStart = (startIndex - _baseBuffer).clamp(0, total);
+    final desiredEnd = (endIndex + _baseBuffer).clamp(0, total);
+
+    final movedStart = (desiredStart - _windowStartIndex).abs() > _movementThreshold;
+    final movedEnd = (desiredEnd - _windowEndIndex).abs() > _movementThreshold;
+    final nearStartEdge = distToStartEdge < windowSize * _edgePrefetchRatio;
+    final nearEndEdge = distToEndEdge < windowSize * _edgePrefetchRatio;
+
+    bool updatedWindow = false;
+
+    // Throttle window update frequency
+    if (_lastWindowUpdate == null || now.difference(_lastWindowUpdate!).inMilliseconds > _minWindowUpdateIntervalMs) {
+      if (movedStart || movedEnd || nearStartEdge || nearEndEdge) {
+        _windowStartIndex = desiredStart;
+        _windowEndIndex = desiredEnd;
+
+        // Enforce minimum window size
+        if (_windowEndIndex - _windowStartIndex < _minWindowSize) {
+          _windowEndIndex = (_windowStartIndex + _minWindowSize).clamp(0, total);
+        }
+        _lastWindowUpdate = now;
+        updatedWindow = true;
+      }
+    }
+
+    // Prefetch di background jika dekat tepi namun tidak update window karena throttle
+    if (!updatedWindow && (nearStartEdge || nearEndEdge)) {
+      _schedulePrefetch(nearStart: nearStartEdge, nearEnd: nearEndEdge, total: total);
+    }
+
+    // Notify UI: always when window updated; otherwise, throttle label updates.
+    if (updatedWindow) {
+      notifyListeners();
+      _lastNotify = now;
+    } else if (_lastNotify == null || now.difference(_lastNotify!).inMilliseconds > _minNotifyIntervalMs) {
+      _lastNotify = now;
+      notifyListeners();
+    }
+  }
+
+  void _schedulePrefetch({required bool nearStart, required bool nearEnd, required int total}) {
+    _prefetchTimer?.cancel();
+    _prefetchTimer = Timer(Duration(milliseconds: (_minWindowUpdateIntervalMs / 2).round()), () {
+      bool changed = false;
+      final expandBy = _baseBuffer; // expand satu buffer
+
+      if (nearStart) {
+        final newStart = (_chartStartIndex - expandBy).clamp(0, total);
+        if (newStart != _windowStartIndex) {
+          _windowStartIndex = newStart;
+          changed = true;
+        }
+      }
+      if (nearEnd) {
+        final newEnd = (_chartEndIndex + expandBy).clamp(0, total);
+        if (newEnd != _windowEndIndex) {
+          _windowEndIndex = newEnd;
+          changed = true;
+        }
+      }
+
+      // Enforce minimum window size
+      if (_windowEndIndex - _windowStartIndex < _minWindowSize) {
+        _windowEndIndex = (_windowStartIndex + _minWindowSize).clamp(0, total);
+        changed = true;
+      }
+
+      if (changed) {
+        _lastWindowUpdate = DateTime.now();
+        notifyListeners();
+      }
+    });
+  }
+
+  /// Get windowed candles based on current loaded subset.
+  /// Falls back to downsampled candles when market data is unavailable.
+  List<Candle> getWindowCandles() {
+    final actualMarketData = _dataManager.getData(result.marketDataId);
+    if (actualMarketData == null || actualMarketData.candles.isEmpty) {
+      return getCandles();
+    }
+
+    final total = actualMarketData.candles.length;
+    if (!_windowInitialized) {
+      // Initialize a reasonable window near the end (most recent candles)
+      const visibleCount = 100;
+      const buffer = 300;
+      final end = total;
+      final startVisible = (end - visibleCount).clamp(0, end);
+      _windowStartIndex = (startVisible - buffer).clamp(0, end);
+      _windowEndIndex = (startVisible + visibleCount + buffer).clamp(0, end);
+      _windowInitialized = true;
+    }
+
+    final start = _windowStartIndex.clamp(0, total);
+    final end = _windowEndIndex.clamp(0, total);
+    return actualMarketData.candles.sublist(start, end);
+  }
 
   // Membuat teks ringkasan untuk dibagikan
   String _generateSummaryText() {

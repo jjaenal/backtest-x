@@ -77,6 +77,8 @@ class WorkspaceViewModel extends BaseViewModel {
       _resultSortKeyByStrategy[strategyId] ?? ResultSortKey.executedAtDesc;
   void setResultSortKey(String strategyId, ResultSortKey key) {
     _resultSortKeyByStrategy[strategyId] = key;
+    // Reset pagination for this strategy when sort changes
+    _resultsItemsToShow[strategyId] = resultsPageSize;
     notifyListeners();
   }
 
@@ -103,6 +105,8 @@ class WorkspaceViewModel extends BaseViewModel {
     _selectedTimeframeFilter = null;
     _startDateFilter = null;
     _endDateFilter = null;
+    // Reset pagination for all strategies when filters cleared
+    _resetAllResultsPagination();
     notifyListeners();
   }
 
@@ -251,6 +255,10 @@ class WorkspaceViewModel extends BaseViewModel {
 
   void toggleExpand(String strategyId) {
     _expandedStrategies[strategyId] = !isExpanded(strategyId);
+    if (_expandedStrategies[strategyId] == true) {
+      // Initialize pagination for this strategy on expand
+      _resultsItemsToShow[strategyId] = resultsPageSize;
+    }
     notifyListeners();
   }
 
@@ -301,6 +309,51 @@ class WorkspaceViewModel extends BaseViewModel {
     });
 
     return filtered;
+  }
+
+  // --- Lazy loading / pagination for results list ---
+  static const int resultsPageSize = 20;
+  final Map<String, int> _resultsItemsToShow = {};
+
+  /// Get paged/limited results to render lazily
+  List<BacktestResult> getPagedFilteredResults(String strategyId) {
+    final filtered = getFilteredResults(strategyId);
+    final toShow = _resultsItemsToShow[strategyId] ?? resultsPageSize;
+    if (filtered.length <= toShow) return filtered;
+    return filtered.take(toShow).toList();
+  }
+
+  /// Return count of items currently shown for a strategy
+  int getResultsShownCount(String strategyId) {
+    final filtered = getFilteredResults(strategyId);
+    final toShow = _resultsItemsToShow[strategyId] ?? resultsPageSize;
+    return filtered.length < toShow ? filtered.length : toShow;
+  }
+
+  /// Whether there are more items available to load
+  bool isMoreResultsAvailable(String strategyId) {
+    final filteredCount = getFilteredResults(strategyId).length;
+    final shown = _resultsItemsToShow[strategyId] ?? resultsPageSize;
+    return shown < filteredCount;
+  }
+
+  /// Load next page of results
+  void loadMoreResults(String strategyId) {
+    final current = _resultsItemsToShow[strategyId] ?? resultsPageSize;
+    _resultsItemsToShow[strategyId] = current + resultsPageSize;
+    notifyListeners();
+  }
+
+  /// Reset pagination for a specific strategy
+  void resetResultsPagination(String strategyId) {
+    _resultsItemsToShow[strategyId] = resultsPageSize;
+    notifyListeners();
+  }
+
+  void _resetAllResultsPagination() {
+    for (final id in _strategyResults.keys) {
+      _resultsItemsToShow[id] = resultsPageSize;
+    }
   }
 
   // Available filter options derived from results

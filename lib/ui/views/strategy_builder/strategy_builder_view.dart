@@ -409,7 +409,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                               : const Icon(Icons.play_arrow),
                                           label: Text(viewModel.isRunningPreview
                                               ? 'Running...'
-                                              : 'Test Strategy'),
+                                              : (() {
+                                                  final errs = viewModel
+                                                      .getAllFatalErrors();
+                                                  if (errs.isNotEmpty) {
+                                                    return 'Perbaiki ${errs.length} error';
+                                                  }
+                                                  return 'Test Strategy';
+                                                })()),
                                           style: ElevatedButton.styleFrom(
                                             padding: const EdgeInsets.symmetric(
                                                 vertical: 12),
@@ -838,23 +845,93 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
                           ),
-                          child: viewModel.isBusy
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Text(
-                                  viewModel.isEditing
-                                      ? 'Update Strategy'
-                                      : 'Save Strategy',
-                                  style: const TextStyle(fontSize: 16),
+                          child: (() {
+                            if (viewModel.isBusy) {
+                              return const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
                                 ),
+                              );
+                            }
+                            final errs = viewModel.getAllFatalErrors();
+                            if (errs.isNotEmpty) {
+                              return Text(
+                                'Perbaiki ${errs.length} error',
+                                style: const TextStyle(fontSize: 16),
+                              );
+                            }
+                            if (!viewModel.canSave) {
+                              return const Text(
+                                'Lengkapi data dulu',
+                                style: TextStyle(fontSize: 16),
+                              );
+                            }
+                            return Text(
+                              viewModel.isEditing
+                                  ? 'Update Strategy'
+                                  : 'Save Strategy',
+                              style: const TextStyle(fontSize: 16),
+                            );
+                          })(),
                         ),
                       ),
+
+                      // Error summary banner for quick fix guidance
+                      const SizedBox(height: 12),
+                      Builder(builder: (context) {
+                        final errs = viewModel.getAllFatalErrors();
+                        if (errs.isEmpty) return const SizedBox.shrink();
+                        final scheme = Theme.of(context).colorScheme;
+                        return Card(
+                          color: scheme.errorContainer,
+                          shape: RoundedRectangleBorder(
+                            side: BorderSide(
+                              color: scheme.error.withValues(alpha: 0.5),
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.error_outline,
+                                        size: 18, color: scheme.error),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Perbaikan diperlukan sebelum simpan/preview',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelLarge
+                                          ?.copyWith(color: scheme.error),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                ...errs.map((e) => Padding(
+                                      padding:
+                                          const EdgeInsets.only(bottom: 6.0),
+                                      child: Text(
+                                        '• $e',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              color: scheme.onErrorContainer
+                                                  .withValues(alpha: 0.9),
+                                            ),
+                                      ),
+                                    )),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
 
                       const SizedBox(height: 8),
                       if (viewModel.autosaveStatus.isNotEmpty)
