@@ -394,12 +394,12 @@ class BacktestEngineService {
     final allRules = [...strategy.entryRules, ...strategy.exitRules];
 
     for (final rule in allRules) {
-      // Calculate the main indicator
-      final mainKey =
-          _getIndicatorKeyForType(rule.indicator, 14); // Default period
+      // Calculate the main indicator using rule.period or default
+      final mainPeriod = rule.period ?? _getDefaultPeriod(rule.indicator);
+      final mainKey = _getIndicatorKeyForType(rule.indicator, mainPeriod);
       if (!indicators.containsKey(mainKey)) {
         indicators[mainKey] =
-            _calculateIndicatorByType(candles, rule.indicator, 14);
+            _calculateIndicatorByType(candles, rule.indicator, mainPeriod);
       }
 
       // Calculate comparison indicator if it's an indicator comparison
@@ -442,6 +442,10 @@ class BacktestEngineService {
         return 'atr_$period';
       case IndicatorType.macd:
         return 'macd_$period';
+      case IndicatorType.macdSignal:
+        return 'macd_signal_$period';
+      case IndicatorType.macdHistogram:
+        return 'macd_histogram_$period';
       case IndicatorType.bollingerBands:
         return 'bb_lower_$period';
     }
@@ -470,6 +474,12 @@ class BacktestEngineService {
       case IndicatorType.macd:
         final macd = _indicatorService.calculateMACD(candles);
         return macd['macd']!;
+      case IndicatorType.macdSignal:
+        final macd = _indicatorService.calculateMACD(candles);
+        return macd['signal']!;
+      case IndicatorType.macdHistogram:
+        final macd = _indicatorService.calculateMACD(candles);
+        return macd['histogram']!;
       case IndicatorType.bollingerBands:
         final bb =
             _indicatorService.calculateBollingerBands(candles, period, 2.0);
@@ -486,6 +496,10 @@ class BacktestEngineService {
         return 20;
       case IndicatorType.macd:
         return 12;
+      case IndicatorType.macdSignal:
+        return 9;
+      case IndicatorType.macdHistogram:
+        return 9;
       case IndicatorType.atr:
         return 14;
       case IndicatorType.bollingerBands:
@@ -555,8 +569,9 @@ class BacktestEngineService {
         ? baseTimeframe
         : rule.timeframe!;
 
-    // Get main indicator key
-    final mainKey = _getIndicatorKeyForType(rule.indicator, 14);
+    // Get main indicator key using rule.period or default
+    final mainPeriod = rule.period ?? _getDefaultPeriod(rule.indicator);
+    final mainKey = _getIndicatorKeyForType(rule.indicator, mainPeriod);
     final indicators = tfIndicators[tf];
     if (indicators == null) return false;
     final indicatorValues = indicators[mainKey];
@@ -659,6 +674,16 @@ class BacktestEngineService {
         }
 
         return prevValue >= compareValue && currentValue < compareValue;
+      case ComparisonOperator.rising:
+        if (tfIndex == 0) return false;
+        final prevValueR = indicatorValues[tfIndex - 1];
+        if (prevValueR == null) return false;
+        return currentValue > prevValueR;
+      case ComparisonOperator.falling:
+        if (tfIndex == 0) return false;
+        final prevValueF = indicatorValues[tfIndex - 1];
+        if (prevValueF == null) return false;
+        return currentValue < prevValueF;
     }
   }
 

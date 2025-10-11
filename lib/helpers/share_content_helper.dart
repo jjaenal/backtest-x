@@ -3,10 +3,12 @@ class ShareContentHelper {
   /// Remove control characters, collapse whitespace, and trim.
   static String sanitizeText(String input) {
     // Remove non-printable ASCII control chars except \n\r\t
-    final withoutCtl = input.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
+    final withoutCtl =
+        input.replaceAll(RegExp(r'[\x00-\x08\x0B\x0C\x0E-\x1F]'), '');
     // Collapse multiple spaces/newlines
     final collapsedSpaces = withoutCtl.replaceAll(RegExp(r'[ ]{2,}'), ' ');
-    final collapsedLines = collapsedSpaces.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+    final collapsedLines =
+        collapsedSpaces.replaceAll(RegExp(r'\n{3,}'), '\n\n');
     // Trim
     final trimmed = collapsedLines.trim();
     // Guard against extremely long payloads
@@ -26,7 +28,8 @@ class ShareContentHelper {
 
     if (p.redactEmails) {
       // Basic email pattern
-      final email = RegExp(r'\b[\w._%+-]+@[\w.-]+\.[A-Za-z]{2,}\b', caseSensitive: false);
+      final email =
+          RegExp(r'\b[\w._%+-]+@[\w.-]+\.[A-Za-z]{2,}\b', caseSensitive: false);
       out = out.replaceAll(email, p.emailReplacement);
     }
 

@@ -8,7 +8,8 @@ Future<void> testExecutable(FutureOr<void> Function() testMain) async {
 
   // Mock path_provider channel to return a temp directory for tests
   const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
-  final tempDir = Directory.systemTemp.createTempSync('flutter_test_path_provider').path;
+  final tempDir =
+      Directory.systemTemp.createTempSync('flutter_test_path_provider').path;
   pathProviderChannel.setMockMethodCallHandler((MethodCall methodCall) async {
     switch (methodCall.method) {
       case 'getApplicationDocumentsDirectory':

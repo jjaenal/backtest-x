@@ -46,6 +46,7 @@ class StrategyRule with _$StrategyRule {
     required IndicatorType indicator,
     required ComparisonOperator operator,
     required ConditionValue value,
+    int? period, // Opsional: period untuk indikator utama (mis. EMA(8))
     LogicalOperator? logicalOperator, // AND/OR untuk chain rules
     String? timeframe, // Opsional: timeframe khusus untuk rule ini (mis. "H1")
   }) = _StrategyRule;
@@ -59,6 +60,8 @@ enum IndicatorType {
   ema,
   rsi,
   macd,
+  macdSignal,
+  macdHistogram,
   atr,
   bollingerBands,
   close,
@@ -75,6 +78,8 @@ enum ComparisonOperator {
   equals,
   crossAbove,
   crossBelow,
+  rising,
+  falling,
 }
 
 enum LogicalOperator {

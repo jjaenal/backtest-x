@@ -16,6 +16,16 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
     NoticeSheetModel viewModel,
     Widget? child,
   ) {
+    final payload = request.data as Map<String, dynamic>? ?? {};
+    final options = (payload['options'] as List?)
+            ?.cast<Map>()
+            .map((e) => {
+                  'label': e['label']?.toString() ?? '',
+                  'value': e['value']?.toString() ?? '',
+                })
+            .toList() ??
+        const [];
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
@@ -56,6 +66,33 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
               ),
               softWrap: true,
             ),
+          if (options.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Pilih salah satu opsi:',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: options.map((opt) {
+                    final value = opt['value'] ?? '';
+                    final label = opt['label'] ?? value;
+                    return RadioListTile<String>(
+                      value: value,
+                      groupValue: viewModel.selectedValue,
+                      onChanged: (v) => viewModel.setSelectedValue(v),
+                      title: Text(label),
+                      dense: true,
+                      visualDensity: VisualDensity.compact,
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           if (request.mainButtonTitle != null ||
               request.secondaryButtonTitle != null)
@@ -71,9 +108,18 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                 const Spacer(),
                 if (request.mainButtonTitle != null)
                   ElevatedButton(
-                    onPressed: () {
-                      completer?.call(SheetResponse(confirmed: true));
-                    },
+                    onPressed: options.isNotEmpty &&
+                            (viewModel.selectedValue == null ||
+                                viewModel.selectedValue!.isEmpty)
+                        ? null
+                        : () {
+                            completer?.call(SheetResponse(
+                              confirmed: true,
+                              data: options.isNotEmpty
+                                  ? viewModel.selectedValue
+                                  : null,
+                            ));
+                          },
                     child: Text(request.mainButtonTitle!),
                   ),
               ],

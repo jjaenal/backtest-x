@@ -79,6 +79,10 @@ class IndicatorPanel extends StatelessWidget {
         return 'RSI (14)';
       case IndicatorType.macd:
         return 'MACD (12,26,9)';
+      case IndicatorType.macdSignal:
+        return 'MACD Signal (9)';
+      case IndicatorType.macdHistogram:
+        return 'MACD Histogram';
       case IndicatorType.atr:
         return 'ATR (14)';
       case IndicatorType.sma:
@@ -129,8 +133,12 @@ class OscillatorPainter extends CustomPainter {
     // Draw background and grid
     _drawGrid(canvas, size, range);
 
-    // Draw oscillator line
-    _drawLine(canvas, size, visibleValues, range);
+    // Draw oscillator content
+    if (type == IndicatorType.macdHistogram) {
+      _drawHistogramBars(canvas, size, visibleValues, range);
+    } else {
+      _drawLine(canvas, size, visibleValues, range);
+    }
 
     // Draw price labels
     _drawLabels(canvas, size, range);
@@ -251,6 +259,36 @@ class OscillatorPainter extends CustomPainter {
     }
   }
 
+  void _drawHistogramBars(
+      Canvas canvas, Size size, List<double?> data, PriceRange range) {
+    final chartWidth = size.width - 60;
+    final candleWidth = chartWidth / data.length;
+    final zeroY =
+        size.height - ((0 - range.min) / (range.max - range.min) * size.height);
+
+    for (int i = 0; i < data.length; i++) {
+      final v = data[i];
+      if (v == null) continue;
+
+      final xCenter = (i + 0.5) * candleWidth;
+      final yValue = size.height -
+          ((v - range.min) / (range.max - range.min) * size.height);
+
+      final left = xCenter - (candleWidth * 0.35);
+      final right = xCenter + (candleWidth * 0.35);
+      final top = v >= 0 ? yValue : zeroY;
+      final bottom = v >= 0 ? zeroY : yValue;
+
+      final barPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = v >= 0
+            ? Colors.green.withValues(alpha: 0.7)
+            : Colors.red.withValues(alpha: 0.7);
+
+      canvas.drawRect(Rect.fromLTRB(left, top, right, bottom), barPaint);
+    }
+  }
+
   void _drawLabels(Canvas canvas, Size size, PriceRange range) {
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
@@ -279,6 +317,10 @@ class OscillatorPainter extends CustomPainter {
         return Colors.orange;
       case IndicatorType.macd:
         return Colors.blue;
+      case IndicatorType.macdSignal:
+        return Colors.red;
+      case IndicatorType.macdHistogram:
+        return Colors.green;
       case IndicatorType.sma:
         throw UnimplementedError();
       case IndicatorType.ema:

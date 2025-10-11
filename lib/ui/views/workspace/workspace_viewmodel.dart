@@ -3,6 +3,7 @@ import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/helpers/strategy_stats_helper.dart';
+import 'package:backtestx/helpers/strategy_templates.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
@@ -596,22 +597,18 @@ class WorkspaceViewModel extends BaseViewModel {
       }
       return;
     }
-
-    // _navigationService.navigateTo(
-    //   Routes.backtestRunView,
-    //   arguments: BacktestRunViewArguments(strategy: strategy),
-    // );
   }
 
   Future<void> quickRunBacktest(Strategy strategy) async {
-    if (_selectedDataId == null || _availableData.isEmpty) {
+    // Jika tidak ada data tersedia sama sekali, arahkan untuk upload
+    if (_availableData.isEmpty) {
       final response = await _bottomSheetService.showCustomSheet(
         variant: BottomSheetType.notice,
-        title: 'Data Pasar Belum Dipilih',
+        title: 'Market Data Diperlukan',
         description:
-            'Pilih data pasar terlebih dahulu untuk menjalankan Quick Test.',
-        mainButtonTitle: 'Pilih/Upload Data',
-        secondaryButtonTitle: 'Nanti Saja',
+            'Unggah data pasar terlebih dahulu sebelum menjalankan Quick Test.',
+        mainButtonTitle: 'Upload Data',
+        secondaryButtonTitle: 'Batal',
         barrierDismissible: true,
         isScrollControlled: true,
       );
@@ -619,6 +616,38 @@ class WorkspaceViewModel extends BaseViewModel {
         _navigationService.navigateToDataUploadView();
       }
       return;
+    }
+
+    // Jika data tersedia namun belum dipilih, tampilkan picker
+    if (_selectedDataId == null) {
+      final options = _availableData
+          .map((d) => {
+                'label': d.symbol,
+                'value': d.id,
+              })
+          .toList();
+      final response = await _bottomSheetService.showCustomSheet(
+        variant: BottomSheetType.notice,
+        title: 'Pilih Data Pasar',
+        description: 'Pilih data yang akan digunakan untuk Quick Test.',
+        mainButtonTitle: 'Gunakan Data Ini',
+        secondaryButtonTitle: 'Upload Baru',
+        barrierDismissible: true,
+        isScrollControlled: true,
+        data: {
+          'options': options,
+        },
+      );
+      if (response?.confirmed == true) {
+        final selected = response?.data as String?;
+        if (selected != null && selected.isNotEmpty) {
+          setSelectedData(selected);
+        } else {
+          return;
+        }
+      } else {
+        return;
+      }
     }
 
     _isRunningQuickTest[strategy.id] = true;
@@ -667,6 +696,38 @@ class WorkspaceViewModel extends BaseViewModel {
       );
       // Store result in memory
       _quickResults[strategy.id] = result;
+
+      // Show quick summary snackbar for immediate feedback
+      try {
+        final s = result.summary;
+        _snackbarService.showSnackbar(
+          message:
+              'Quick test selesai — PF ${s.profitFactor.toStringAsFixed(2)}, WinRate ${s.winRate.toStringAsFixed(2)}% ',
+          duration: const Duration(seconds: 3),
+        );
+      } catch (_) {
+        // Non-critical UI feedback; ignore errors
+      }
+
+      // Prompt to view full results
+      try {
+        final s = result.summary;
+        final response = await _bottomSheetService.showCustomSheet(
+          variant: BottomSheetType.notice,
+          title: 'Quick Test Selesai',
+          description:
+              'Profit Factor ${s.profitFactor.toStringAsFixed(2)}, Win Rate ${s.winRate.toStringAsFixed(2)}%. Lihat hasil lengkap?',
+          mainButtonTitle: 'View Full Results',
+          secondaryButtonTitle: 'Tutup',
+          barrierDismissible: true,
+          isScrollControlled: true,
+        );
+        if (response?.confirmed == true) {
+          viewResult(result);
+        }
+      } catch (_) {
+        // Optional UX; ignore errors
+      }
 
       // Persist to database asynchronously to avoid UI jank
       Future<void>(() async {
@@ -723,6 +784,99 @@ class WorkspaceViewModel extends BaseViewModel {
     } finally {
       _isRunningQuickTest[strategy.id] = false;
       notifyListeners();
+    }
+  }
+
+  /// Quick run EMA Ribbon template directly from Workspace
+  Future<void> quickRunEmaRibbon() async {
+    try {
+      final tpl = StrategyTemplates.all['ema_ribbon_stack'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message: 'Template EMA Ribbon tidak ditemukan',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run EMA Ribbon gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run Breakout template directly from Workspace
+  Future<void> quickRunBreakout() async {
+    try {
+      final tpl = StrategyTemplates.all['breakout_basic'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message: 'Template Breakout tidak ditemukan',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run Breakout gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run Trend Following template directly from Workspace
+  Future<void> quickRunTrendFollowing() async {
+    try {
+      final tpl = StrategyTemplates.all['trend_ema_cross'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message: 'Template Trend Following tidak ditemukan',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run Trend Following gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
     }
   }
 

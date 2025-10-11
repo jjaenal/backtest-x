@@ -8,7 +8,6 @@ void main() {
   // Plain Dart test; no Flutter binding needed
 
   group('PdfImageDocument - Multi-image PDF', () {
-
     // Pure function; no setup needed
 
     // Generate small 2x2 PNGs using the image package to avoid decoder issues

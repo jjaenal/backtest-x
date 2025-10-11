@@ -68,6 +68,7 @@ _$StrategyRuleImpl _$$StrategyRuleImplFromJson(Map<String, dynamic> json) =>
       indicator: $enumDecode(_$IndicatorTypeEnumMap, json['indicator']),
       operator: $enumDecode(_$ComparisonOperatorEnumMap, json['operator']),
       value: ConditionValue.fromJson(json['value'] as Map<String, dynamic>),
+      period: (json['period'] as num?)?.toInt(),
       logicalOperator: $enumDecodeNullable(
           _$LogicalOperatorEnumMap, json['logicalOperator']),
       timeframe: json['timeframe'] as String?,
@@ -78,6 +79,7 @@ Map<String, dynamic> _$$StrategyRuleImplToJson(_$StrategyRuleImpl instance) =>
       'indicator': _$IndicatorTypeEnumMap[instance.indicator]!,
       'operator': _$ComparisonOperatorEnumMap[instance.operator]!,
       'value': instance.value,
+      'period': instance.period,
       'logicalOperator': _$LogicalOperatorEnumMap[instance.logicalOperator],
       'timeframe': instance.timeframe,
     };
@@ -87,6 +89,8 @@ const _$IndicatorTypeEnumMap = {
   IndicatorType.ema: 'ema',
   IndicatorType.rsi: 'rsi',
   IndicatorType.macd: 'macd',
+  IndicatorType.macdSignal: 'macdSignal',
+  IndicatorType.macdHistogram: 'macdHistogram',
   IndicatorType.atr: 'atr',
   IndicatorType.bollingerBands: 'bollingerBands',
   IndicatorType.close: 'close',
@@ -103,6 +107,8 @@ const _$ComparisonOperatorEnumMap = {
   ComparisonOperator.equals: 'equals',
   ComparisonOperator.crossAbove: 'crossAbove',
   ComparisonOperator.crossBelow: 'crossBelow',
+  ComparisonOperator.rising: 'rising',
+  ComparisonOperator.falling: 'falling',
 };
 
 const _$LogicalOperatorEnumMap = {

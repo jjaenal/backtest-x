@@ -204,8 +204,10 @@ class PdfExportService {
                             final trades = (s['trades'] ?? 0).toInt();
                             final wins = (s['wins'] ?? 0).toInt();
                             final wr = (s['winRate'] ?? 0).toDouble();
+                            final pf = (s['profitFactor'] ?? 0).toDouble();
+                            final ex = (s['expectancy'] ?? 0).toDouble();
                             final value =
-                                'Signals: $signals, Trades: $trades, Wins: $wins, WinRate: ${wr.toStringAsFixed(1)}%';
+                                'Signals: $signals, Trades: $trades, Wins: $wins, WinRate: ${wr.toStringAsFixed(1)}%, PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}, Expectancy: ${_fmtCurrencyUsd(ex)}';
                             return _summaryRow('TF $tf', value);
                           }).toList(),
                         ],
@@ -507,6 +509,10 @@ class PdfExportService {
         return 'RSI';
       case IndicatorType.macd:
         return 'MACD';
+      case IndicatorType.macdSignal:
+        return 'MACD Signal';
+      case IndicatorType.macdHistogram:
+        return 'MACD Histogram';
       case IndicatorType.atr:
         return 'ATR';
       case IndicatorType.bollingerBands:
@@ -538,6 +544,10 @@ class PdfExportService {
         return 'crosses above';
       case ComparisonOperator.crossBelow:
         return 'crosses below';
+      case ComparisonOperator.rising:
+        return 'rising';
+      case ComparisonOperator.falling:
+        return 'falling';
     }
   }
 

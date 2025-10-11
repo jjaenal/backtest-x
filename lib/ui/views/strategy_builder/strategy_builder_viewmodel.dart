@@ -9,10 +9,20 @@ import 'package:backtestx/helpers/timeframe_helper.dart' as tfHelper;
 import 'dart:async';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/services/prefs_service.dart';
+import 'dart:convert';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:uuid/uuid.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
+import 'package:backtestx/helpers/strategy_templates.dart';
+import 'package:backtestx/services/share_service.dart';
+import 'package:backtestx/services/clipboard_service.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io' as io;
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:backtestx/helpers/filename_helper.dart';
 
 class RuleBuilder {
   IndicatorType indicator;
@@ -20,12 +30,16 @@ class RuleBuilder {
   bool isNumberValue;
   double? numberValue;
   IndicatorType? compareIndicator;
+  // Period for comparison indicator (right side)
   int? period;
+  // Period for main indicator (left side)
+  int? mainPeriod;
   LogicalOperator? logicalOperator;
   String? timeframe;
 
   final TextEditingController numberController;
   final TextEditingController periodController;
+  final TextEditingController mainPeriodController;
 
   RuleBuilder({
     this.indicator = IndicatorType.rsi,
@@ -34,14 +48,18 @@ class RuleBuilder {
     this.numberValue,
     this.compareIndicator,
     this.period,
+    this.mainPeriod,
     this.logicalOperator,
     this.timeframe,
   })  : numberController = TextEditingController(text: numberValue?.toString()),
-        periodController = TextEditingController(text: period?.toString());
+        periodController = TextEditingController(text: period?.toString()),
+        mainPeriodController =
+            TextEditingController(text: mainPeriod?.toString());
 
   void dispose() {
     numberController.dispose();
     periodController.dispose();
+    mainPeriodController.dispose();
   }
 }
 
@@ -53,6 +71,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   final _dataManager = locator<DataManager>();
   final _backtestEngine = locator<BacktestEngineService>();
   final _uuid = const Uuid();
+  final _prefs = PrefsService();
 
   final String? strategyId;
   Strategy? existingStrategy;
@@ -66,6 +85,14 @@ class StrategyBuilderViewModel extends BaseViewModel {
   List<MarketData> availableData = [];
   // Per‑TF stats from the last preview run
   Map<String, Map<String, num>> previewTfStats = {};
+  // Last applied template hint
+  String? appliedTemplateName;
+  String? appliedTemplateDescription;
+  // Recently applied template keys (persisted via PrefsService)
+  List<String> recentTemplateKeys = [];
+  // Persisted UI state for template picker
+  List<String> selectedTemplateCategories = [];
+  String selectedTemplateQuery = '';
 
   // Controllers
   final nameController = TextEditingController();
@@ -80,9 +107,14 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   // Autosave
   Timer? _autosaveTimer;
+  Timer? _statusTicker;
+  final Duration _statusTickInterval = const Duration(seconds: 30);
   final Duration _autosaveDebounce = const Duration(seconds: 2);
   String autosaveStatus = '';
   bool autosaveEnabled = true;
+  bool isAutoSaving = false;
+  DateTime? lastAutosaveAt;
+  bool hasAutosaveDraft = false;
 
   bool get isEditing => strategyId != null;
   bool get canSave =>
@@ -110,14 +142,190 @@ class StrategyBuilderViewModel extends BaseViewModel {
       }
     }
 
+    // Indicator-specific soft guidance
+    if (rule.indicator == IndicatorType.rsi && rule.isNumberValue) {
+      final v = rule.numberValue;
+      if (v != null && (v < 20 || v > 80)) {
+        warnings.add('Nilai ambang RSI di luar rentang umum (20–80).');
+      }
+    }
+
+    // Operator guidance
+    if (rule.operator == ComparisonOperator.equals) {
+      warnings
+          .add('Operator equals cenderung rapuh untuk data harga/indikator.');
+    }
+    if ((rule.operator == ComparisonOperator.crossAbove ||
+            rule.operator == ComparisonOperator.crossBelow) &&
+        !rule.isNumberValue &&
+        rule.compareIndicator == IndicatorType.bollingerBands) {
+      warnings.add(
+          'Perbandingan dengan Bollinger Bands tidak spesifik band (upper/lower).');
+    }
+
+    // Main indicator period suggestions
+    final indicatorsNeedPeriod = <IndicatorType>{
+      IndicatorType.sma,
+      IndicatorType.ema,
+      IndicatorType.rsi,
+      IndicatorType.atr,
+      IndicatorType.bollingerBands,
+    };
+    if (indicatorsNeedPeriod.contains(rule.indicator)) {
+      if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
+        warnings.add('Period indikator utama belum diisi (>0 disarankan).');
+      }
+    }
+
     return warnings;
+  }
+
+  /// Apply a predefined strategy template by key
+  void applyTemplate(String key) {
+    final template = StrategyTemplates.all[key];
+    if (template == null) {
+      _snackbarService.showSnackbar(
+        message: 'Template tidak ditemukan',
+        duration: const Duration(seconds: 2),
+      );
+      return;
+    }
+
+    // Clear existing rules
+    for (final r in entryRules) {
+      r.dispose();
+    }
+    for (final r in exitRules) {
+      r.dispose();
+    }
+
+    // Apply details
+    nameController.text = template.name;
+    initialCapitalController.text = template.initialCapital.toString();
+    riskType = template.risk.riskType;
+    riskValueController.text = template.risk.riskValue.toString();
+    stopLossController.text = template.risk.stopLoss?.toString() ?? '';
+    takeProfitController.text = template.risk.takeProfit?.toString() ?? '';
+
+    // Store template hint
+    appliedTemplateName = template.name;
+    appliedTemplateDescription = template.description;
+
+    // Apply rules
+    entryRules = template.entryRules.map(_strategyRuleToBuilder).toList();
+    exitRules = template.exitRules.map(_strategyRuleToBuilder).toList();
+
+    // Re-attach listeners for autosave
+    for (final rule in entryRules) {
+      _attachRuleListeners(rule);
+    }
+    for (final rule in exitRules) {
+      _attachRuleListeners(rule);
+    }
+
+    notifyListeners();
+    _scheduleAutosave();
+    // Update Recently Applied list (persisted)
+    try {
+      recentTemplateKeys.removeWhere((k) => k == key);
+      recentTemplateKeys.insert(0, key);
+      if (recentTemplateKeys.length > 6) {
+        recentTemplateKeys = recentTemplateKeys.take(6).toList();
+      }
+      // Persist asynchronously; ignore await to keep UX snappy
+      _prefs.setString('recent_templates', jsonEncode(recentTemplateKeys));
+    } catch (_) {
+      // Non-critical
+    }
+    _snackbarService.showSnackbar(
+      message: 'Template diterapkan: ${template.name}',
+      duration: const Duration(seconds: 2),
+    );
+
+    // Sinkronkan kategori filter default ke kategori template yang diterapkan
+    try {
+      final cat = _categorizeTemplateName(template.name);
+      setSelectedTemplateCategories([cat]);
+    } catch (_) {
+      // Non-critical
+    }
+  }
+
+  String _categorizeTemplateName(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('breakout')) return 'Breakout';
+    if (n.contains('mean reversion')) return 'Mean Reversion';
+    if (n.contains('trend')) return 'Trend';
+    if (n.contains('momentum')) return 'Momentum';
+    return 'Other';
+  }
+
+  /// Update persisted template search query
+  void setTemplateSearchQuery(String q) {
+    selectedTemplateQuery = q;
+    try {
+      _prefs.setString('template_search_query', q);
+    } catch (_) {
+      // Non-critical
+    }
+    // View updates are local to the bottom sheet; notify optional
+    notifyListeners();
+  }
+
+  /// Update persisted selected template categories
+  void setSelectedTemplateCategories(List<String> cats) {
+    selectedTemplateCategories = cats;
+    try {
+      _prefs.setString('template_selected_categories', jsonEncode(cats));
+    } catch (_) {
+      // Non-critical
+    }
+    notifyListeners();
+  }
+
+  /// Reset template filters (query and categories) and persist the cleared state
+  Future<void> resetTemplateFilters() async {
+    try {
+      // Use existing setters to keep persistence logic unified
+      setSelectedTemplateCategories([]);
+      setTemplateSearchQuery('');
+      // Also persist explicitly to be safe in case notify batching skips
+      await _prefs.setString('template_selected_categories', jsonEncode([]));
+      await _prefs.setString('template_search_query', '');
+    } catch (_) {
+      // Non-critical
+    }
   }
 
   List<String> _getRuleFatalErrors(RuleBuilder rule) {
     final errors = <String>[];
+    // Rising/Falling do not require comparison value
+    if (rule.operator == ComparisonOperator.rising ||
+        rule.operator == ComparisonOperator.falling) {
+      return errors;
+    }
+    // Main indicator must have valid period for certain indicators
+    final indicatorsNeedPeriod = <IndicatorType>{
+      IndicatorType.sma,
+      IndicatorType.ema,
+      IndicatorType.rsi,
+      IndicatorType.atr,
+      IndicatorType.bollingerBands,
+    };
+    if (indicatorsNeedPeriod.contains(rule.indicator)) {
+      if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
+        errors.add('Period indikator utama wajib > 0.');
+      }
+    }
     if (rule.isNumberValue) {
       if (rule.numberValue == null) {
         errors.add('Nilai angka belum diisi.');
+      }
+      // Strict bounds for RSI numeric thresholds
+      if (rule.indicator == IndicatorType.rsi && rule.numberValue != null) {
+        if (rule.numberValue! < 0 || rule.numberValue! > 100) {
+          errors.add('Nilai RSI harus antara 0–100.');
+        }
       }
     } else {
       if (rule.compareIndicator == null) {
@@ -131,11 +339,9 @@ class StrategyBuilderViewModel extends BaseViewModel {
     // Operator-specific validation
     if (rule.operator == ComparisonOperator.crossAbove ||
         rule.operator == ComparisonOperator.crossBelow) {
-      // Cross operators require comparing against another indicator, not a number
-      if (rule.isNumberValue) {
-        errors.add(
-            'Operator crossAbove/crossBelow hanya valid dengan pembanding indikator (pilih Value: Indicator).');
-      }
+      // Cross operators boleh membandingkan terhadap indikator atau ambang angka (mis. zero-line).
+      // Cross against Bollinger Bands uses lower band; ensure period present (checked above)
+      // Additional semantic checks can be added as needed.
     }
     return errors;
   }
@@ -172,7 +378,48 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
     _setupAutosaveListeners();
 
+    // Load recently applied templates from prefs
+    try {
+      final s = await _prefs.getString('recent_templates');
+      if (s != null && s.isNotEmpty) {
+        final decoded = jsonDecode(s);
+        if (decoded is List) {
+          recentTemplateKeys = decoded.whereType<String>().toList();
+        }
+      }
+    } catch (_) {
+      // Non-critical
+    }
+
+    // Load persisted UI state for template picker
+    try {
+      final catsStr = await _prefs.getString('template_selected_categories');
+      if (catsStr != null && catsStr.isNotEmpty) {
+        final decoded = jsonDecode(catsStr);
+        if (decoded is List) {
+          selectedTemplateCategories = decoded.whereType<String>().toList();
+        }
+      }
+    } catch (_) {
+      // Non-critical
+    }
+    try {
+      final qStr = await _prefs.getString('template_search_query');
+      if (qStr != null) {
+        selectedTemplateQuery = qStr;
+      }
+    } catch (_) {
+      // Non-critical
+    }
+
     setBusy(false);
+  }
+
+  void clearRecentTemplates() {
+    recentTemplateKeys = [];
+    // Persist asynchronously
+    _prefs.setString('recent_templates', jsonEncode(recentTemplateKeys));
+    notifyListeners();
   }
 
   Future<void> _loadExistingStrategy() async {
@@ -214,6 +461,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         operator: rule.operator,
         isNumberValue: true,
         numberValue: n,
+        mainPeriod: rule.period,
         logicalOperator: rule.logicalOperator,
         timeframe: rule.timeframe,
       ),
@@ -223,6 +471,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         isNumberValue: false,
         compareIndicator: type,
         period: period,
+        mainPeriod: rule.period,
         logicalOperator: rule.logicalOperator,
         timeframe: rule.timeframe,
       ),
@@ -280,13 +529,24 @@ class StrategyBuilderViewModel extends BaseViewModel {
     // If using cross operators, force value type to Indicator and set safe defaults
     if (operator == ComparisonOperator.crossAbove ||
         operator == ComparisonOperator.crossBelow) {
-      if (rule.isNumberValue) {
-        rule.isNumberValue = false;
+      if (!rule.isNumberValue) {
+        // comparing to indicator: set safe defaults
+        rule.compareIndicator ??= IndicatorType.sma;
+        rule.period ??= 14;
+        // keep controllers in sync
+        rule.periodController.text = (rule.period ?? 14).toString();
       }
-      rule.compareIndicator ??= IndicatorType.sma;
-      rule.period ??= 14;
-      // keep controllers in sync
-      rule.periodController.text = (rule.period ?? 14).toString();
+    }
+
+    // For rising/falling, no comparison value needed; normalize to number 0
+    if (operator == ComparisonOperator.rising ||
+        operator == ComparisonOperator.falling) {
+      rule.isNumberValue = true;
+      rule.numberValue = 0;
+      rule.numberController.text = '0';
+      rule.compareIndicator = null;
+      rule.period = null;
+      rule.periodController.text = '';
     }
 
     notifyListeners();
@@ -295,17 +555,6 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   void updateRuleValueType(int index, bool isNumber, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
-    // Prevent selecting Number when using cross operators
-    if (isNumber &&
-        (rule.operator == ComparisonOperator.crossAbove ||
-            rule.operator == ComparisonOperator.crossBelow)) {
-      _snackbarService.showSnackbar(
-        message:
-            'Operator crossAbove/crossBelow hanya valid dengan pembanding indikator (pilih Value: Indicator).',
-        duration: const Duration(seconds: 2),
-      );
-      return;
-    }
     rule.isNumberValue = isNumber;
     notifyListeners();
     _scheduleAutosave();
@@ -328,6 +577,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
   void updateRulePeriod(int index, String value, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.period = int.tryParse(value);
+    _scheduleAutosave();
+  }
+
+  void updateRuleMainPeriod(int index, String value, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    rule.mainPeriod = int.tryParse(value);
     _scheduleAutosave();
   }
 
@@ -420,6 +675,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
       indicator: builder.indicator,
       operator: builder.operator,
       value: value,
+      period: builder.mainPeriod,
       logicalOperator: builder.logicalOperator,
       timeframe: builder.timeframe,
     );
@@ -456,8 +712,27 @@ class StrategyBuilderViewModel extends BaseViewModel {
   /// Get available market data for quick preview
   void loadAvailableData() {
     availableData = _dataManager.getAllData();
-    if (availableData.isNotEmpty && selectedDataId == null) {
-      selectedDataId = availableData.first.id;
+    if (availableData.isNotEmpty) {
+      // Restore persisted selection asynchronously if available
+      try {
+        _prefs.getString('selected_preview_data_id').then((persisted) {
+          if (persisted != null &&
+              availableData.any((d) => d.id == persisted)) {
+            selectedDataId = persisted;
+          } else {
+            selectedDataId = availableData.first.id;
+          }
+          notifyListeners();
+        }).catchError((_) {
+          // Fallback to first item on error
+          selectedDataId = availableData.first.id;
+          notifyListeners();
+        });
+      } catch (_) {
+        // Defensive fallback
+        selectedDataId = availableData.first.id;
+        notifyListeners();
+      }
     }
   }
 
@@ -466,6 +741,16 @@ class StrategyBuilderViewModel extends BaseViewModel {
     selectedDataId = dataId;
     notifyListeners();
     _scheduleAutosave();
+    // Persist selection for convenience across sessions
+    try {
+      if (dataId == null) {
+        _prefs.remove('selected_preview_data_id');
+      } else {
+        _prefs.setString('selected_preview_data_id', dataId);
+      }
+    } catch (_) {
+      // Non-critical
+    }
   }
 
   /// Run quick backtest preview without saving strategy
@@ -546,6 +831,14 @@ class StrategyBuilderViewModel extends BaseViewModel {
     }
   }
 
+  /// Reset preview state
+  void resetPreview() {
+    previewResult = null;
+    previewTfStats = {};
+    isRunningPreview = false;
+    notifyListeners();
+  }
+
   /// Navigate to full backtest result view with current preview result
   void viewFullResults() {
     if (previewResult == null) return;
@@ -556,6 +849,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   @override
   void dispose() {
     _autosaveTimer?.cancel();
+    _statusTicker?.cancel();
     nameController.dispose();
     initialCapitalController.dispose();
     riskValueController.dispose();
@@ -590,6 +884,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   void _attachRuleListeners(RuleBuilder rule) {
     rule.numberController.addListener(_scheduleAutosave);
     rule.periodController.addListener(_scheduleAutosave);
+    rule.mainPeriodController.addListener(_scheduleAutosave);
   }
 
   void _scheduleAutosave() {
@@ -598,6 +893,29 @@ class StrategyBuilderViewModel extends BaseViewModel {
     _autosaveTimer = Timer(_autosaveDebounce, () async {
       await _saveDraft();
     });
+  }
+
+  void _ensureStatusTicker() {
+    _statusTicker?.cancel();
+    if (!autosaveEnabled) {
+      _statusTicker = null;
+      return;
+    }
+    _statusTicker = Timer.periodic(_statusTickInterval, (_) {
+      if (!autosaveEnabled) {
+        _statusTicker?.cancel();
+        _statusTicker = null;
+        return;
+      }
+      if (isAutoSaving || lastAutosaveAt != null || autosaveStatus.isNotEmpty) {
+        notifyListeners();
+      }
+    });
+  }
+
+  void _stopStatusTicker() {
+    _statusTicker?.cancel();
+    _statusTicker = null;
   }
 
   Map<String, dynamic> _buildDraftJson() {
@@ -617,6 +935,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
                 'numberValue': r.numberValue,
                 'compareIndicator': r.compareIndicator?.name,
                 'period': r.period,
+                'mainPeriod': r.mainPeriod,
                 'logicalOperator': r.logicalOperator?.name,
                 'timeframe': r.timeframe,
               })
@@ -629,6 +948,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
                 'numberValue': r.numberValue,
                 'compareIndicator': r.compareIndicator?.name,
                 'period': r.period,
+                'mainPeriod': r.mainPeriod,
                 'logicalOperator': r.logicalOperator?.name,
                 'timeframe': r.timeframe,
               })
@@ -638,16 +958,34 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   Future<void> _saveDraft() async {
     try {
+      isAutoSaving = true;
+      autosaveStatus = 'Saving…';
+      notifyListeners();
+
       final draft = _buildDraftJson();
       await _storageService.saveStrategyDraft(
         strategyId: isEditing ? strategyId : null,
         draftJson: draft,
       );
+
       final now = DateTime.now();
+      isAutoSaving = false;
+      lastAutosaveAt = now;
       autosaveStatus =
           'Auto-saved ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}';
+      hasAutosaveDraft = true;
       notifyListeners();
+      _ensureStatusTicker();
     } catch (e) {
+      isAutoSaving = false;
+      autosaveStatus = 'Autosave failed';
+      notifyListeners();
+      _snackbarService.showSnackbar(
+        message: 'Autosave failed',
+        duration: const Duration(seconds: 2),
+        mainButtonTitle: 'Retry',
+        onMainButtonTapped: () => _saveDraft(),
+      );
       debugPrint('Autosave failed: $e');
     }
   }
@@ -656,6 +994,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
     autosaveEnabled = value;
     if (!autosaveEnabled) {
       _autosaveTimer?.cancel();
+      _stopStatusTicker();
+      isAutoSaving = false;
       autosaveStatus = 'Autosave off';
       _snackbarService.showSnackbar(
         message: 'Autosave disabled',
@@ -667,6 +1007,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         duration: const Duration(seconds: 2),
       );
       _scheduleAutosave();
+      _ensureStatusTicker();
     }
     notifyListeners();
   }
@@ -677,6 +1018,9 @@ class StrategyBuilderViewModel extends BaseViewModel {
         strategyId: isEditing ? strategyId : null,
       );
       autosaveStatus = '';
+      lastAutosaveAt = null;
+      hasAutosaveDraft = false;
+      _stopStatusTicker();
       _snackbarService.showSnackbar(
         message: 'Draft discarded',
         duration: const Duration(seconds: 2),
@@ -690,6 +1034,11 @@ class StrategyBuilderViewModel extends BaseViewModel {
     }
   }
 
+  /// Public method to retry autosave from the View
+  void retryAutosave() {
+    _saveDraft();
+  }
+
   Future<void> restoreDraftIfAvailable() async {
     final draft = await _storageService.getStrategyDraft(
       strategyId: isEditing ? strategyId : null,
@@ -697,49 +1046,209 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (draft == null) return;
 
     try {
-      nameController.text = (draft['name'] as String?) ?? '';
-      initialCapitalController.text =
-          (draft['initialCapital'] as String?) ?? initialCapitalController.text;
-      final riskTypeName = draft['riskType'] as String?;
-      if (riskTypeName != null) {
-        riskType = RiskType.values
-            .firstWhere((e) => e.name == riskTypeName, orElse: () => riskType);
-      }
-      riskValueController.text =
-          (draft['riskValue'] as String?) ?? riskValueController.text;
-      stopLossController.text =
-          (draft['stopLoss'] as String?) ?? stopLossController.text;
-      takeProfitController.text =
-          (draft['takeProfit'] as String?) ?? takeProfitController.text;
-      selectedDataId = draft['selectedDataId'] as String?;
-
-      // Restore rules
-      List<dynamic> entry = (draft['entryRules'] as List<dynamic>? ?? []);
-      List<dynamic> exit = (draft['exitRules'] as List<dynamic>? ?? []);
-      for (final r in entryRules) {
-        r.dispose();
-      }
-      for (final r in exitRules) {
-        r.dispose();
-      }
-      entryRules = entry.map((m) => _mapToRuleBuilder(m)).toList();
-      exitRules = exit.map((m) => _mapToRuleBuilder(m)).toList();
-      notifyListeners();
+      hasAutosaveDraft = true;
+      _applyDraftMap(draft);
     } catch (e) {
       debugPrint('Failed to apply draft: $e');
     }
   }
 
+  /// Apply a draft/template map to current builder state
+  void _applyDraftMap(Map<String, dynamic> draft) {
+    nameController.text = (draft['name'] as String?) ?? '';
+    initialCapitalController.text =
+        (draft['initialCapital'] as String?) ?? initialCapitalController.text;
+    final riskTypeName = draft['riskType'] as String?;
+    if (riskTypeName != null) {
+      riskType = RiskType.values
+          .firstWhere((e) => e.name == riskTypeName, orElse: () => riskType);
+    }
+    riskValueController.text =
+        (draft['riskValue'] as String?) ?? riskValueController.text;
+    stopLossController.text =
+        (draft['stopLoss'] as String?) ?? stopLossController.text;
+    takeProfitController.text =
+        (draft['takeProfit'] as String?) ?? takeProfitController.text;
+    selectedDataId = draft['selectedDataId'] as String?;
+    // Ensure selectedDataId exists in availableData to avoid Dropdown assertion
+    if (selectedDataId != null) {
+      final exists = availableData.any((d) => d.id == selectedDataId);
+      if (!exists) {
+        selectedDataId = null;
+      }
+    }
+
+    // Restore rules
+    List<dynamic> entry = (draft['entryRules'] as List<dynamic>? ?? []);
+    List<dynamic> exit = (draft['exitRules'] as List<dynamic>? ?? []);
+    for (final r in entryRules) {
+      r.dispose();
+    }
+    for (final r in exitRules) {
+      r.dispose();
+    }
+    entryRules = entry.map((m) => _mapToRuleBuilder(m)).toList();
+    exitRules = exit.map((m) => _mapToRuleBuilder(m)).toList();
+    // Re-attach listeners for autosave
+    for (final rule in entryRules) {
+      _attachRuleListeners(rule);
+    }
+    for (final rule in exitRules) {
+      _attachRuleListeners(rule);
+    }
+    notifyListeners();
+  }
+
+  /// Export current builder state as JSON (share or clipboard fallback)
+  Future<void> exportStrategyJson() async {
+    try {
+      final map = _buildDraftJson();
+      final jsonStr = jsonEncode(map);
+      try {
+        final share = locator<ShareService>();
+        await share.shareText(jsonStr, subject: 'BacktestX Strategy Template');
+        _snackbarService.showSnackbar(
+          message: 'Template JSON dibagikan',
+          duration: const Duration(seconds: 2),
+        );
+      } catch (_) {
+        // Fallback to clipboard
+        if (locator.isRegistered<ClipboardService>()) {
+          await locator<ClipboardService>().copyText(jsonStr);
+        } else {
+          await Clipboard.setData(ClipboardData(text: jsonStr));
+        }
+        _snackbarService.showSnackbar(
+          message: 'Template JSON disalin ke clipboard',
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Export gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Copy current builder JSON to clipboard explicitly
+  Future<void> copyStrategyJson() async {
+    try {
+      final jsonStr = jsonEncode(_buildDraftJson());
+      if (locator.isRegistered<ClipboardService>()) {
+        await locator<ClipboardService>().copyText(jsonStr);
+      } else {
+        await Clipboard.setData(ClipboardData(text: jsonStr));
+      }
+      _snackbarService.showSnackbar(
+        message: 'Template JSON disalin ke clipboard',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Salin JSON gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Save current builder JSON to a .json file (non-web platforms)
+  Future<void> saveStrategyJsonToFile() async {
+    try {
+      if (kIsWeb) {
+        throw Exception('Simpan file tidak didukung di Web');
+      }
+      final jsonStr = jsonEncode(_buildDraftJson());
+      final dir = await getApplicationDocumentsDirectory();
+      final baseName = nameController.text.trim().isEmpty
+          ? 'strategy_template'
+          : nameController.text.trim();
+      final filename = FilenameHelper.build([baseName], ext: 'json');
+      final path = '${dir.path}/$filename';
+      final file = io.File(path);
+      await file.writeAsString(jsonStr, flush: true);
+      _snackbarService.showSnackbar(
+        message: 'Disimpan: $filename',
+        duration: const Duration(seconds: 3),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Simpan file gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Import builder state from JSON text
+  Future<void> importStrategyJson(String jsonText) async {
+    try {
+      final decoded = jsonDecode(jsonText);
+      if (decoded is! Map) {
+        throw Exception('Format JSON tidak valid');
+      }
+      // Convert dynamic map to Map<String, dynamic>
+      final draft = Map<String, dynamic>.from(decoded);
+      // Validate early to provide friendly error messages
+      _validateDraftMap(draft);
+      _applyDraftMap(draft);
+      _snackbarService.showSnackbar(
+        message: 'Template JSON diterapkan',
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Impor gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Check if builder has content differing from initial defaults to prompt confirmation
+  bool get hasUnsavedBuilder {
+    final isNameEmpty = nameController.text.trim().isEmpty;
+    final isRulesEmpty = entryRules.isEmpty && exitRules.isEmpty;
+    final isDataUnset = selectedDataId == null;
+    final isDefaults = initialCapitalController.text == '10000' &&
+        riskValueController.text == '2.0' &&
+        stopLossController.text == '100' &&
+        takeProfitController.text == '200' &&
+        riskType == RiskType.percentageRisk;
+    return !(isNameEmpty && isRulesEmpty && isDataUnset && isDefaults);
+  }
+
   RuleBuilder _mapToRuleBuilder(dynamic m) {
-    final map = m as Map<String, dynamic>;
-    final indicatorName = map['indicator'] as String?;
-    final operatorName = map['operator'] as String?;
-    final isNumberValue = map['isNumberValue'] as bool? ?? true;
-    final numberValue = (map['numberValue'] as num?)?.toDouble();
-    final compareIndicatorName = map['compareIndicator'] as String?;
-    final period = map['period'] as int?;
-    final logicalName = map['logicalOperator'] as String?;
-    final timeframe = map['timeframe'] as String?;
+    final map = Map<String, dynamic>.from(m as Map);
+    String? _asString(dynamic v) => v is String ? v : v?.toString();
+    int? _toInt(dynamic v) {
+      if (v == null) return null;
+      if (v is int) return v;
+      if (v is double) return v.toInt();
+      if (v is String) {
+        final p = int.tryParse(v);
+        if (p != null) return p;
+        final d = double.tryParse(v);
+        return d?.toInt();
+      }
+      return null;
+    }
+
+    double? _toDouble(dynamic v) {
+      if (v == null) return null;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v);
+      return null;
+    }
+
+    final indicatorName = _asString(map['indicator']);
+    final operatorName = _asString(map['operator']);
+    final isNumberValue =
+        map['isNumberValue'] is bool ? map['isNumberValue'] as bool : true;
+    final numberValue = _toDouble(map['numberValue']);
+    final compareIndicatorName = _asString(map['compareIndicator']);
+    final period = _toInt(map['period']);
+    final mainPeriod = _toInt(map['mainPeriod']);
+    final logicalName = _asString(map['logicalOperator']);
+    final timeframe = _asString(map['timeframe']);
 
     final indicator = indicatorName != null
         ? IndicatorType.values.firstWhere(
@@ -773,8 +1282,44 @@ class StrategyBuilderViewModel extends BaseViewModel {
       numberValue: numberValue,
       compareIndicator: compareIndicator,
       period: period,
+      mainPeriod: mainPeriod,
       logicalOperator: logicalOp,
       timeframe: timeframe,
     );
+  }
+
+  void _validateDraftMap(Map<String, dynamic> draft) {
+    // Validate risk type
+    final rtName = draft['riskType'];
+    if (rtName is String) {
+      final ok = RiskType.values.any((e) => e.name == rtName);
+      if (!ok) {
+        throw Exception('riskType tidak dikenal: $rtName');
+      }
+    }
+    // Validate rules arrays
+    for (final key in ['entryRules', 'exitRules']) {
+      final v = draft[key];
+      if (v == null) continue;
+      if (v is! List) {
+        throw Exception('$key harus berupa array');
+      }
+      for (final item in v) {
+        if (item is! Map) {
+          throw Exception('Item $key harus berupa objek');
+        }
+        final m = Map<String, dynamic>.from(item);
+        final ind = m['indicator'];
+        final op = m['operator'];
+        if (ind is String) {
+          final ok = IndicatorType.values.any((e) => e.name == ind);
+          if (!ok) throw Exception('Indicator tidak dikenal: $ind');
+        }
+        if (op is String) {
+          final ok = ComparisonOperator.values.any((e) => e.name == op);
+          if (!ok) throw Exception('Operator tidak dikenal: $op');
+        }
+      }
+    }
   }
 }

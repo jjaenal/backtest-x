@@ -20,6 +20,12 @@ class WorkspaceView extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Workspace'),
           actions: [
+            // Quick Run EMA Ribbon
+            IconButton(
+              icon: const Icon(Icons.auto_graph),
+              tooltip: 'Quick Run EMA Ribbon',
+              onPressed: model.quickRunEmaRibbon,
+            ),
             // Compare mode toggle
             if (model.strategies.isNotEmpty)
               IconButton(
@@ -537,7 +543,8 @@ class WorkspaceView extends StatelessWidget {
                       if (hasResults) ...[
                         const SizedBox(width: 8),
                         IconButton(
-                          onPressed: () => model.copyStrategyLinkToClipboard(strategy),
+                          onPressed: () =>
+                              model.copyStrategyLinkToClipboard(strategy),
                           icon: const Icon(Icons.link),
                           tooltip: 'Copy Strategy Link',
                         ),
@@ -1298,12 +1305,14 @@ class WorkspaceView extends StatelessWidget {
         final signals = (m['signals'] ?? 0).toInt();
         final winRate = ((m['winRate'] ?? 0)).toDouble();
 
+        final pf = ((m['profitFactor'] ?? 0)).toDouble();
+        final ex = ((m['expectancy'] ?? 0)).toDouble();
         final label =
-            '$tf: ${trades}T • ${wins}W • ${winRate.toStringAsFixed(0)}%';
+            '$tf: ${trades}T • ${wins}W • ${winRate.toStringAsFixed(0)}% • PF ${pf.isFinite ? pf.toStringAsFixed(2) : '—'} • Ex ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}';
 
         final isSelected = model.selectedTimeframeFilters.contains(tf);
         final tooltip =
-            'TF $tf • Signals: $signals • Trades: $trades • Wins: $wins • Win Rate: ${winRate.toStringAsFixed(0)}%';
+            'TF $tf • Signals: $signals • Trades: $trades • Wins: $wins • Win Rate: ${winRate.toStringAsFixed(0)}% • PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'} • Expectancy: ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}';
 
         return Tooltip(
           message: tooltip,

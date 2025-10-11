@@ -162,6 +162,7 @@ MockShareService getAndRegisterShareService() {
   locator.registerSingleton<ShareService>(service);
   return service;
 }
+
 MockSnackbarService getAndRegisterSnackbarService() {
   _removeRegistrationIfExists<SnackbarService>();
   final service = MockSnackbarService();

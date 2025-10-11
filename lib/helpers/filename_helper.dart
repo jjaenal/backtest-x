@@ -12,7 +12,8 @@ class FilenameHelper {
     return fmt.format(ts);
   }
 
-  static String build(List<String> parts, {required String ext, DateTime? timestamp}) {
+  static String build(List<String> parts,
+      {required String ext, DateTime? timestamp}) {
     final ts = timestamp ?? DateTime.now();
     final raw = [...parts, formattedTimestamp(ts)].join('_');
     final base = sanitize(raw);

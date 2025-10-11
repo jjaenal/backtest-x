@@ -11,7 +11,8 @@ void main() {
 
     test('build assembles parts with timestamp and extension', () {
       final ts = DateTime(2024, 1, 2, 3, 4, 5);
-      final out = FilenameHelper.build(['btc', '1h', 'report'], ext: 'pdf', timestamp: ts);
+      final out = FilenameHelper.build(['btc', '1h', 'report'],
+          ext: 'pdf', timestamp: ts);
       expect(out, 'btc_1h_report_20240102_030405.pdf');
     });
   });

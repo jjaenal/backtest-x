@@ -40,7 +40,8 @@ class StartupViewModel extends BaseViewModel {
 
     // This is where you can make decisions on where your app should navigate when
     // you have custom startup logic
-    final handledDeepLink = await locator<DeepLinkService>().maybeHandleInitialLink();
+    final handledDeepLink =
+        await locator<DeepLinkService>().maybeHandleInitialLink();
     if (!handledDeepLink) {
       _navigationService.replaceWithHomeView();
     }

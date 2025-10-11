@@ -113,8 +113,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
           const SizedBox(height: 8),
           Center(
             child: Chip(
-              label: Text(
-                  'Langkah ${viewModel.step + 1} dari ${steps.length}'),
+              label: Text('Langkah ${viewModel.step + 1} dari ${steps.length}'),
             ),
           ),
           const SizedBox(height: 8),

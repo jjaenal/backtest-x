@@ -3,6 +3,7 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
+import 'package:backtestx/services/indicator_service.dart';
 
 import '../helpers/test_helpers.dart';
 
@@ -87,6 +88,64 @@ void main() {
       expect(result.summary.maxDrawdownPercentage, 0);
       expect(result.summary.sharpeRatio, 0);
       expect(result.summary.expectancy, 0);
+    });
+
+    test('Uses main indicator period when provided (EMA 8 > EMA 13)', () async {
+      // Use real IndicatorService to compute indicators, bypassing locator mock
+      final service = BacktestEngineService(indicatorService: IndicatorService());
+
+      // Build rising market data so short EMA stays above long EMA
+      final now = DateTime.now();
+      final candles = List<Candle>.generate(200, (i) {
+        final base = 100.0 + i * 0.5; // steadily rising close
+        return Candle(
+          timestamp: now.add(Duration(minutes: i)),
+          open: base - 0.2,
+          high: base + 0.3,
+          low: base - 0.4,
+          close: base,
+          volume: 1000.0 + i.toDouble(),
+        );
+      });
+
+      final md = MarketData(
+        id: 'md-ema-period',
+        symbol: 'TEST',
+        timeframe: 'M1',
+        candles: candles,
+        uploadedAt: now,
+      );
+
+      final strategy = Strategy(
+        id: 's-ema-period',
+        name: 'EMA Period Main Indicator',
+        initialCapital: 10000,
+        riskManagement: const RiskManagement(
+          riskType: RiskType.fixedLot,
+          riskValue: 1,
+        ),
+        entryRules: const [
+          StrategyRule(
+            indicator: IndicatorType.ema,
+            period: 8, // main indicator period
+            operator: ComparisonOperator.greaterThan,
+            value: ConditionValue.indicator(
+              type: IndicatorType.ema,
+              period: 13,
+            ),
+          ),
+        ],
+        exitRules: const [],
+        createdAt: now,
+      );
+
+      final result = await service.runBacktest(marketData: md, strategy: strategy);
+
+      // Ensure backtest ran and signals were detected on base timeframe
+      expect(result.trades, isNotNull);
+      final stats = service.lastTfStats['M1'];
+      expect(stats, isNotNull);
+      expect((stats!['signals'] ?? 0), greaterThan(0));
     });
   });
 }

@@ -23,7 +23,8 @@ void main() {
     locator.reset();
   });
 
-  test('exportTradeHistory shares text that includes BacktestResult deep link', () async {
+  test('exportTradeHistory shares text that includes BacktestResult deep link',
+      () async {
     // Prepare market data in DataManager cache
     final dm = locator<DataManager>();
     final candles = [

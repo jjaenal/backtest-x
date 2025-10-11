@@ -571,6 +571,11 @@ void main() {
     - Error summary banner under Save button for quick fix guidance
     - Save/Test button labels show error count when disabled
   - Timeframe dropdown: tooltip menjelaskan perilaku resampling saat Rule TF < Base TF
+  - Exit & filter state:
+    - Konfirmasi keluar saat ada draft autosave (WillPopScope + AlertDialog)
+    - Tombol: `Batal`, `Tutup`, dan `Discard & Keluar` (hapus draft lalu keluar)
+    - Tombol `Discard Draft` tampil kondisional hanya bila ada draft autosave
+    - Reset filter template (query dan kategori) saat meninggalkan Strategy Builder
   - Verified on Flutter web preview without browser errors
 
 - Workspace results filters:

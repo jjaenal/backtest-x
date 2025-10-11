@@ -370,3 +370,28 @@ navigationService.navigateToBacktestResultView(resultId: result.id);
 **You're basically DONE with MVP!** 🚀
 
 Ready to launch beta! 💪
+
+---
+
+## 🧩 Dukungan Periode Utama (Main Period)
+
+### Ringkas
+
+- Builder kini mendukung `mainPeriod` untuk indikator kiri pada rule ketika tipe nilai adalah perbandingan indikator.
+- Periode pembanding (`period`) tetap berada di blok "Compare Indicator".
+- Engine backtest membaca `mainPeriod` untuk indikator utama dan `period` untuk indikator pembanding saat precalculate.
+
+### Manfaat
+
+- Konsistensi UI ↔ Engine: periode yang Anda lihat dan isi di builder persis dipakai oleh engine.
+- Akurasi template: strategi seperti `ema_ribbon_stack` menyetel `mainPeriod` (contoh: EMA kiri = 8) dan `period` pembanding (contoh: EMA kanan = 13) sehingga sinyal sesuai rancangan.
+
+### Contoh Rule
+
+- `EMA(mainPeriod=8) > EMA(period=13)` pada tren naik akan menghasilkan sinyal entry sesuai harapan.
+
+### Catatan
+
+- Berlaku untuk indikator ber-periode: `EMA`, `SMA`, `RSI`, `ATR`, `Bollinger Bands`.
+- Indikator tanpa periode (Close, Open, High, Low) tidak menampilkan `mainPeriod`.
+- Indikator multi-parameter (mis. `MACD`) mengikuti konfigurasi yang tersedia di form tanpa `mainPeriod` terpisah.

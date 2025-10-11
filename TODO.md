@@ -267,7 +267,7 @@
 - [x] Inline errorText on problematic fields (Value, Compare With, Period)
 - [x] Red border highlight on rule cards with errors
 - [x] Operator-specific validation for crossAbove/crossBelow
-- [ ] Add Base TF vs Rule TF badge in preview results
+- [x] Add Base TF vs Rule TF badge in preview results
 - [x] Tooltip for timeframe dropdown explaining correction behavior
 - [x] Auto-switch Value ke Indicator untuk operator crossAbove/crossBelow
 - [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
@@ -276,6 +276,9 @@
 - [ ] Add Theming Guide docs for contributors
 - [ ] UI tests for dark mode components (toggle, sheets, chart labels)
 - [x] Persist Compare view preferences (Sort/Agg) across sessions
+- [x] Strategy Builder: reset filter template saat keluar layar
+- [x] Strategy Builder: konfirmasi keluar saat ada draft autosave; opsi "Discard & Keluar"
+- [x] Strategy Builder: sembunyikan tombol "Discard Draft" bila tidak ada draft autosave
 
 ### Data Management
 
@@ -842,19 +845,39 @@ xl: 32px
 
 ---
 
+## 🎯 Focused Checklist — Workspace: Quick Test UX
+
+- [x] Tampilkan bottom sheet “View Full Results” setelah Quick Test
+- [x] Pemilih data pasar via bottom sheet dengan opsi radio
+
+---
+
 ## 🎯 Focused Checklist — Strategy Builder: Pengembangan Lanjutan
 
 ### Strategi Prioritas untuk Diimplementasikan
 
+#### Top Prioritas (MVP Sprint)
+
 - [ ] Breakout (HH/HL, range box, volatility filter)
-- [ ] Momentum (RSI/MACD konfirmasi, multi‑TF opsi)
 - [ ] Trend Following (EMA/SMA cross, ADX filter)
+- [ ] EMA Ribbon (multi‑EMA alignment)
+
+##### Implementasi (Sprint)
+
+- [x] Akses cepat 3 template MVP di Template Picker (highlight & urutan)
+- [x] Risk preset konsisten per template (SL/TP, RR, trailing)
+- [x] Quick preview subset data stabil di Strategy Builder
+- [x] Unit test untuk 3 template (validasi rule & save/load)
+- [x] Quick Run dari Workspace untuk Breakout & Trend (EMA Ribbon sudah ada)
+
+#### Backlog
+
 - [ ] Mean Reversion (Bollinger Bands, RSI oversold/overbought)
 - [ ] Bollinger Squeeze (BB width + breakout trigger)
-- [ ] RSI Divergence (regular + hidden, dengan konfirmasi MA)
+- [ ] Momentum (RSI/MACD konfirmasi, multi‑TF opsi)
 - [ ] MACD Signal (cross, histogram momentum, filter noise)
 - [ ] VWAP & Anchored VWAP (pullback/cross)
-- [ ] EMA Ribbon (multi‑EMA alignment)
+- [ ] RSI Divergence (regular + hidden, dengan konfirmasi MA)
 - [ ] Stochastic (K/D cross + threshold)
 
 ### Template & Rule Builder
@@ -867,13 +890,30 @@ xl: 32px
 
 ### Integrasi & UX
 
-- [ ] Quick preview hasil strategi dari builder (subset data)
-- [ ] Indikator wajib & kompatibilitas rule (hindari kombinasi tidak valid)
-- [ ] Badge performa cepat (WinRate/PF dari preview)
+- [x] Quick preview hasil strategi dari builder (subset data)
+- [x] Indikator wajib & kompatibilitas rule (hindari kombinasi tidak valid)
+- [x] Badge performa cepat (WinRate/PF dari preview)
 - [ ] Export/Import template strategi (JSON)
+- [x] Export/Import strategy (JSON) via AppBar overflow
 - [ ] Unit test per template (validasi rule, save/load, quick backtest)
+- [x] Konfirmasi keluar saat ada draft autosave; opsi "Discard & Keluar"
+- [x] Sembunyikan tombol "Discard Draft" bila tidak ada draft autosave
+- [x] Reset filter template (query & kategori) saat keluar builder
 
 ### Dokumentasi
 
 - [ ] STRATEGY_BUILDER_GUIDE.md: tambah bab Template & Best Practices
 - [ ] Contoh strategi siap pakai (5+ contoh) di README/guide
+- [x] STRATEGY_BUILDER_GUIDE.md: bab Exit & Filter State (autosave, konfirmasi, reset)
+- [x] README: ringkas Exit & Filter State dan tombol Discard kondisional
+
+---
+
+## 🎯 Focused Checklist — Strategy Builder: AppBar Overflow Actions
+
+- [x] Satukan menu overflow agar selalu muncul
+- [x] Kondisikan `Export/Copy/Save` berdasarkan `canSave`
+- [x] Pindahkan `Delete Strategy` ke overflow saat `isEditing`
+- [x] Hapus ikon Import/Delete terpisah saat state invalid
+- [x] Tambah opsi "Import dari file .json" untuk non‑web
+- [x] Pertahankan opsi "Import JSON..." (paste teks)

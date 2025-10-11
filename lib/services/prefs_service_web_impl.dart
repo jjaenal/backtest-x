@@ -9,4 +9,8 @@ class PrefsService {
   Future<String?> getString(String key) async {
     return html.window.localStorage[key];
   }
+
+  Future<void> remove(String key) async {
+    html.window.localStorage.remove(key);
+  }
 }

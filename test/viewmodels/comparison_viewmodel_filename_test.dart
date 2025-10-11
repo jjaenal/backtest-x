@@ -14,7 +14,9 @@ void main() {
     await locator.reset();
   });
 
-  test('ComparisonViewModel.generateExportFilename formats and sanitizes properly', () async {
+  test(
+      'ComparisonViewModel.generateExportFilename formats and sanitizes properly',
+      () async {
     final vm = ComparisonViewModel(const <BacktestResult>[]);
     final fixedTs = DateTime(2025, 1, 1, 12, 0, 0);
 

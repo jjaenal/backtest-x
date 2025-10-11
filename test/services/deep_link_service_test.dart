@@ -9,8 +9,8 @@ void main() {
         useHashRoutingOverride: true,
       );
       final link = svc.buildBacktestResultLink(resultId: 'abc123');
-      expect(link,
-          equals('https://example.com/#/backtest-result-view?id=abc123'));
+      expect(
+          link, equals('https://example.com/#/backtest-result-view?id=abc123'));
     });
 
     test('buildBacktestResultLink encodes special characters in id', () {

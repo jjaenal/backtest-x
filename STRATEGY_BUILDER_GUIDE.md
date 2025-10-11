@@ -360,3 +360,73 @@ Strategy(
 **Ready to create strategies!** 🚀
 
 Just navigate to Strategy Builder and start building your winning strategy!
+
+---
+
+## 🔒 Exit & Filter State (Autosave & Kondisi Keluar)
+
+### Autosave Drafts
+
+- Builder melakukan autosave dengan debounce agar perubahan tidak hilang.
+- Indikator status autosave dan waktu terakhir tersimpan ditampilkan di UI.
+- Draft akan dipulihkan otomatis saat builder dibuka kembali jika tersedia.
+
+### Konfirmasi Keluar (WillPopScope)
+
+- Jika ada draft autosave, keluar dari builder menampilkan dialog konfirmasi.
+- Tombol pada dialog:
+  - `Batal`: tutup dialog dan tetap di builder.
+  - `Tutup`: keluar dari builder tanpa menghapus draft.
+  - `Discard & Keluar`: hapus draft autosave lalu keluar dari builder.
+
+### Tombol "Discard Draft" Bersyarat
+
+- Tombol `Discard Draft` hanya muncul jika `hasAutosaveDraft == true`.
+- Klik tombol ini menghapus draft autosave dan menyembunyikan tombol.
+
+### Reset Filter Template Saat Keluar
+
+- Filter `query` dan `selectedCategories` pada picker template direset saat meninggalkan builder.
+- Implementasi: panggil `viewModel.resetTemplateFilters()` di `onWillPop` sebelum melakukan `pop`.
+
+### Referensi Kode
+
+- `lib/ui/views/strategy_builder/strategy_builder_view.dart` → `WillPopScope` + `AlertDialog` untuk konfirmasi.
+- `lib/ui/views/strategy_builder/strategy_builder_viewmodel.dart` → flag `hasAutosaveDraft`, `restoreDraftIfAvailable()`, dan `resetTemplateFilters()`.
+
+### Best Practices
+
+- Gunakan autosave untuk mencegah kehilangan data saat berpindah view.
+- Selalu tampilkan konfirmasi saat ada state belum tersimpan (draft).
+- Reset UI state sementara (filter/template) ketika pengguna meninggalkan layar untuk menghindari kebingungan saat kembali.
+
+---
+
+## 🧩 Periode Utama vs Periode Pembanding
+
+Untuk rule dengan tipe nilai "Bandingkan indikator" (Indicator), kini builder mendukung dua input periode yang terpisah agar perhitungan engine akurat dan konsisten dengan strategi:
+
+- Periode Utama (`mainPeriod`): periode untuk indikator kiri (indikator utama pada rule).
+- Periode Pembanding (`period`): periode untuk indikator pembanding (kanan) yang diisi dalam blok "Compare Indicator".
+
+### Kapan `mainPeriod` muncul
+
+- Muncul ketika indikator kiri membutuhkan periode tunggal, seperti `EMA`, `SMA`, `RSI`, `ATR`, atau `Bollinger Bands`.
+- Tidak muncul untuk indikator tanpa periode (mis. `Close`, `Open`, `High`, `Low`).
+- Indikator multi-parameter (mis. `MACD`) tetap mengikuti konfigurasi yang tersedia dan tidak menggunakan `mainPeriod` terpisah.
+
+### Contoh Penggunaan: EMA Ribbon
+
+- Entry rule: `EMA(mainPeriod=8) > EMA(period=13)`.
+- Dengan `mainPeriod` di sisi kiri dan `period` di sisi pembanding, engine menghitung kedua EMA sesuai periode yang dimaksud, menghindari asumsi periode default.
+
+### Integrasi & Serialisasi
+
+- UI Rule Builder menyimpan kedua nilai (`mainPeriod` dan `period`) di draft autosave dan saat menyimpan strategi.
+- Backtest Engine menggunakan `mainPeriod` untuk precalculate indikator utama dan `period` untuk indikator pembanding.
+- Template strategi seperti `ema_ribbon_stack` kini menyetel `mainPeriod` secara eksplisit sehingga hasil backtest dan pratinjau UI selaras.
+
+### Tips Implementasi
+
+- Saat membuat aturan perbandingan indikator, selalu isi `mainPeriod` untuk indikator kiri jika indikatornya ber-periode.
+- Verifikasi di hasil backtest bahwa sinyal mengikuti periode yang Anda set (contoh: EMA 8 vs EMA 13 pada tren naik).

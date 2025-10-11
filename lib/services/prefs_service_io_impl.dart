@@ -47,4 +47,10 @@ class PrefsService {
     final v = _cache![key];
     return v is String ? v : null;
   }
+
+  Future<void> remove(String key) async {
+    await _ensureLoaded();
+    _cache!.remove(key);
+    await _flush();
+  }
 }

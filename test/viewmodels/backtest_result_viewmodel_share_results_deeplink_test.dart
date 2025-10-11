@@ -20,7 +20,8 @@ void main() {
     locator.reset();
   });
 
-  test('shareResults shares text that includes BacktestResult deep link', () async {
+  test('shareResults shares text that includes BacktestResult deep link',
+      () async {
     // Prepare market data in DataManager cache
     final dm = locator<DataManager>();
     final candles = [
@@ -84,7 +85,8 @@ void main() {
     // Stub ShareService to capture shared text
     final mockShare = getAndRegisterShareService();
     String? capturedText;
-    when(mockShare.shareText(any, subject: anyNamed('subject'))).thenAnswer((inv) {
+    when(mockShare.shareText(any, subject: anyNamed('subject')))
+        .thenAnswer((inv) {
       capturedText = inv.positionalArguments.first as String?;
       return Future.value();
     });

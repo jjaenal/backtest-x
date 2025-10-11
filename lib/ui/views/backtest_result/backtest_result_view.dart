@@ -284,9 +284,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                 tooltip: 'Export per-timeframe stats',
                                 onSelected: (value) async {
                                   if (value == 'png_chart_dialog') {
-                                    await _promptExportChartPng(context, viewModel);
+                                    await _promptExportChartPng(
+                                        context, viewModel);
                                   } else if (value == 'png_panel_dialog') {
-                                    await _promptExportPanelPng(context, viewModel);
+                                    await _promptExportPanelPng(
+                                        context, viewModel);
                                   } else if (value == 'pdf_chart_dialog') {
                                     await _promptExportChartPdf(
                                         context, viewModel);

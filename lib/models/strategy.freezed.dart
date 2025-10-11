@@ -625,6 +625,8 @@ mixin _$StrategyRule {
   IndicatorType get indicator => throw _privateConstructorUsedError;
   ComparisonOperator get operator => throw _privateConstructorUsedError;
   ConditionValue get value => throw _privateConstructorUsedError;
+  int? get period =>
+      throw _privateConstructorUsedError; // Opsional: period untuk indikator utama (mis. EMA(8))
   LogicalOperator? get logicalOperator =>
       throw _privateConstructorUsedError; // AND/OR untuk chain rules
   String? get timeframe => throw _privateConstructorUsedError;
@@ -649,6 +651,7 @@ abstract class $StrategyRuleCopyWith<$Res> {
       {IndicatorType indicator,
       ComparisonOperator operator,
       ConditionValue value,
+      int? period,
       LogicalOperator? logicalOperator,
       String? timeframe});
 
@@ -673,6 +676,7 @@ class _$StrategyRuleCopyWithImpl<$Res, $Val extends StrategyRule>
     Object? indicator = null,
     Object? operator = null,
     Object? value = null,
+    Object? period = freezed,
     Object? logicalOperator = freezed,
     Object? timeframe = freezed,
   }) {
@@ -689,6 +693,10 @@ class _$StrategyRuleCopyWithImpl<$Res, $Val extends StrategyRule>
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as ConditionValue,
+      period: freezed == period
+          ? _value.period
+          : period // ignore: cast_nullable_to_non_nullable
+              as int?,
       logicalOperator: freezed == logicalOperator
           ? _value.logicalOperator
           : logicalOperator // ignore: cast_nullable_to_non_nullable
@@ -723,6 +731,7 @@ abstract class _$$StrategyRuleImplCopyWith<$Res>
       {IndicatorType indicator,
       ComparisonOperator operator,
       ConditionValue value,
+      int? period,
       LogicalOperator? logicalOperator,
       String? timeframe});
 
@@ -746,6 +755,7 @@ class __$$StrategyRuleImplCopyWithImpl<$Res>
     Object? indicator = null,
     Object? operator = null,
     Object? value = null,
+    Object? period = freezed,
     Object? logicalOperator = freezed,
     Object? timeframe = freezed,
   }) {
@@ -762,6 +772,10 @@ class __$$StrategyRuleImplCopyWithImpl<$Res>
           ? _value.value
           : value // ignore: cast_nullable_to_non_nullable
               as ConditionValue,
+      period: freezed == period
+          ? _value.period
+          : period // ignore: cast_nullable_to_non_nullable
+              as int?,
       logicalOperator: freezed == logicalOperator
           ? _value.logicalOperator
           : logicalOperator // ignore: cast_nullable_to_non_nullable
@@ -781,6 +795,7 @@ class _$StrategyRuleImpl implements _StrategyRule {
       {required this.indicator,
       required this.operator,
       required this.value,
+      this.period,
       this.logicalOperator,
       this.timeframe});
 
@@ -794,6 +809,9 @@ class _$StrategyRuleImpl implements _StrategyRule {
   @override
   final ConditionValue value;
   @override
+  final int? period;
+// Opsional: period untuk indikator utama (mis. EMA(8))
+  @override
   final LogicalOperator? logicalOperator;
 // AND/OR untuk chain rules
   @override
@@ -801,7 +819,7 @@ class _$StrategyRuleImpl implements _StrategyRule {
 
   @override
   String toString() {
-    return 'StrategyRule(indicator: $indicator, operator: $operator, value: $value, logicalOperator: $logicalOperator, timeframe: $timeframe)';
+    return 'StrategyRule(indicator: $indicator, operator: $operator, value: $value, period: $period, logicalOperator: $logicalOperator, timeframe: $timeframe)';
   }
 
   @override
@@ -814,6 +832,7 @@ class _$StrategyRuleImpl implements _StrategyRule {
             (identical(other.operator, operator) ||
                 other.operator == operator) &&
             (identical(other.value, value) || other.value == value) &&
+            (identical(other.period, period) || other.period == period) &&
             (identical(other.logicalOperator, logicalOperator) ||
                 other.logicalOperator == logicalOperator) &&
             (identical(other.timeframe, timeframe) ||
@@ -822,8 +841,8 @@ class _$StrategyRuleImpl implements _StrategyRule {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, indicator, operator, value, logicalOperator, timeframe);
+  int get hashCode => Object.hash(runtimeType, indicator, operator, value,
+      period, logicalOperator, timeframe);
 
   /// Create a copy of StrategyRule
   /// with the given fields replaced by the non-null parameter values.
@@ -846,6 +865,7 @@ abstract class _StrategyRule implements StrategyRule {
       {required final IndicatorType indicator,
       required final ComparisonOperator operator,
       required final ConditionValue value,
+      final int? period,
       final LogicalOperator? logicalOperator,
       final String? timeframe}) = _$StrategyRuleImpl;
 
@@ -858,6 +878,8 @@ abstract class _StrategyRule implements StrategyRule {
   ComparisonOperator get operator;
   @override
   ConditionValue get value;
+  @override
+  int? get period; // Opsional: period untuk indikator utama (mis. EMA(8))
   @override
   LogicalOperator? get logicalOperator; // AND/OR untuk chain rules
   @override
