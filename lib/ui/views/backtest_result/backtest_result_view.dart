@@ -36,7 +36,6 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Backtest Results'),
         actions: [
           IconButton(
             icon: const Icon(Icons.link),
@@ -76,6 +75,38 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const Padding(
+                    padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Text('Backtest Results',
+                        style: TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold)),
+                  ),
+                  // Top info section: symbol, timeframe, date range
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.timeline, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${viewModel.symbol} · ${viewModel.timeframe} • ${viewModel.startDate} – ${viewModel.endDate}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.7),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   // Equity Curve Chart
                   SizedBox(
                     height: 450,

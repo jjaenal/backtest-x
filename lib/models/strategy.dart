@@ -38,6 +38,7 @@ class RiskManagement with _$RiskManagement {
 enum RiskType {
   fixedLot,
   percentageRisk,
+  atrBased,
 }
 
 @freezed
@@ -63,11 +64,18 @@ enum IndicatorType {
   macdSignal,
   macdHistogram,
   atr,
+  atrPct,
+  adx,
   bollingerBands,
+  bollingerWidth,
   close,
   open,
   high,
   low,
+  vwap,
+  anchoredVwap,
+  stochasticK,
+  stochasticD,
 }
 
 enum ComparisonOperator {
@@ -87,12 +95,21 @@ enum LogicalOperator {
   or,
 }
 
+// Mode anchor untuk Anchored VWAP
+enum AnchorMode {
+  startOfBacktest, // Anchor di awal backtest (index 0)
+  byDate, // Anchor berdasarkan tanggal tertentu
+}
+
 @freezed
 class ConditionValue with _$ConditionValue {
   const factory ConditionValue.number(double value) = _NumberValue;
   const factory ConditionValue.indicator({
     required IndicatorType type,
     int? period,
+    // Opsi khusus untuk Anchored VWAP
+    AnchorMode? anchorMode,
+    DateTime? anchorDate,
   }) = _IndicatorValue;
 
   factory ConditionValue.fromJson(Map<String, dynamic> json) =>

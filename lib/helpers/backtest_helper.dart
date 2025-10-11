@@ -118,14 +118,23 @@ class BacktestHelper {
         await _storageService.saveStrategy(strategy);
       }
 
-      // Save result (summary only in DB, full result in cache)
-      await _storageService.saveBacktestResult(result);
-      debugPrint('💾 Saved to database');
+      // Skip saving when there are zero trades to avoid downstream chart errors
+      if (result.summary.totalTrades == 0) {
+        debugPrint('⚠️ Skipping save: result has 0 trades');
+      } else {
+        // Save result (summary only in DB, full result in cache)
+        await _storageService.saveBacktestResult(result);
+        debugPrint('💾 Saved to database');
+      }
     }
 
     // Navigate to result view if requested
     if (navigateToResult) {
-      _navigationService.navigateToBacktestResultView(result: result);
+      if (result.summary.totalTrades == 0) {
+        debugPrint('⚠️ Skipping navigation: result has 0 trades');
+      } else {
+        _navigationService.navigateToBacktestResultView(result: result);
+      }
     }
 
     return result;

@@ -36,6 +36,14 @@ flutter run
 - **Strategy Builder**: Create trading strategies with custom entry/exit rules
 - **Backtest Engine**: Test strategies against historical data
 - **Performance Analytics**: Comprehensive statistics and visualizations
+- **Backtest Result Header**: Shows tested `Symbol · Timeframe • Date Range` at the top of the results view for quick context
+- **RSI Divergence (Approx)**: Template and quick‑run demo available
+ - **Anchored VWAP (Pullback/Cross)**:
+   - Template available using anchored VWAP
+   - New: configurable Anchor Mode — `Start` (backtest begin) or `Date`
+   - Anchor by Date resolves to the first candle whose timestamp ≥ selected date
+   - Full MTF support in engine (precalc per timeframe with unique keys)
+   - Strategy Builder UI adds Anchor Mode and Anchor Date controls
 - **Multi-platform Support**: Works on Web, Android, iOS, and desktop platforms
 - **Data Import/Export**: Import CSV data and export backtest results (CSV, PDF)
   - Export trades to CSV from Backtest Result view
@@ -49,6 +57,10 @@ flutter run
   
   PDF Export enhancements:
   - Multi‑page PDF report (Charts + Indicator Panel)
+  
+  New:
+  - **ATR‑Based Position Sizing**: Select `atrBased` risk type to size positions by ATR multiple.
+  - **Dynamic ATR% Presets**: Percentile chips (P25/P50/P75/P90) for `ATR%` indicator, computed per rule timeframe and selected dataset.
   
 ### Deep Link (Web/Mobile)
 
@@ -241,8 +253,125 @@ dependencies:
 #### 2. IndicatorService
 
 - Technical indicators: SMA, EMA, RSI, ATR, MACD, Bollinger Bands
+ - Anchored VWAP enhancements:
+   - Accepts anchor index and computes VWAP from anchor onward
+   - Engine maps Anchor Date to index using first timestamp ≥ date
+   - Null values before anchor; precise rolling accumulations from anchor
+
+### Strategy Builder — Anchored VWAP Setup
+
+- Pilih `Indicator: Anchored VWAP` pada rule.
+- Isi `Main Period` (periode utama indikator bila diperlukan oleh template/varian).
+- Set `Anchor Mode`: `Start` atau `Date`.
+  - `Start`: anchor di awal dataset/backtest.
+  - `Date`: isi `Anchor Date` dengan format `YYYY-MM-DD` atau ISO (`YYYY-MM-DDTHH:mm:ss`).
+- `Anchor Date` akan dipetakan ke indeks candle pertama dengan timestamp ≥ tanggal tersebut.
+- Aturan mendukung operator `>`/`<` dan `crossAbove`/`crossBelow` terhadap angka atau indikator lain.
 - Reusable calculation methods
 - Optimized for performance
+
+New indicators & templates:
+
+- Indicators: `VWAP` (rolling window), `StochasticK` and `StochasticD` (%K/%D with SMA smoothing)
+- Templates:
+  - `VWAP Pullback — Close CrossAbove VWAP(20)`
+  - `Stochastic Cross — %K(14) crossAbove %D(3) + ADX(14) > 20`
+
+### Quick Run Demo (GIF)
+
+To include visual demos for Quick Run, place GIFs under `assets/images/` and they will be shown here:
+
+- VWAP Pullback Quick Run:
+
+  ![VWAP Quick Run](assets/images/quick_run_vwap.gif)
+
+- Stochastic K/D Quick Run:
+
+  ![Stochastic Quick Run](assets/images/quick_run_stochastic.gif)
+
+- Bollinger Squeeze Quick Run:
+
+  ![Bollinger Squeeze Quick Run](assets/images/quick_run_bb_squeeze.gif)
+
+- RSI Divergence (Approx) Quick Run:
+
+  ![RSI Divergence Quick Run](assets/images/quick_run_rsi_divergence.gif)
+
+Note: Ensure the GIF files exist at the specified paths; otherwise the images will not render. I can integrate the provided GIFs on request.
+
+Example strategy definitions:
+
+```dart
+// VWAP Pullback
+final vwapPullback = Strategy(
+  id: 'example_vwap',
+  name: 'VWAP Pullback — Close CrossAbove VWAP',
+  initialCapital: 10000,
+  riskManagement: const RiskManagement(
+    riskType: RiskType.percentageRisk,
+    riskValue: 2.0,
+    stopLoss: 150,
+    takeProfit: 300,
+  ),
+  entryRules: const [
+    StrategyRule(
+      indicator: IndicatorType.close,
+      operator: ComparisonOperator.crossAbove,
+      value: ConditionValue.indicator(type: IndicatorType.vwap, period: 20),
+    ),
+  ],
+  exitRules: const [
+    StrategyRule(
+      indicator: IndicatorType.close,
+      operator: ComparisonOperator.crossBelow,
+      value: ConditionValue.indicator(type: IndicatorType.vwap, period: 20),
+    ),
+  ],
+);
+
+// Stochastic K/D Cross + ADX filter
+final stochCross = Strategy(
+  id: 'example_stoch',
+  name: 'Stochastic Cross — K/D + ADX Filter',
+  initialCapital: 10000,
+  riskManagement: const RiskManagement(
+    riskType: RiskType.percentageRisk,
+    riskValue: 1.5,
+    stopLoss: 120,
+    takeProfit: 240,
+  ),
+  entryRules: const [
+    StrategyRule(
+      indicator: IndicatorType.adx,
+      period: 14,
+      operator: ComparisonOperator.greaterThan,
+      value: ConditionValue.number(20),
+      logicalOperator: LogicalOperator.and,
+    ),
+    StrategyRule(
+      indicator: IndicatorType.stochasticK,
+      period: 14,
+      operator: ComparisonOperator.crossAbove,
+      value: ConditionValue.indicator(type: IndicatorType.stochasticD, period: 14),
+    ),
+  ],
+  exitRules: const [
+    StrategyRule(
+      indicator: IndicatorType.stochasticK,
+      period: 14,
+      operator: ComparisonOperator.crossBelow,
+      value: ConditionValue.indicator(type: IndicatorType.stochasticD, period: 14),
+    ),
+  ],
+);
+```
+
+Quick Run (Workspace):
+
+- The Workspace includes quick-run helpers; new methods are available:
+  - `WorkspaceViewModel.quickRunVwapPullback()`
+  - `WorkspaceViewModel.quickRunStochasticKdCross()`
+- Wire these to UI (AppBar or strategy card actions) as needed, or run via debug/dev buttons.
 
 #### 3. BacktestEngineService
 
@@ -558,6 +687,8 @@ void main() {
   - Implement lazy loading with paginated "Load more" to handle large result sets
   - Shows current count vs total (e.g., 20/200) for clarity
 - Strategy Builder:
+  - Dynamic ATR% presets with percentile chips (P25/P50/P75/P90), MTF‑aware
+  - Risk Management: ATR‑Based position sizing option added (engine + UI)
 
   - Auto-save drafts with debounce to prevent data loss
   - Validation & UX improvements:

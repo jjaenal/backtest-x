@@ -911,19 +911,25 @@ mixin _$ConditionValue {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(double value) number,
-    required TResult Function(IndicatorType type, int? period) indicator,
+    required TResult Function(IndicatorType type, int? period,
+            AnchorMode? anchorMode, DateTime? anchorDate)
+        indicator,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(double value)? number,
-    TResult? Function(IndicatorType type, int? period)? indicator,
+    TResult? Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
   }) =>
       throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(double value)? number,
-    TResult Function(IndicatorType type, int? period)? indicator,
+    TResult Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
     required TResult orElse(),
   }) =>
       throw _privateConstructorUsedError;
@@ -1049,7 +1055,9 @@ class _$NumberValueImpl implements _NumberValue {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(double value) number,
-    required TResult Function(IndicatorType type, int? period) indicator,
+    required TResult Function(IndicatorType type, int? period,
+            AnchorMode? anchorMode, DateTime? anchorDate)
+        indicator,
   }) {
     return number(value);
   }
@@ -1058,7 +1066,9 @@ class _$NumberValueImpl implements _NumberValue {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(double value)? number,
-    TResult? Function(IndicatorType type, int? period)? indicator,
+    TResult? Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
   }) {
     return number?.call(value);
   }
@@ -1067,7 +1077,9 @@ class _$NumberValueImpl implements _NumberValue {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(double value)? number,
-    TResult Function(IndicatorType type, int? period)? indicator,
+    TResult Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
     required TResult orElse(),
   }) {
     if (number != null) {
@@ -1136,7 +1148,11 @@ abstract class _$$IndicatorValueImplCopyWith<$Res> {
           $Res Function(_$IndicatorValueImpl) then) =
       __$$IndicatorValueImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({IndicatorType type, int? period});
+  $Res call(
+      {IndicatorType type,
+      int? period,
+      AnchorMode? anchorMode,
+      DateTime? anchorDate});
 }
 
 /// @nodoc
@@ -1154,6 +1170,8 @@ class __$$IndicatorValueImplCopyWithImpl<$Res>
   $Res call({
     Object? type = null,
     Object? period = freezed,
+    Object? anchorMode = freezed,
+    Object? anchorDate = freezed,
   }) {
     return _then(_$IndicatorValueImpl(
       type: null == type
@@ -1164,6 +1182,14 @@ class __$$IndicatorValueImplCopyWithImpl<$Res>
           ? _value.period
           : period // ignore: cast_nullable_to_non_nullable
               as int?,
+      anchorMode: freezed == anchorMode
+          ? _value.anchorMode
+          : anchorMode // ignore: cast_nullable_to_non_nullable
+              as AnchorMode?,
+      anchorDate: freezed == anchorDate
+          ? _value.anchorDate
+          : anchorDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -1172,7 +1198,11 @@ class __$$IndicatorValueImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$IndicatorValueImpl implements _IndicatorValue {
   const _$IndicatorValueImpl(
-      {required this.type, this.period, final String? $type})
+      {required this.type,
+      this.period,
+      this.anchorMode,
+      this.anchorDate,
+      final String? $type})
       : $type = $type ?? 'indicator';
 
   factory _$IndicatorValueImpl.fromJson(Map<String, dynamic> json) =>
@@ -1182,13 +1212,18 @@ class _$IndicatorValueImpl implements _IndicatorValue {
   final IndicatorType type;
   @override
   final int? period;
+// Opsi khusus untuk Anchored VWAP
+  @override
+  final AnchorMode? anchorMode;
+  @override
+  final DateTime? anchorDate;
 
   @JsonKey(name: 'runtimeType')
   final String $type;
 
   @override
   String toString() {
-    return 'ConditionValue.indicator(type: $type, period: $period)';
+    return 'ConditionValue.indicator(type: $type, period: $period, anchorMode: $anchorMode, anchorDate: $anchorDate)';
   }
 
   @override
@@ -1197,12 +1232,17 @@ class _$IndicatorValueImpl implements _IndicatorValue {
         (other.runtimeType == runtimeType &&
             other is _$IndicatorValueImpl &&
             (identical(other.type, type) || other.type == type) &&
-            (identical(other.period, period) || other.period == period));
+            (identical(other.period, period) || other.period == period) &&
+            (identical(other.anchorMode, anchorMode) ||
+                other.anchorMode == anchorMode) &&
+            (identical(other.anchorDate, anchorDate) ||
+                other.anchorDate == anchorDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, type, period);
+  int get hashCode =>
+      Object.hash(runtimeType, type, period, anchorMode, anchorDate);
 
   /// Create a copy of ConditionValue
   /// with the given fields replaced by the non-null parameter values.
@@ -1217,29 +1257,35 @@ class _$IndicatorValueImpl implements _IndicatorValue {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
     required TResult Function(double value) number,
-    required TResult Function(IndicatorType type, int? period) indicator,
+    required TResult Function(IndicatorType type, int? period,
+            AnchorMode? anchorMode, DateTime? anchorDate)
+        indicator,
   }) {
-    return indicator(type, period);
+    return indicator(type, period, anchorMode, anchorDate);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
     TResult? Function(double value)? number,
-    TResult? Function(IndicatorType type, int? period)? indicator,
+    TResult? Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
   }) {
-    return indicator?.call(type, period);
+    return indicator?.call(type, period, anchorMode, anchorDate);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
     TResult Function(double value)? number,
-    TResult Function(IndicatorType type, int? period)? indicator,
+    TResult Function(IndicatorType type, int? period, AnchorMode? anchorMode,
+            DateTime? anchorDate)?
+        indicator,
     required TResult orElse(),
   }) {
     if (indicator != null) {
-      return indicator(type, period);
+      return indicator(type, period, anchorMode, anchorDate);
     }
     return orElse();
   }
@@ -1286,13 +1332,17 @@ class _$IndicatorValueImpl implements _IndicatorValue {
 abstract class _IndicatorValue implements ConditionValue {
   const factory _IndicatorValue(
       {required final IndicatorType type,
-      final int? period}) = _$IndicatorValueImpl;
+      final int? period,
+      final AnchorMode? anchorMode,
+      final DateTime? anchorDate}) = _$IndicatorValueImpl;
 
   factory _IndicatorValue.fromJson(Map<String, dynamic> json) =
       _$IndicatorValueImpl.fromJson;
 
   IndicatorType get type;
-  int? get period;
+  int? get period; // Opsi khusus untuk Anchored VWAP
+  AnchorMode? get anchorMode;
+  DateTime? get anchorDate;
 
   /// Create a copy of ConditionValue
   /// with the given fields replaced by the non-null parameter values.

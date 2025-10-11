@@ -61,6 +61,7 @@ Map<String, dynamic> _$$RiskManagementImplToJson(
 const _$RiskTypeEnumMap = {
   RiskType.fixedLot: 'fixedLot',
   RiskType.percentageRisk: 'percentageRisk',
+  RiskType.atrBased: 'atrBased',
 };
 
 _$StrategyRuleImpl _$$StrategyRuleImplFromJson(Map<String, dynamic> json) =>
@@ -92,11 +93,18 @@ const _$IndicatorTypeEnumMap = {
   IndicatorType.macdSignal: 'macdSignal',
   IndicatorType.macdHistogram: 'macdHistogram',
   IndicatorType.atr: 'atr',
+  IndicatorType.atrPct: 'atrPct',
+  IndicatorType.adx: 'adx',
   IndicatorType.bollingerBands: 'bollingerBands',
+  IndicatorType.bollingerWidth: 'bollingerWidth',
   IndicatorType.close: 'close',
   IndicatorType.open: 'open',
   IndicatorType.high: 'high',
   IndicatorType.low: 'low',
+  IndicatorType.vwap: 'vwap',
+  IndicatorType.anchoredVwap: 'anchoredVwap',
+  IndicatorType.stochasticK: 'stochasticK',
+  IndicatorType.stochasticD: 'stochasticD',
 };
 
 const _$ComparisonOperatorEnumMap = {
@@ -132,6 +140,10 @@ _$IndicatorValueImpl _$$IndicatorValueImplFromJson(Map<String, dynamic> json) =>
     _$IndicatorValueImpl(
       type: $enumDecode(_$IndicatorTypeEnumMap, json['type']),
       period: (json['period'] as num?)?.toInt(),
+      anchorMode: $enumDecodeNullable(_$AnchorModeEnumMap, json['anchorMode']),
+      anchorDate: json['anchorDate'] == null
+          ? null
+          : DateTime.parse(json['anchorDate'] as String),
       $type: json['runtimeType'] as String?,
     );
 
@@ -140,5 +152,12 @@ Map<String, dynamic> _$$IndicatorValueImplToJson(
     <String, dynamic>{
       'type': _$IndicatorTypeEnumMap[instance.type]!,
       'period': instance.period,
+      'anchorMode': _$AnchorModeEnumMap[instance.anchorMode],
+      'anchorDate': instance.anchorDate?.toIso8601String(),
       'runtimeType': instance.$type,
     };
+
+const _$AnchorModeEnumMap = {
+  AnchorMode.startOfBacktest: 'startOfBacktest',
+  AnchorMode.byDate: 'byDate',
+};

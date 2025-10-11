@@ -712,18 +712,30 @@ class WorkspaceViewModel extends BaseViewModel {
       // Prompt to view full results
       try {
         final s = result.summary;
-        final response = await _bottomSheetService.showCustomSheet(
-          variant: BottomSheetType.notice,
-          title: 'Quick Test Selesai',
-          description:
-              'Profit Factor ${s.profitFactor.toStringAsFixed(2)}, Win Rate ${s.winRate.toStringAsFixed(2)}%. Lihat hasil lengkap?',
-          mainButtonTitle: 'View Full Results',
-          secondaryButtonTitle: 'Tutup',
-          barrierDismissible: true,
-          isScrollControlled: true,
-        );
-        if (response?.confirmed == true) {
-          viewResult(result);
+        if (s.totalTrades == 0) {
+          await _bottomSheetService.showCustomSheet(
+            variant: BottomSheetType.notice,
+            title: 'Quick Test: 0 Trade',
+            description:
+                'Tidak ada trade yang dihasilkan untuk strategi dan data ini. Hasil tidak akan disimpan dan tampilan detail tidak tersedia.',
+            mainButtonTitle: 'Tutup',
+            barrierDismissible: true,
+            isScrollControlled: true,
+          );
+        } else {
+          final response = await _bottomSheetService.showCustomSheet(
+            variant: BottomSheetType.notice,
+            title: 'Quick Test Selesai',
+            description:
+                'Profit Factor ${s.profitFactor.toStringAsFixed(2)}, Win Rate ${s.winRate.toStringAsFixed(2)}%. Lihat hasil lengkap?',
+            mainButtonTitle: 'View Full Results',
+            secondaryButtonTitle: 'Tutup',
+            barrierDismissible: true,
+            isScrollControlled: true,
+          );
+          if (response?.confirmed == true) {
+            viewResult(result);
+          }
         }
       } catch (_) {
         // Optional UX; ignore errors
@@ -738,6 +750,14 @@ class WorkspaceViewModel extends BaseViewModel {
             await _storageService.saveStrategy(strategy);
           }
 
+          // Skip saving if no trades to avoid downstream chart errors
+          if (result.summary.totalTrades == 0) {
+            _snackbarService.showSnackbar(
+              message: 'Hasil quick test tidak disimpan (0 trade)',
+              duration: const Duration(seconds: 2),
+            );
+            return;
+          }
           // Save summary result to DB
           await _storageService.saveBacktestResult(result);
 
@@ -760,6 +780,13 @@ class WorkspaceViewModel extends BaseViewModel {
                 final existing = await _storageService.getStrategy(strategy.id);
                 if (existing == null) {
                   await _storageService.saveStrategy(strategy);
+                }
+                if (result.summary.totalTrades == 0) {
+                  _snackbarService.showSnackbar(
+                    message: 'Hasil quick test tidak disimpan (0 trade)',
+                    duration: const Duration(seconds: 2),
+                  );
+                  return;
                 }
                 await _storageService.saveBacktestResult(result);
                 _strategyResults[strategy.id] = await _storageService
@@ -793,7 +820,9 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['ema_ribbon_stack'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message: 'Template EMA Ribbon tidak ditemukan',
+          message:
+              'Template EMA Ribbon tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -824,7 +853,9 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['breakout_basic'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message: 'Template Breakout tidak ditemukan',
+          message:
+              'Template Breakout tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -855,7 +886,9 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['trend_ema_cross'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message: 'Template Trend Following tidak ditemukan',
+          message:
+              'Template Trend Following tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -875,6 +908,171 @@ class WorkspaceViewModel extends BaseViewModel {
     } catch (e) {
       _snackbarService.showSnackbar(
         message: 'Quick Run Trend Following gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run VWAP Pullback template directly from Workspace
+  Future<void> quickRunVwapPullback() async {
+    try {
+      final tpl = StrategyTemplates.all['vwap_pullback_breakout'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message:
+              'Template VWAP Pullback tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run VWAP gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run Anchored VWAP Pullback/Cross template directly from Workspace
+  Future<void> quickRunAnchoredVwap() async {
+    try {
+      final tpl = StrategyTemplates.all['anchored_vwap_pullback_cross'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message:
+              'Template Anchored VWAP tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run Anchored VWAP gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run Stochastic K/D Cross + ADX filter template
+  Future<void> quickRunStochasticKdCross() async {
+    try {
+      final tpl = StrategyTemplates.all['stoch_kd_cross_adx'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message:
+              'Template Stochastic K/D tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run Stochastic gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run Bollinger Squeeze template directly from Workspace
+  Future<void> quickRunBollingerSqueeze() async {
+    try {
+      final tpl = StrategyTemplates.all['bb_squeeze_breakout'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message:
+              'Template Bollinger Squeeze tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run Bollinger Squeeze gagal: $e',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
+  /// Quick run RSI Divergence Approx template directly from Workspace
+  Future<void> quickRunRsiDivergenceApprox() async {
+    try {
+      final tpl = StrategyTemplates.all['rsi_divergence_approx'];
+      if (tpl == null) {
+        _snackbarService.showSnackbar(
+          message:
+              'Template RSI Divergence tidak ditemukan. Keys tersedia: '
+              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
+      final strategy = Strategy(
+        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
+        name: tpl.name,
+        initialCapital: tpl.initialCapital,
+        riskManagement: tpl.risk,
+        entryRules: tpl.entryRules,
+        exitRules: tpl.exitRules,
+        createdAt: DateTime.now(),
+      );
+
+      await quickRunBacktest(strategy);
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Quick Run RSI Divergence gagal: $e',
         duration: const Duration(seconds: 3),
       );
     }

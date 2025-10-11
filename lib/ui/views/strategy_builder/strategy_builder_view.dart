@@ -627,14 +627,20 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 TextField(
                                   controller: viewModel.riskValueController,
                                   decoration: InputDecoration(
-                                    labelText:
-                                        viewModel.riskType == RiskType.fixedLot
-                                            ? 'Lot Size'
-                                            : 'Risk Percentage',
-                                    hintText:
-                                        viewModel.riskType == RiskType.fixedLot
-                                            ? '0.1'
-                                            : '2.0',
+                                    labelText: viewModel.riskType ==
+                                            RiskType.fixedLot
+                                        ? 'Lot Size'
+                                        : (viewModel.riskType ==
+                                                RiskType.atrBased
+                                            ? 'ATR Multiple'
+                                            : 'Risk Percentage'),
+                                    hintText: viewModel.riskType ==
+                                            RiskType.fixedLot
+                                        ? '0.1'
+                                        : (viewModel.riskType ==
+                                                RiskType.atrBased
+                                            ? '2.0'
+                                            : '2.0'),
                                     prefixIcon: const Icon(Icons.percent),
                                   ),
                                   keyboardType: TextInputType.number,
@@ -648,11 +654,18 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       child: TextField(
                                         controller:
                                             viewModel.stopLossController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Stop Loss (points)',
-                                          hintText: '100',
+                                        decoration: InputDecoration(
+                                          labelText:
+                                              viewModel.riskType ==
+                                                      RiskType.atrBased
+                                                  ? 'ATR Multiple'
+                                                  : 'Stop Loss (points)',
+                                          hintText: viewModel.riskType ==
+                                                  RiskType.atrBased
+                                              ? '2.0'
+                                              : '100',
                                           prefixIcon:
-                                              Icon(Icons.arrow_downward),
+                                              const Icon(Icons.arrow_downward),
                                         ),
                                         keyboardType: TextInputType.number,
                                       ),
@@ -1880,7 +1893,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 IndicatorType.sma,
                 IndicatorType.ema,
                 IndicatorType.atr,
+                IndicatorType.atrPct,
+                IndicatorType.adx,
                 IndicatorType.bollingerBands,
+                IndicatorType.bollingerWidth,
+                IndicatorType.vwap,
+                IndicatorType.stochasticK,
+                IndicatorType.stochasticD,
               }.contains(rule.indicator);
               if (!needsMainPeriod) return const SizedBox.shrink();
               return TextField(
@@ -2058,6 +2077,98 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               ),
               const SizedBox(height: 8),
             ],
+            // Preset thresholds for ATR% convenience
+            if (rule.isNumberValue &&
+                rule.indicator == IndicatorType.atrPct) ...[
+              const SizedBox(height: 8),
+              // Dynamic ATR% presets based on selected data + timeframe
+              Builder(builder: (context) {
+                final period = rule.mainPeriod ?? 14;
+                final tf = rule.timeframe;
+                if (viewModel.selectedDataId == null) {
+                  return const SizedBox();
+                }
+                return FutureBuilder<List<double>>(
+                  future: viewModel.getAtrPctPercentiles(period, tf),
+                  builder: (context, snap) {
+                    final vals = snap.data ?? const [];
+                    if (vals.isEmpty) return const SizedBox();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dynamic ATR% Presets',
+                          style:
+                              Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _presetChip(
+                                context,
+                                '${vals[0].toStringAsFixed(1)}% (P25)', () {
+                              final v = vals[0].toStringAsFixed(1);
+                              rule.numberController.text = v;
+                              viewModel.updateRuleNumberValue(
+                                  index, v, isEntry);
+                            }),
+                            _presetChip(
+                                context,
+                                '${vals[1].toStringAsFixed(1)}% (P50)', () {
+                              final v = vals[1].toStringAsFixed(1);
+                              rule.numberController.text = v;
+                              viewModel.updateRuleNumberValue(
+                                  index, v, isEntry);
+                            }),
+                            _presetChip(
+                                context,
+                                '${vals[2].toStringAsFixed(1)}% (P75)', () {
+                              final v = vals[2].toStringAsFixed(1);
+                              rule.numberController.text = v;
+                              viewModel.updateRuleNumberValue(
+                                  index, v, isEntry);
+                            }),
+                            _presetChip(
+                                context,
+                                '${vals[3].toStringAsFixed(1)}% (P90)', () {
+                              final v = vals[3].toStringAsFixed(1);
+                              rule.numberController.text = v;
+                              viewModel.updateRuleNumberValue(
+                                  index, v, isEntry);
+                            }),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _presetChip(context, '1.0%', () {
+                    rule.numberController.text = '1.0';
+                    viewModel.updateRuleNumberValue(index, '1.0', isEntry);
+                  }),
+                  _presetChip(context, '1.5%', () {
+                    rule.numberController.text = '1.5';
+                    viewModel.updateRuleNumberValue(index, '1.5', isEntry);
+                  }),
+                  _presetChip(context, '2.0%', () {
+                    rule.numberController.text = '2.0';
+                    viewModel.updateRuleNumberValue(index, '2.0', isEntry);
+                  }),
+                  _presetChip(context, '3.0%', () {
+                    rule.numberController.text = '3.0';
+                    viewModel.updateRuleNumberValue(index, '3.0', isEntry);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
             if (rule.operator != ComparisonOperator.rising &&
                 rule.operator != ComparisonOperator.falling &&
                 !rule.isNumberValue) ...[
@@ -2114,6 +2225,79 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              if (rule.compareIndicator == IndicatorType.anchoredVwap) ...[
+                DropdownButtonFormField<AnchorMode?>(
+                  value: rule.anchorMode,
+                  decoration: const InputDecoration(
+                    labelText: 'Anchor Mode',
+                    isDense: false,
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: AnchorMode.startOfBacktest,
+                      child: Text('Start of Backtest'),
+                    ),
+                    DropdownMenuItem(
+                      value: AnchorMode.byDate,
+                      child: Text('Anchor by Date'),
+                    ),
+                  ],
+                  onChanged: (mode) {
+                    viewModel.updateRuleAnchorMode(index, mode, isEntry);
+                  },
+                ),
+                const SizedBox(height: 12),
+                if (rule.anchorMode == AnchorMode.byDate)
+                  TextField(
+                    controller: rule.anchorDateController,
+                    decoration: InputDecoration(
+                      labelText: 'Anchor Date (ISO)',
+                      hintText: 'YYYY-MM-DD or ISO',
+                      isDense: false,
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 12),
+                      errorText: rule.anchorDateController.text.isNotEmpty &&
+                              DateTime.tryParse(
+                                      rule.anchorDateController.text.trim()) ==
+                                  null
+                          ? 'Format tanggal tidak valid'
+                          : null,
+                    ),
+                    keyboardType: TextInputType.datetime,
+                    onChanged: (value) => viewModel
+                        .updateRuleAnchorDate(index, value, isEntry),
+                  ),
+              ],
+            ],
+            // Preset thresholds for ADX convenience
+            if (rule.isNumberValue && rule.indicator == IndicatorType.adx) ...[
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _presetChip(context, '20', () {
+                    rule.numberController.text = '20';
+                    viewModel.updateRuleNumberValue(index, '20', isEntry);
+                  }),
+                  _presetChip(context, '25', () {
+                    rule.numberController.text = '25';
+                    viewModel.updateRuleNumberValue(index, '25', isEntry);
+                  }),
+                  _presetChip(context, '30', () {
+                    rule.numberController.text = '30';
+                    viewModel.updateRuleNumberValue(index, '30', isEntry);
+                  }),
+                  _presetChip(context, '40', () {
+                    rule.numberController.text = '40';
+                    viewModel.updateRuleNumberValue(index, '40', isEntry);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 8),
             ],
 
             const SizedBox(height: 12),
@@ -2231,6 +2415,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
         return 'Fixed Lot Size';
       case RiskType.percentageRisk:
         return 'Percentage Risk';
+      case RiskType.atrBased:
+        return 'ATR-Based Sizing';
     }
   }
 
@@ -2247,7 +2433,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
       IndicatorType.macdSignal: 'MACD Signal',
       IndicatorType.macdHistogram: 'MACD Histogram',
       IndicatorType.atr: 'ATR',
+      IndicatorType.atrPct: 'ATR%',
+      IndicatorType.adx: 'ADX',
       IndicatorType.bollingerBands: 'Bollinger Bands',
+      IndicatorType.bollingerWidth: 'Bollinger Width',
+      IndicatorType.vwap: 'VWAP',
+      IndicatorType.anchoredVwap: 'Anchored VWAP',
+      IndicatorType.stochasticK: 'Stochastic %K',
+      IndicatorType.stochasticD: 'Stochastic %D',
     };
     return map[indicator] ?? indicator.name;
   }

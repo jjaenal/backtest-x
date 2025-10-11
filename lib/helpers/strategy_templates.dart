@@ -37,6 +37,97 @@ class StrategyTemplates {
         ),
       ],
     ),
+    // Breakout using Highest High / Lowest Low window + ATR filter
+    'breakout_hh_range_atr': StrategyTemplate(
+      name: 'Breakout — HH/HL Range + ATR Filter',
+      description:
+          'Entry saat Close crossAbove HighestHigh(20) bila ATR(14) < ambang (default longgar); Exit saat Close crossBelow LowestLow(20).',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        // Volatility/range filter: ATR di bawah ambang (sesuaikan instrument)
+        const StrategyRule(
+          indicator: IndicatorType.atr,
+          period: 14,
+          operator: ComparisonOperator.lessThan,
+          // Default longgar agar tidak memblok sinyal; sesuaikan sesuai skala harga
+          value: ConditionValue.number(100000),
+          logicalOperator: LogicalOperator.and,
+        ),
+        // Breakout: Close menembus Highest High dari 20 candle terakhir
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.high,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        // Exit: Close menembus ke bawah Lowest Low dari 20 candle terakhir
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.low,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Breakout using HH/LL with ATR% filter for instrument-agnostic volatility
+    'breakout_hh_range_atr_pct': StrategyTemplate(
+      name: 'Breakout — HH/HL Range + ATR% Filter',
+      description:
+          'Entry saat Close crossAbove HighestHigh(20) bila ATR%(14) < 2%; Exit saat Close crossBelow LowestLow(20). ATR% = ATR/Close, konsisten lintas instrumen.',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        // Volatility filter: ATR% di bawah ambang 2%
+        const StrategyRule(
+          indicator: IndicatorType.atrPct,
+          period: 14,
+          operator: ComparisonOperator.lessThan,
+          value: ConditionValue.number(0.02),
+          logicalOperator: LogicalOperator.and,
+        ),
+        // Breakout: Close menembus Highest High dari 20 candle terakhir
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.high,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        // Exit: Close menembus ke bawah Lowest Low dari 20 candle terakhir
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.low,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
     'mean_reversion_rsi': StrategyTemplate(
       name: 'Mean Reversion — RSI',
       description: 'Entry saat RSI < 30 (oversold), exit saat RSI > 50.',
@@ -111,6 +202,90 @@ class StrategyTemplates {
         takeProfit: 300,
       ),
       entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.ema,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.ema,
+            period: 50,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.ema,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.ema,
+            period: 50,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Trend with ADX filter for stronger trend confirmation
+    'trend_ema_adx_filter': StrategyTemplate(
+      name: 'Trend Follow — EMA Cross + ADX Filter',
+      description:
+          'Entry: EMA(20) crossAbove EMA(50) dengan ADX(14) > 20; Exit: EMA(20) crossBelow EMA(50).',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.adx,
+          period: 14,
+          operator: ComparisonOperator.greaterThan,
+          value: ConditionValue.number(20),
+          logicalOperator: LogicalOperator.and,
+        ),
+        const StrategyRule(
+          indicator: IndicatorType.ema,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.ema,
+            period: 50,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.ema,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.ema,
+            period: 50,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Trend with ATR% filter for instrument-agnostic volatility
+    'trend_ema_atr_pct_filter': StrategyTemplate(
+      name: 'Trend Follow — EMA Cross + ATR% Filter',
+      description:
+          'Entry: ATR%(14) < 2.0 dan EMA(20) crossAbove EMA(50); Exit: EMA(20) crossBelow EMA(50).',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.atrPct,
+          period: 14,
+          operator: ComparisonOperator.lessThan,
+          value: ConditionValue.number(2.0),
+          logicalOperator: LogicalOperator.and,
+        ),
         const StrategyRule(
           indicator: IndicatorType.ema,
           operator: ComparisonOperator.crossAbove,
@@ -496,6 +671,227 @@ class StrategyTemplates {
           indicator: IndicatorType.close,
           operator: ComparisonOperator.lessThan,
           value: ConditionValue.indicator(type: IndicatorType.ema, period: 21),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Volatility squeeze breakout using ATR% proxy + BB Lower breakout
+    'bb_squeeze_breakout': StrategyTemplate(
+      name: 'Bollinger Squeeze — Width Rising + Breakout',
+      description:
+          'Entry utama: Bollinger Width(20) rising dan Close crossAbove BB Lower(20). Fallback: Close crossAbove SMA(20). Exit saat Close < SMA(20). (Lebih longgar: tanpa filter ATR%)',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.bollingerWidth,
+          period: 20,
+          operator: ComparisonOperator.rising,
+          value: ConditionValue.number(0),
+          logicalOperator: LogicalOperator.and,
+        ),
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.bollingerBands,
+            period: 20,
+          ),
+          logicalOperator: LogicalOperator.or,
+        ),
+        // Fallback momentum: Close break above SMA(20)
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.sma,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.lessThan,
+          value: ConditionValue.indicator(
+            type: IndicatorType.sma,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Approximate RSI divergence: RSI rising while price falling (bullish)
+    'rsi_divergence_approx': StrategyTemplate(
+      name: 'RSI Divergence (Approx) — Rising RSI, Falling Price',
+      description:
+          'Entry utama: RSI rising dan Close falling (indikasi divergensi bullish sederhana). Fallback: RSI crossAbove 50 ATAU Close crossAbove SMA(20). Exit saat RSI > 60.',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 1.5,
+        stopLoss: 200,
+        takeProfit: 400,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.rsi,
+          period: 14,
+          operator: ComparisonOperator.rising,
+          value: ConditionValue.number(0),
+          logicalOperator: LogicalOperator.and,
+        ),
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.falling,
+          value: ConditionValue.number(0),
+          logicalOperator: LogicalOperator.or,
+        ),
+        // Fallback momentum 1: RSI crossAbove 50
+        const StrategyRule(
+          indicator: IndicatorType.rsi,
+          period: 14,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.number(50),
+          logicalOperator: LogicalOperator.or,
+        ),
+        // Fallback momentum 2: Close break above SMA(20)
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.sma,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.rsi,
+          period: 14,
+          operator: ComparisonOperator.greaterThan,
+          value: ConditionValue.number(60),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // VWAP Pullback breakout: Close crossAbove VWAP, exit crossBelow
+    'vwap_pullback_breakout': StrategyTemplate(
+      name: 'VWAP Pullback — Close CrossAbove VWAP',
+      description:
+          'Entry saat Close crossAbove VWAP(20) setelah konsolidasi; Exit saat Close crossBelow VWAP(20).',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.vwap,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.vwap,
+            period: 20,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Anchored VWAP Pullback/Cross: Close crossAbove Anchored VWAP, exit crossBelow
+    'anchored_vwap_pullback_cross': StrategyTemplate(
+      name: 'Anchored VWAP — Pullback Cross',
+      description:
+          'Entry saat Close crossAbove Anchored VWAP (anchor = awal backtest); Exit saat Close crossBelow Anchored VWAP.',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 2.0,
+        stopLoss: 150,
+        takeProfit: 300,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.anchoredVwap,
+            period: 1,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.close,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.anchoredVwap,
+            period: 1,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+    ),
+    // Stochastic K/D cross with ADX filter
+    'stoch_kd_cross_adx': StrategyTemplate(
+      name: 'Stochastic Cross — K/D + ADX Filter',
+      description:
+          'Entry saat %K(14) crossAbove %D(3) dengan ADX(14) > 20; Exit saat %K crossBelow %D.',
+      initialCapital: 10000,
+      risk: const RiskManagement(
+        riskType: RiskType.percentageRisk,
+        riskValue: 1.5,
+        stopLoss: 120,
+        takeProfit: 240,
+      ),
+      entryRules: [
+        const StrategyRule(
+          indicator: IndicatorType.adx,
+          period: 14,
+          operator: ComparisonOperator.greaterThan,
+          value: ConditionValue.number(20),
+          logicalOperator: LogicalOperator.and,
+        ),
+        const StrategyRule(
+          indicator: IndicatorType.stochasticK,
+          period: 14,
+          operator: ComparisonOperator.crossAbove,
+          value: ConditionValue.indicator(
+            type: IndicatorType.stochasticD,
+            period: 14,
+          ),
+          logicalOperator: null,
+        ),
+      ],
+      exitRules: [
+        const StrategyRule(
+          indicator: IndicatorType.stochasticK,
+          period: 14,
+          operator: ComparisonOperator.crossBelow,
+          value: ConditionValue.indicator(
+            type: IndicatorType.stochasticD,
+            period: 14,
+          ),
           logicalOperator: null,
         ),
       ],

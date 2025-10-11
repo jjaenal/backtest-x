@@ -7,6 +7,8 @@ import 'package:intl/intl.dart';
 import 'package:backtestx/ui/widgets/skeleton_loader.dart' as x_skeleton;
 import 'package:backtestx/ui/widgets/common/empty_state.dart';
 import 'workspace_viewmodel.dart';
+import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/core/data_manager.dart';
 
 class WorkspaceView extends StatelessWidget {
   const WorkspaceView({Key? key}) : super(key: key);
@@ -25,6 +27,36 @@ class WorkspaceView extends StatelessWidget {
               icon: const Icon(Icons.auto_graph),
               tooltip: 'Quick Run EMA Ribbon',
               onPressed: model.quickRunEmaRibbon,
+            ),
+            // Quick Run VWAP Pullback
+            IconButton(
+              icon: const Icon(Icons.stacked_line_chart),
+              tooltip: 'Quick Run VWAP Pullback',
+              onPressed: model.quickRunVwapPullback,
+            ),
+            // Quick Run Anchored VWAP Pullback/Cross
+            IconButton(
+              icon: const Icon(Icons.flag),
+              tooltip: 'Quick Run Anchored VWAP',
+              onPressed: model.quickRunAnchoredVwap,
+            ),
+            // Quick Run Stochastic K/D Cross
+            IconButton(
+              icon: const Icon(Icons.tune),
+              tooltip: 'Quick Run Stochastic K/D',
+              onPressed: model.quickRunStochasticKdCross,
+            ),
+            // Quick Run Bollinger Squeeze
+            IconButton(
+              icon: const Icon(Icons.data_usage),
+              tooltip: 'Quick Run Bollinger Squeeze',
+              onPressed: model.quickRunBollingerSqueeze,
+            ),
+            // Quick Run RSI Divergence Approx
+            IconButton(
+              icon: const Icon(Icons.trending_up),
+              tooltip: 'Quick Run RSI Divergence',
+              onPressed: model.quickRunRsiDivergenceApprox,
             ),
             // Compare mode toggle
             if (model.strategies.isNotEmpty)
@@ -1138,6 +1170,9 @@ class WorkspaceView extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
+                    // Symbol / Timeframe chips
+                    _buildSymbolTfChips(context, model, result),
+                    const SizedBox(height: 8),
 
                     // Performance metrics (responsive: wrap on small widths)
                     LayoutBuilder(
@@ -1282,6 +1317,44 @@ class WorkspaceView extends StatelessWidget {
   String _formatPnLPercent(double percent) {
     final sign = percent >= 0 ? '+' : '';
     return '$sign${percent.toStringAsFixed(2)}%';
+  }
+
+  // Symbol & timeframe chips per result item
+  Widget _buildSymbolTfChips(
+      BuildContext context, WorkspaceViewModel model, BacktestResult result) {
+    final md = locator<DataManager>().getData(result.marketDataId);
+    if (md == null) return const SizedBox.shrink();
+
+    final symbol = md.symbol;
+    final tf = md.timeframe;
+
+    final bgColor =
+        Theme.of(context).colorScheme.primary.withValues(alpha: 0.12);
+    final fgColor = Theme.of(context).colorScheme.primary;
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Chip(
+          label: Text(symbol),
+          avatar: Icon(Icons.show_chart, size: 14, color: fgColor),
+          visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          backgroundColor: bgColor,
+          labelStyle: TextStyle(fontSize: 12, color: fgColor),
+        ),
+        Chip(
+          label: Text(tf),
+          avatar: Icon(Icons.schedule, size: 14, color: fgColor),
+          visualDensity: const VisualDensity(horizontal: -2, vertical: -2),
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          backgroundColor: bgColor,
+          labelStyle: TextStyle(fontSize: 12, color: fgColor),
+        ),
+      ],
+    );
   }
 
   // Compact per-timeframe stats chips for each result

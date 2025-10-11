@@ -1,4 +1,6 @@
 import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/services/indicator_service.dart';
+import 'package:backtestx/helpers/timeframe_helper.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/models/candle.dart';
@@ -36,10 +38,14 @@ class RuleBuilder {
   int? mainPeriod;
   LogicalOperator? logicalOperator;
   String? timeframe;
+  // Anchor config for Anchored VWAP (right side)
+  AnchorMode? anchorMode;
+  DateTime? anchorDate;
 
   final TextEditingController numberController;
   final TextEditingController periodController;
   final TextEditingController mainPeriodController;
+  final TextEditingController anchorDateController;
 
   RuleBuilder({
     this.indicator = IndicatorType.rsi,
@@ -51,15 +57,20 @@ class RuleBuilder {
     this.mainPeriod,
     this.logicalOperator,
     this.timeframe,
+    this.anchorMode,
+    this.anchorDate,
   })  : numberController = TextEditingController(text: numberValue?.toString()),
         periodController = TextEditingController(text: period?.toString()),
         mainPeriodController =
-            TextEditingController(text: mainPeriod?.toString());
+            TextEditingController(text: mainPeriod?.toString()),
+        anchorDateController =
+            TextEditingController(text: anchorDate?.toIso8601String());
 
   void dispose() {
     numberController.dispose();
     periodController.dispose();
     mainPeriodController.dispose();
+    anchorDateController.dispose();
   }
 }
 
@@ -116,6 +127,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
   DateTime? lastAutosaveAt;
   bool hasAutosaveDraft = false;
 
+  // Services
+  final _indicatorService = locator<IndicatorService>();
+
+  // Cache for ATR% percentiles per timeframe+period
+  final Map<String, List<double>> _atrPctPercentilesCache = {};
+
   bool get isEditing => strategyId != null;
   bool get canSave =>
       nameController.text.isNotEmpty &&
@@ -169,7 +186,13 @@ class StrategyBuilderViewModel extends BaseViewModel {
       IndicatorType.ema,
       IndicatorType.rsi,
       IndicatorType.atr,
+      IndicatorType.atrPct,
+      IndicatorType.adx,
       IndicatorType.bollingerBands,
+      IndicatorType.bollingerWidth,
+      IndicatorType.vwap,
+      IndicatorType.stochasticK,
+      IndicatorType.stochasticD,
     };
     if (indicatorsNeedPeriod.contains(rule.indicator)) {
       if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
@@ -310,7 +333,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
       IndicatorType.ema,
       IndicatorType.rsi,
       IndicatorType.atr,
+      IndicatorType.atrPct,
+      IndicatorType.adx,
       IndicatorType.bollingerBands,
+      IndicatorType.vwap,
+      IndicatorType.stochasticK,
+      IndicatorType.stochasticD,
     };
     if (indicatorsNeedPeriod.contains(rule.indicator)) {
       if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
@@ -325,6 +353,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
       if (rule.indicator == IndicatorType.rsi && rule.numberValue != null) {
         if (rule.numberValue! < 0 || rule.numberValue! > 100) {
           errors.add('Nilai RSI harus antara 0–100.');
+        }
+      }
+      // Bounds for ADX numeric thresholds (0–100)
+      if (rule.indicator == IndicatorType.adx && rule.numberValue != null) {
+        if (rule.numberValue! < 0 || rule.numberValue! > 100) {
+          errors.add('Nilai ADX harus antara 0–100.');
         }
       }
     } else {
@@ -465,7 +499,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
         logicalOperator: rule.logicalOperator,
         timeframe: rule.timeframe,
       ),
-      indicator: (type, period) => RuleBuilder(
+      indicator: (type, period, anchorMode, anchorDate) => RuleBuilder(
         indicator: rule.indicator,
         operator: rule.operator,
         isNumberValue: false,
@@ -474,6 +508,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
         mainPeriod: rule.period,
         logicalOperator: rule.logicalOperator,
         timeframe: rule.timeframe,
+        anchorMode: anchorMode,
+        anchorDate: anchorDate,
       ),
     );
   }
@@ -574,6 +610,34 @@ class StrategyBuilderViewModel extends BaseViewModel {
     _scheduleAutosave();
   }
 
+  void updateRuleAnchorMode(int index, AnchorMode? mode, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    rule.anchorMode = mode;
+    notifyListeners();
+    _scheduleAutosave();
+  }
+
+  void updateRuleAnchorDate(int index, String value, bool isEntry) {
+    final rule = isEntry ? entryRules[index] : exitRules[index];
+    // Accept empty to clear
+    if (value.trim().isEmpty) {
+      rule.anchorDate = null;
+    } else {
+      // Try ISO first, then YYYY-MM-DD
+      DateTime? dt = DateTime.tryParse(value.trim());
+      if (dt == null) {
+        // Fallback: add T00:00:00Z to date-only strings
+        final v = value.trim();
+        final isDateOnly = RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(v);
+        if (isDateOnly) {
+          dt = DateTime.tryParse('${v}T00:00:00');
+        }
+      }
+      rule.anchorDate = dt;
+    }
+    _scheduleAutosave();
+  }
+
   void updateRulePeriod(int index, String value, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     rule.period = int.tryParse(value);
@@ -669,6 +733,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
         : ConditionValue.indicator(
             type: builder.compareIndicator ?? IndicatorType.sma,
             period: builder.period,
+            anchorMode: builder.anchorMode,
+            anchorDate: builder.anchorDate,
           );
 
     return StrategyRule(
@@ -751,6 +817,40 @@ class StrategyBuilderViewModel extends BaseViewModel {
     } catch (_) {
       // Non-critical
     }
+  }
+
+  /// Compute ATR% percentiles (P25, P50, P75, P90) for selected data
+  /// Returns percentages (0-100 scale) ready for display
+  Future<List<double>> getAtrPctPercentiles(int period, String? timeframe) async {
+    if (selectedDataId == null) return [];
+    final marketData = _dataManager.getData(selectedDataId!);
+    if (marketData == null) return [];
+    final baseTf = marketData.timeframe;
+    final tf = (timeframe == null || timeframe.isEmpty) ? baseTf : timeframe;
+    final cacheKey = '$tf:$period:${marketData.id}:${marketData.candles.length}';
+    final cached = _atrPctPercentilesCache[cacheKey];
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    final candles = tf == baseTf
+        ? marketData.candles
+        : resampleCandlesToTimeframe(marketData.candles, tf);
+    if (candles.length < period + 10) return [];
+    final series = _indicatorService.calculateATRPct(candles, period);
+    final values = <double>[];
+    for (final v in series) {
+      if (v != null && v.isFinite) {
+        values.add(v * 100.0); // convert to percent
+      }
+    }
+    if (values.length < 20) return [];
+    values.sort();
+    double p(double q) {
+      final idx = ((q / 100.0) * (values.length - 1)).round();
+      return values[idx];
+    }
+    final result = [p(25), p(50), p(75), p(90)];
+    _atrPctPercentilesCache[cacheKey] = result;
+    return result;
   }
 
   /// Run quick backtest preview without saving strategy
@@ -885,6 +985,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
     rule.numberController.addListener(_scheduleAutosave);
     rule.periodController.addListener(_scheduleAutosave);
     rule.mainPeriodController.addListener(_scheduleAutosave);
+    rule.anchorDateController.addListener(_scheduleAutosave);
   }
 
   void _scheduleAutosave() {
@@ -938,6 +1039,9 @@ class StrategyBuilderViewModel extends BaseViewModel {
                 'mainPeriod': r.mainPeriod,
                 'logicalOperator': r.logicalOperator?.name,
                 'timeframe': r.timeframe,
+                // Anchor config for Anchored VWAP (right side)
+                'anchorMode': r.anchorMode?.name,
+                'anchorDate': r.anchorDate?.toIso8601String(),
               })
           .toList(),
       'exitRules': exitRules
@@ -951,6 +1055,9 @@ class StrategyBuilderViewModel extends BaseViewModel {
                 'mainPeriod': r.mainPeriod,
                 'logicalOperator': r.logicalOperator?.name,
                 'timeframe': r.timeframe,
+                // Anchor config for Anchored VWAP (right side)
+                'anchorMode': r.anchorMode?.name,
+                'anchorDate': r.anchorDate?.toIso8601String(),
               })
           .toList(),
     };
@@ -1249,6 +1356,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
     final mainPeriod = _toInt(map['mainPeriod']);
     final logicalName = _asString(map['logicalOperator']);
     final timeframe = _asString(map['timeframe']);
+    final anchorModeName = _asString(map['anchorMode']);
+    final anchorDateStr = _asString(map['anchorDate']);
 
     final indicator = indicatorName != null
         ? IndicatorType.values.firstWhere(
@@ -1274,6 +1383,15 @@ class StrategyBuilderViewModel extends BaseViewModel {
             orElse: () => LogicalOperator.and,
           )
         : null;
+    final anchorMode = anchorModeName != null
+        ? AnchorMode.values.firstWhere(
+            (e) => e.name == anchorModeName,
+            orElse: () => AnchorMode.startOfBacktest,
+          )
+        : null;
+    final anchorDate = anchorDateStr != null
+        ? DateTime.tryParse(anchorDateStr)
+        : null;
 
     return RuleBuilder(
       indicator: indicator,
@@ -1285,6 +1403,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
       mainPeriod: mainPeriod,
       logicalOperator: logicalOp,
       timeframe: timeframe,
+      anchorMode: anchorMode,
+      anchorDate: anchorDate,
     );
   }
 

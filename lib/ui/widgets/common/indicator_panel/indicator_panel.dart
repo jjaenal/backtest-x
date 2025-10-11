@@ -85,12 +85,16 @@ class IndicatorPanel extends StatelessWidget {
         return 'MACD Histogram';
       case IndicatorType.atr:
         return 'ATR (14)';
+      case IndicatorType.atrPct:
+        return 'ATR% (14)';
       case IndicatorType.sma:
         throw UnimplementedError();
       case IndicatorType.ema:
         throw UnimplementedError();
       case IndicatorType.bollingerBands:
         throw UnimplementedError();
+      case IndicatorType.bollingerWidth:
+        return 'Bollinger Width (20)';
       case IndicatorType.close:
         throw UnimplementedError();
       case IndicatorType.open:
@@ -99,6 +103,16 @@ class IndicatorPanel extends StatelessWidget {
         throw UnimplementedError();
       case IndicatorType.low:
         throw UnimplementedError();
+      case IndicatorType.adx:
+        return 'ADX (14)';
+      case IndicatorType.vwap:
+        return 'VWAP (20)';
+      case IndicatorType.anchoredVwap:
+        return 'Anchored VWAP';
+      case IndicatorType.stochasticK:
+        return 'Stochastic %K (14)';
+      case IndicatorType.stochasticD:
+        return 'Stochastic %D (3)';
     }
   }
 }
@@ -145,7 +159,7 @@ class OscillatorPainter extends CustomPainter {
   }
 
   PriceRange _calculateRange(List<double?> data) {
-    if (type == IndicatorType.rsi) {
+    if (type == IndicatorType.rsi || type == IndicatorType.adx) {
       return PriceRange(min: 0, max: 100);
     }
 
@@ -301,7 +315,13 @@ class OscillatorPainter extends CustomPainter {
       final y = size.height - (i * size.height / 4);
 
       textPainter.text = TextSpan(
-        text: value.toStringAsFixed(type == IndicatorType.rsi ? 0 : 2),
+        text: value.toStringAsFixed(
+            (type == IndicatorType.rsi ||
+                    type == IndicatorType.adx ||
+                    type == IndicatorType.stochasticK ||
+                    type == IndicatorType.stochasticD)
+                ? 0
+                : 2),
         style: TextStyle(color: labelColor, fontSize: 10),
       );
       textPainter.layout();
@@ -315,6 +335,8 @@ class OscillatorPainter extends CustomPainter {
         return Colors.purple;
       case IndicatorType.atr:
         return Colors.orange;
+      case IndicatorType.atrPct:
+        return Colors.amber;
       case IndicatorType.macd:
         return Colors.blue;
       case IndicatorType.macdSignal:
@@ -327,6 +349,8 @@ class OscillatorPainter extends CustomPainter {
         throw UnimplementedError();
       case IndicatorType.bollingerBands:
         throw UnimplementedError();
+      case IndicatorType.bollingerWidth:
+        return Colors.cyan;
       case IndicatorType.close:
         throw UnimplementedError();
       case IndicatorType.open:
@@ -335,6 +359,16 @@ class OscillatorPainter extends CustomPainter {
         throw UnimplementedError();
       case IndicatorType.low:
         throw UnimplementedError();
+      case IndicatorType.adx:
+        return Colors.indigo;
+      case IndicatorType.vwap:
+        return Colors.teal;
+      case IndicatorType.anchoredVwap:
+        return Colors.teal;
+      case IndicatorType.stochasticK:
+        return Colors.deepPurple;
+      case IndicatorType.stochasticD:
+        return Colors.pink;
     }
   }
 

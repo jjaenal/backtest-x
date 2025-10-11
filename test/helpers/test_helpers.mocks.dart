@@ -924,6 +924,23 @@ class MockIndicatorService extends _i1.Mock implements _i13.IndicatorService {
       ) as List<double?>);
 
   @override
+  List<double?> calculateATRPct(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateATRPct,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
   Map<String, List<double?>> calculateMACD(
     List<_i2.Candle>? candles, {
     int? fastPeriod = 12,
@@ -962,6 +979,129 @@ class MockIndicatorService extends _i1.Mock implements _i13.IndicatorService {
         returnValue: <String, List<double?>>{},
         returnValueForMissingStub: <String, List<double?>>{},
       ) as Map<String, List<double?>>);
+
+  @override
+  List<double?> calculateBollingerWidth(
+    List<_i2.Candle>? candles,
+    int? period,
+    double? stdDev,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateBollingerWidth,
+          [
+            candles,
+            period,
+            stdDev,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateVWAP(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateVWAP,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateAnchoredVWAP(
+    List<_i2.Candle>? candles,
+    int? anchorIndex,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateAnchoredVWAP,
+          [
+            candles,
+            anchorIndex,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  Map<String, List<double?>> calculateStochastic(
+    List<_i2.Candle>? candles,
+    int? kPeriod, {
+    int? dPeriod = 3,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateStochastic,
+          [
+            candles,
+            kPeriod,
+          ],
+          {#dPeriod: dPeriod},
+        ),
+        returnValue: <String, List<double?>>{},
+        returnValueForMissingStub: <String, List<double?>>{},
+      ) as Map<String, List<double?>>);
+
+  @override
+  List<double?> calculateHighestHigh(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateHighestHigh,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateLowestLow(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateLowestLow,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
+
+  @override
+  List<double?> calculateADX(
+    List<_i2.Candle>? candles,
+    int? period,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #calculateADX,
+          [
+            candles,
+            period,
+          ],
+        ),
+        returnValue: <double?>[],
+        returnValueForMissingStub: <double?>[],
+      ) as List<double?>);
 }
 
 /// A class which mocks [BacktestEngineService].

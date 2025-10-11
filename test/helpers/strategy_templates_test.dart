@@ -36,5 +36,27 @@ void main() {
       expect(tpl.risk.stopLoss, isNotNull);
       expect(tpl.risk.takeProfit, isNotNull);
     });
+
+    test('bb_squeeze_breakout template exists and is valid', () {
+      final tpl = StrategyTemplates.all['bb_squeeze_breakout'];
+      expect(tpl, isNotNull);
+      expect(tpl!.entryRules.isNotEmpty, isTrue);
+      expect(tpl.exitRules.isNotEmpty, isTrue);
+      expect(tpl.risk.riskType, RiskType.percentageRisk);
+      expect(tpl.risk.riskValue, greaterThan(0));
+      expect(tpl.risk.stopLoss, isNotNull);
+      expect(tpl.risk.takeProfit, isNotNull);
+    });
+
+    test('rsi_divergence_approx template exists and is valid', () {
+      final tpl = StrategyTemplates.all['rsi_divergence_approx'];
+      expect(tpl, isNotNull);
+      expect(tpl!.entryRules.isNotEmpty, isTrue);
+      expect(tpl.exitRules.isNotEmpty, isTrue);
+      expect(tpl.risk.riskType, RiskType.percentageRisk);
+      expect(tpl.risk.riskValue, greaterThan(0));
+      expect(tpl.risk.stopLoss, isNotNull);
+      expect(tpl.risk.takeProfit, isNotNull);
+    });
   });
 }

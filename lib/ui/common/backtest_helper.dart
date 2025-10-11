@@ -37,13 +37,21 @@ class BacktestTestHelper {
       debugPrint('✅ Strategy saved');
     }
 
-    // 3. Save result
-    await _storageService.saveBacktestResult(result);
-    debugPrint('✅ Result saved with ID: ${result.id}');
+    // 3. Save result (skip if 0 trades)
+    if (result.summary.totalTrades == 0) {
+      debugPrint('⚠️ Result not saved: 0 trades');
+    } else {
+      await _storageService.saveBacktestResult(result);
+      debugPrint('✅ Result saved with ID: ${result.id}');
+    }
 
-    // 4. Navigate to result view
-    _navigationService.navigateToBacktestResultView(result: result);
-    debugPrint('✅ Navigated to result view');
+    // 4. Navigate to result view (skip if 0 trades)
+    if (result.summary.totalTrades == 0) {
+      debugPrint('⚠️ Navigation skipped: 0 trades');
+    } else {
+      _navigationService.navigateToBacktestResultView(result: result);
+      debugPrint('✅ Navigated to result view');
+    }
   }
 
   /// Quick test with Gold Conservative strategy

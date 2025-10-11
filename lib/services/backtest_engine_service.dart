@@ -278,6 +278,8 @@ class BacktestEngineService {
             candle: candle,
             strategy: strategy,
             currentEquity: currentEquity,
+            candles: candles,
+            baseIndex: i,
           ).copyWith(
             entryTimeframes:
                 (contributingTfs.isEmpty ? {baseTimeframe} : contributingTfs)
@@ -407,12 +409,29 @@ class BacktestEngineService {
         number: (_) {
           // No additional indicator needed
         },
-        indicator: (type, period) {
-          final compareKey =
-              _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
-          if (!indicators.containsKey(compareKey)) {
-            indicators[compareKey] = _calculateIndicatorByType(
-                candles, type, period ?? _getDefaultPeriod(type));
+        indicator: (type, period, anchorMode, anchorDate) {
+          if (type == IndicatorType.anchoredVwap) {
+            // Build key berdasarkan mode anchor
+            late final String compareKey;
+            late final int anchorIndex;
+            if (anchorMode == AnchorMode.byDate && anchorDate != null) {
+              compareKey = _avwapKeyByDate(anchorDate);
+              anchorIndex = _resolveAnchorIndex(candles, anchorMode, anchorDate);
+            } else {
+              compareKey = _avwapKeyStart();
+              anchorIndex = 0;
+            }
+            if (!indicators.containsKey(compareKey)) {
+              indicators[compareKey] =
+                  _indicatorService.calculateAnchoredVWAP(candles, anchorIndex);
+            }
+          } else {
+            final compareKey = _getIndicatorKeyForType(
+                type, period ?? _getDefaultPeriod(type));
+            if (!indicators.containsKey(compareKey)) {
+              indicators[compareKey] = _calculateIndicatorByType(
+                  candles, type, period ?? _getDefaultPeriod(type));
+            }
           }
         },
       );
@@ -429,9 +448,11 @@ class BacktestEngineService {
       case IndicatorType.open:
         return 'open';
       case IndicatorType.high:
-        return 'high';
+        // Period 1 → raw high; otherwise use rolling Highest High (HH)
+        return period <= 1 ? 'high' : 'hh_$period';
       case IndicatorType.low:
-        return 'low';
+        // Period 1 → raw low; otherwise use rolling Lowest Low (LL)
+        return period <= 1 ? 'low' : 'll_$period';
       case IndicatorType.rsi:
         return 'rsi_$period';
       case IndicatorType.sma:
@@ -440,6 +461,10 @@ class BacktestEngineService {
         return 'ema_$period';
       case IndicatorType.atr:
         return 'atr_$period';
+      case IndicatorType.atrPct:
+        return 'atr_pct_$period';
+      case IndicatorType.adx:
+        return 'adx_$period';
       case IndicatorType.macd:
         return 'macd_$period';
       case IndicatorType.macdSignal:
@@ -448,6 +473,17 @@ class BacktestEngineService {
         return 'macd_histogram_$period';
       case IndicatorType.bollingerBands:
         return 'bb_lower_$period';
+      case IndicatorType.bollingerWidth:
+        return 'bb_width_$period';
+      case IndicatorType.vwap:
+        return 'vwap_$period';
+      case IndicatorType.anchoredVwap:
+        // Anchored VWAP does not use period; anchor at start (index 0)
+        return 'avwap_anchor0';
+      case IndicatorType.stochasticK:
+        return 'stoch_k_$period';
+      case IndicatorType.stochasticD:
+        return 'stoch_d_$period';
     }
   }
 
@@ -460,9 +496,13 @@ class BacktestEngineService {
       case IndicatorType.open:
         return candles.map((c) => c.open as double?).toList();
       case IndicatorType.high:
-        return candles.map((c) => c.high as double?).toList();
+        return period <= 1
+            ? candles.map((c) => c.high as double?).toList()
+            : _indicatorService.calculateHighestHigh(candles, period);
       case IndicatorType.low:
-        return candles.map((c) => c.low as double?).toList();
+        return period <= 1
+            ? candles.map((c) => c.low as double?).toList()
+            : _indicatorService.calculateLowestLow(candles, period);
       case IndicatorType.rsi:
         return _indicatorService.calculateRSI(candles, period);
       case IndicatorType.sma:
@@ -471,6 +511,10 @@ class BacktestEngineService {
         return _indicatorService.calculateEMA(candles, period);
       case IndicatorType.atr:
         return _indicatorService.calculateATR(candles, period);
+      case IndicatorType.atrPct:
+        return _indicatorService.calculateATRPct(candles, period);
+      case IndicatorType.adx:
+        return _indicatorService.calculateADX(candles, period);
       case IndicatorType.macd:
         final macd = _indicatorService.calculateMACD(candles);
         return macd['macd']!;
@@ -484,7 +528,40 @@ class BacktestEngineService {
         final bb =
             _indicatorService.calculateBollingerBands(candles, period, 2.0);
         return bb['lower']!;
+      case IndicatorType.bollingerWidth:
+        return _indicatorService.calculateBollingerWidth(
+            candles, period, 2.0);
+      case IndicatorType.vwap:
+        return _indicatorService.calculateVWAP(candles, period);
+      case IndicatorType.anchoredVwap:
+        return _indicatorService.calculateAnchoredVWAP(candles, 0);
+      case IndicatorType.stochasticK:
+        final stoch = _indicatorService.calculateStochastic(candles, period);
+        return stoch['k']!;
+      case IndicatorType.stochasticD:
+        final stoch = _indicatorService.calculateStochastic(candles, period);
+        return stoch['d']!;
     }
+  }
+
+  // ----- Anchored VWAP helpers -----
+  String _avwapKeyStart() => 'avwap_anchor0';
+  String _avwapKeyByDate(DateTime date) => 'avwap_date_${date.toIso8601String()}';
+
+  int _resolveAnchorIndex(List<Candle> candles, AnchorMode? mode, DateTime? anchorDate) {
+    if (mode == AnchorMode.byDate && anchorDate != null) {
+      for (var i = 0; i < candles.length; i++) {
+        final ts = candles[i].timestamp;
+        // Anchor pada candle pertama dengan timestamp >= anchorDate
+        if (!ts.isBefore(anchorDate)) {
+          return i;
+        }
+      }
+      // Jika tidak ada, kembalikan n (akan menghasilkan semua null)
+      return candles.length;
+    }
+    // Default: anchor di awal backtest
+    return 0;
   }
 
   int _getDefaultPeriod(IndicatorType type) {
@@ -502,8 +579,19 @@ class BacktestEngineService {
         return 9;
       case IndicatorType.atr:
         return 14;
+      case IndicatorType.atrPct:
+        return 14;
+      case IndicatorType.adx:
+        return 14;
       case IndicatorType.bollingerBands:
         return 20;
+      case IndicatorType.bollingerWidth:
+        return 20;
+      case IndicatorType.vwap:
+        return 20;
+      case IndicatorType.stochasticK:
+      case IndicatorType.stochasticD:
+        return 14;
       default:
         return 14;
     }
@@ -592,15 +680,24 @@ class BacktestEngineService {
     bool isIndicatorComparison = false;
     rule.value.when(
       number: (_) => isIndicatorComparison = false,
-      indicator: (_, __) => isIndicatorComparison = true,
+      indicator: (_, __, ___, ____) => isIndicatorComparison = true,
     );
 
     // Get comparison value
     final compareValue = rule.value.when(
       number: (number) => number,
-      indicator: (type, period) {
-        final compareKey =
-            _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
+      indicator: (type, period, anchorMode, anchorDate) {
+        String compareKey;
+        if (type == IndicatorType.anchoredVwap) {
+          if (anchorMode == AnchorMode.byDate && anchorDate != null) {
+            compareKey = _avwapKeyByDate(anchorDate);
+          } else {
+            compareKey = _avwapKeyStart();
+          }
+        } else {
+          compareKey = _getIndicatorKeyForType(
+              type, period ?? _getDefaultPeriod(type));
+        }
         final compareIndicator = indicators[compareKey];
         if (compareIndicator == null ||
             tfIndex >= compareIndicator.length ||
@@ -636,8 +733,16 @@ class BacktestEngineService {
         if (isIndicatorComparison) {
           final compareKey = rule.value.when(
             number: (_) => '',
-            indicator: (type, period) => _getIndicatorKeyForType(
-                type, period ?? _getDefaultPeriod(type)),
+            indicator: (type, period, anchorMode, anchorDate) {
+              if (type == IndicatorType.anchoredVwap) {
+                if (anchorMode == AnchorMode.byDate && anchorDate != null) {
+                  return _avwapKeyByDate(anchorDate);
+                }
+                return _avwapKeyStart();
+              }
+              return _getIndicatorKeyForType(
+                  type, period ?? _getDefaultPeriod(type));
+            },
           );
           final compareIndicator = indicators[compareKey];
           if (compareIndicator == null || tfIndex >= compareIndicator.length) {
@@ -660,8 +765,16 @@ class BacktestEngineService {
         if (isIndicatorComparison) {
           final compareKey = rule.value.when(
             number: (_) => '',
-            indicator: (type, period) => _getIndicatorKeyForType(
-                type, period ?? _getDefaultPeriod(type)),
+            indicator: (type, period, anchorMode, anchorDate) {
+              if (type == IndicatorType.anchoredVwap) {
+                if (anchorMode == AnchorMode.byDate && anchorDate != null) {
+                  return _avwapKeyByDate(anchorDate);
+                }
+                return _avwapKeyStart();
+              }
+              return _getIndicatorKeyForType(
+                  type, period ?? _getDefaultPeriod(type));
+            },
           );
           final compareIndicator = indicators[compareKey];
           if (compareIndicator == null || tfIndex >= compareIndicator.length) {
@@ -791,21 +904,55 @@ class BacktestEngineService {
     required Candle candle,
     required Strategy strategy,
     required double currentEquity,
+    required List<Candle> candles,
+    required int baseIndex,
   }) {
     // Determine direction based on entry rules
     TradeDirection direction = _determineTradeDirection(strategy.entryRules);
 
     double lotSize = 0.01; // Default
-    if (strategy.riskManagement.riskType == RiskType.percentageRisk) {
-      final riskAmount =
-          currentEquity * (strategy.riskManagement.riskValue / 100);
-      // Simplified lot calculation based on SL distance
-      final slDistance = strategy.riskManagement.stopLoss ?? 50;
-      lotSize = riskAmount / slDistance;
-      lotSize = (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
-      lotSize = lotSize.clamp(0.01, 10.0); // Min 0.01, Max 10 lots
-    } else {
-      lotSize = strategy.riskManagement.riskValue;
+    switch (strategy.riskManagement.riskType) {
+      case RiskType.percentageRisk:
+        {
+          final riskAmount =
+              currentEquity * (strategy.riskManagement.riskValue / 100);
+          // Simplified lot calculation based on SL distance (points)
+          final slDistance = strategy.riskManagement.stopLoss ?? 50;
+          lotSize = riskAmount / slDistance;
+          lotSize = (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
+          lotSize = lotSize.clamp(0.01, 10.0); // Min 0.01, Max 10 lots
+        }
+        break;
+      case RiskType.fixedLot:
+        lotSize = strategy.riskManagement.riskValue;
+        break;
+      case RiskType.atrBased:
+        {
+          // ATR%-based sizing: riskValue is % risk per trade, stopLoss is ATR multiple
+          final riskAmount =
+              currentEquity * (strategy.riskManagement.riskValue / 100);
+          final atrPeriod = 14; // default ATR period
+          // Compute ATR% up to current index on base timeframe
+          final atrPctSeries =
+              _indicatorService.calculateATRPct(candles, atrPeriod);
+          final currentAtrPct = atrPctSeries[baseIndex] ?? (() {
+            // Fallback if null: use previous non-null value
+            for (int k = baseIndex - 1; k >= 0; k--) {
+              final v = atrPctSeries[k];
+              if (v != null) return v;
+            }
+            return 0.0; // as last resort
+          })();
+          final multiple = strategy.riskManagement.stopLoss ?? 1.0;
+          // ATR% is ratio (ATR/Close); convert to absolute price distance
+          final slDistancePrice = currentAtrPct * candle.close * multiple;
+          // Guard against extremely small values
+          final safeDistance = slDistancePrice <= 1e-9 ? 1e-9 : slDistancePrice;
+          lotSize = riskAmount / safeDistance;
+          lotSize = (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
+          lotSize = lotSize.clamp(0.01, 10.0);
+        }
+        break;
     }
 
     double? sl;
@@ -870,7 +1017,7 @@ class BacktestEngineService {
       if (rule.indicator == IndicatorType.rsi) {
         final threshold = rule.value.when(
           number: (n) => n,
-          indicator: (_, __) => 50.0,
+          indicator: (_, __, ___, ____) => 50.0,
         );
 
         if (rule.operator == ComparisonOperator.lessThan && threshold <= 35) {

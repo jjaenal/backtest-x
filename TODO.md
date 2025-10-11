@@ -8,6 +8,7 @@
 - Backtest Result: per‑TF chart sorting by metric value
 - Performance: memory optimization for large datasets (>10k candles)
 - Known Issues: BacktestEngine edge cases; division by zero; parser messages; storage migration
+- Anchored VWAP: Anchor Mode (Start/Date) with Strategy Builder controls [Completed]
 
 ## 🎯 Focused Checklist — Performance: Memory Optimization (>10k candles)
 
@@ -84,6 +85,29 @@
 - Implement per‑TF chart sorting by selected metric
 - Tackle memory optimization for 10k+ candles datasets
 - Draft Theming Guide section (colorScheme, opacity rationale)
+
+## Progress Update — ATR Enhancements
+
+- Completed: Full MTF support for `ATR%` in engine/rules
+- Completed: Dynamic `ATR%` presets (percentiles P25/P50/P75/P90) in Strategy Builder UI
+- Completed: `RiskType.atrBased` option with ATR‑based position sizing in engine and UI
+- Completed: PDF export labels updated for ATR‑based sizing
+
+### Next Up (Prioritized)
+
+- Workspace Compare MTF visualization (charts + summary)
+- Backtest Result: per‑TF chart sorting by metric value
+- Performance: memory optimization for large datasets (>10k candles)
+ - Anchored VWAP docs & tests
+
+## Progress Update — Anchored VWAP
+
+- Completed: Model updates (`AnchorMode`, `anchorDate`) for `ConditionValue.indicator`
+- Completed: Engine integration — precalc keyed by anchor (start/date) and evaluation logic for compare values and crossAbove/crossBelow
+- Completed: Strategy Builder UI — Anchor Mode dropdown and Anchor Date input (YYYY-MM-DD or ISO)
+- Completed: ViewModel — fields, controllers, and conversion functions between `RuleBuilder` and `StrategyRule`
+- Completed: Unit test — anchor by date mapping to correct index and equality with anchor by index
+- Completed: README — documentation for usage and behavior
 
 ## ✅ Completed (Phase 0)
 
@@ -858,9 +882,9 @@ xl: 32px
 
 #### Top Prioritas (MVP Sprint)
 
-- [ ] Breakout (HH/HL, range box, volatility filter)
-- [ ] Trend Following (EMA/SMA cross, ADX filter)
-- [ ] EMA Ribbon (multi‑EMA alignment)
+- [x] Breakout (HH/HL, range box, volatility filter)
+- [x] Trend Following (EMA/SMA cross, ADX filter)
+- [x] EMA Ribbon (multi‑EMA alignment)
 
 ##### Implementasi (Sprint)
 
@@ -872,19 +896,27 @@ xl: 32px
 
 #### Backlog
 
-- [ ] Mean Reversion (Bollinger Bands, RSI oversold/overbought)
-- [ ] Bollinger Squeeze (BB width + breakout trigger)
-- [ ] Momentum (RSI/MACD konfirmasi, multi‑TF opsi)
-- [ ] MACD Signal (cross, histogram momentum, filter noise)
-- [ ] VWAP & Anchored VWAP (pullback/cross)
-- [ ] RSI Divergence (regular + hidden, dengan konfirmasi MA)
-- [ ] Stochastic (K/D cross + threshold)
+- [x] Mean Reversion (Bollinger Bands, RSI oversold/overbought)
+- [x] Bollinger Squeeze (BB width + breakout trigger)
+- [x] Momentum (RSI/MACD konfirmasi, multi‑TF opsi)
+- [x] MACD Signal (cross, histogram momentum, filter noise)
+- [x] VWAP (pullback/cross)
+- [x] Anchored VWAP (pullback/cross)
+- [x] RSI Divergence (regular + hidden, dengan konfirmasi MA)
+- [x] Stochastic (K/D cross + threshold)
 
 ### Template & Rule Builder
 
-- [ ] Tambah template per strategi (pre‑filled rules)
-- [ ] Validasi otomatis per operator (crossAbove/crossBelow, thresholds)
-- [ ] Dukungan multi‑timeframe per rule (TF base vs rule TF)
+- [x] Tambah template per strategi (pre‑filled rules)
+  - Ditambah: `bb_squeeze_breakout` dan `rsi_divergence_approx` di library template.
+  - Tersedia: Breakout, Trend Following, EMA Ribbon, Mean Reversion, MACD (lihat `strategy_templates.dart`).
+- [x] Validasi otomatis per operator (crossAbove/crossBelow, thresholds)
+  - Peringatan: TF rule < TF dasar, operator `equals` rapuh, RSI/ADX 0–100, period indikator utama wajib.
+  - Error fatal: nilai angka/indikator pembanding wajib, period pembanding > 0, `mainPeriod` > 0 untuk indikator ber‑periode.
+  - Semantik `rising/falling` dan `cross` ditangani di engine dan builder.
+- [x] Dukungan multi‑timeframe per rule (TF base vs rule TF)
+  - UI: dropdown TF per rule + chip rekap TF, warning otomatis bila TF lebih kecil dari data.
+  - Engine: `_evaluateRuleMTF` memakai `rule.timeframe` bila tersedia, fallback ke TF dasar.
 - [ ] Preset risk management per template (SL/TP, RR, trailing)
 - [ ] Hint & tooltip deskripsi strategi pada kartu rule
 

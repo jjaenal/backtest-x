@@ -459,17 +459,33 @@ class PdfExportService {
   }
 
   List<pw.Widget> _riskRows(RiskManagement rm) {
-    final riskTypeLabel =
-        rm.riskType == RiskType.fixedLot ? 'Fixed Lot' : 'Percentage Risk';
-    final riskValueLabel = rm.riskType == RiskType.fixedLot
-        ? rm.riskValue.toStringAsFixed(2)
-        : '${rm.riskValue.toStringAsFixed(2)}%';
+    final riskTypeLabel = () {
+      switch (rm.riskType) {
+        case RiskType.fixedLot:
+          return 'Fixed Lot';
+        case RiskType.percentageRisk:
+          return 'Percentage Risk';
+        case RiskType.atrBased:
+          return 'ATR-Based Sizing';
+      }
+    }();
+    final riskValueLabel = () {
+      switch (rm.riskType) {
+        case RiskType.fixedLot:
+          return rm.riskValue.toStringAsFixed(2);
+        case RiskType.percentageRisk:
+        case RiskType.atrBased:
+          return '${rm.riskValue.toStringAsFixed(2)}%';
+      }
+    }();
 
     final rows = <pw.Widget>[
       _summaryRow('Risk Type', riskTypeLabel),
       _summaryRow('Risk Value', riskValueLabel),
       if (rm.stopLoss != null)
-        _summaryRow('Stop Loss', rm.stopLoss!.toStringAsFixed(2)),
+        _summaryRow(
+            rm.riskType == RiskType.atrBased ? 'ATR Multiple' : 'Stop Loss',
+            rm.stopLoss!.toStringAsFixed(2)),
       if (rm.takeProfit != null)
         _summaryRow('Take Profit', rm.takeProfit!.toStringAsFixed(2)),
       _summaryRow(
@@ -488,8 +504,14 @@ class PdfExportService {
     final op = _operatorLabel(r.operator);
     final valueText = r.value.when(
       number: (v) => v.toStringAsFixed(2),
-      indicator: (type, period) {
+      indicator: (type, period, anchorMode, anchorDate) {
         final base = _indicatorLabel(type);
+        if (type == IndicatorType.anchoredVwap) {
+          final anchorLabel = (anchorMode == AnchorMode.byDate && anchorDate != null)
+              ? 'date ${anchorDate.toIso8601String().split('T').first}'
+              : 'start';
+          return '$base($anchorLabel)';
+        }
         return period != null ? '$base($period)' : base;
       },
     );
@@ -515,8 +537,14 @@ class PdfExportService {
         return 'MACD Histogram';
       case IndicatorType.atr:
         return 'ATR';
+      case IndicatorType.atrPct:
+        return 'ATR%';
+      case IndicatorType.adx:
+        return 'ADX';
       case IndicatorType.bollingerBands:
         return 'Bollinger Bands';
+      case IndicatorType.bollingerWidth:
+        return 'Bollinger Width';
       case IndicatorType.close:
         return 'Close';
       case IndicatorType.open:
@@ -525,6 +553,14 @@ class PdfExportService {
         return 'High';
       case IndicatorType.low:
         return 'Low';
+      case IndicatorType.vwap:
+        return 'VWAP';
+      case IndicatorType.anchoredVwap:
+        return 'Anchored VWAP';
+      case IndicatorType.stochasticK:
+        return 'Stochastic %K';
+      case IndicatorType.stochasticD:
+        return 'Stochastic %D';
     }
   }
 
