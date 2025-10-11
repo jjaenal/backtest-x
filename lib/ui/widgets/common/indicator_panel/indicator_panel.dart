@@ -315,13 +315,12 @@ class OscillatorPainter extends CustomPainter {
       final y = size.height - (i * size.height / 4);
 
       textPainter.text = TextSpan(
-        text: value.toStringAsFixed(
-            (type == IndicatorType.rsi ||
-                    type == IndicatorType.adx ||
-                    type == IndicatorType.stochasticK ||
-                    type == IndicatorType.stochasticD)
-                ? 0
-                : 2),
+        text: value.toStringAsFixed((type == IndicatorType.rsi ||
+                type == IndicatorType.adx ||
+                type == IndicatorType.stochasticK ||
+                type == IndicatorType.stochasticD)
+            ? 0
+            : 2),
         style: TextStyle(color: labelColor, fontSize: 10),
       );
       textPainter.layout();

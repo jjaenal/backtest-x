@@ -515,9 +515,15 @@ class IndicatorService {
     }
 
     for (var i = period + 1; i < n; i++) {
-      trSum = (trSmooth[i - 1] ?? trSum) - ((trSmooth[i - 1] ?? trSum) / period) + tr[i];
-      plusDMSum = (plusDMSmooth[i - 1] ?? plusDMSum) - ((plusDMSmooth[i - 1] ?? plusDMSum) / period) + plusDM[i];
-      minusDMSum = (minusDMSmooth[i - 1] ?? minusDMSum) - ((minusDMSmooth[i - 1] ?? minusDMSum) / period) + minusDM[i];
+      trSum = (trSmooth[i - 1] ?? trSum) -
+          ((trSmooth[i - 1] ?? trSum) / period) +
+          tr[i];
+      plusDMSum = (plusDMSmooth[i - 1] ?? plusDMSum) -
+          ((plusDMSmooth[i - 1] ?? plusDMSum) / period) +
+          plusDM[i];
+      minusDMSum = (minusDMSmooth[i - 1] ?? minusDMSum) -
+          ((minusDMSmooth[i - 1] ?? minusDMSum) / period) +
+          minusDM[i];
       trSmooth[i] = trSum;
       plusDMSmooth[i] = plusDMSum;
       minusDMSmooth[i] = minusDMSum;
@@ -557,7 +563,8 @@ class IndicatorService {
 
       // Wilder smoothing for subsequent ADX
       for (var i = period * 2 + 1; i < n; i++) {
-        adx[i] = (((adx[i - 1] ?? 0.0) * (period - 1)) + (dx[i] ?? 0.0)) / period;
+        adx[i] =
+            (((adx[i - 1] ?? 0.0) * (period - 1)) + (dx[i] ?? 0.0)) / period;
       }
     }
 

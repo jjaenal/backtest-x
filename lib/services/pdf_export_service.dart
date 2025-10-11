@@ -507,9 +507,10 @@ class PdfExportService {
       indicator: (type, period, anchorMode, anchorDate) {
         final base = _indicatorLabel(type);
         if (type == IndicatorType.anchoredVwap) {
-          final anchorLabel = (anchorMode == AnchorMode.byDate && anchorDate != null)
-              ? 'date ${anchorDate.toIso8601String().split('T').first}'
-              : 'start';
+          final anchorLabel =
+              (anchorMode == AnchorMode.byDate && anchorDate != null)
+                  ? 'date ${anchorDate.toIso8601String().split('T').first}'
+                  : 'start';
           return '$base($anchorLabel)';
         }
         return period != null ? '$base($period)' : base;

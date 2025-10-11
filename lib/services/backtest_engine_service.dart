@@ -416,7 +416,8 @@ class BacktestEngineService {
             late final int anchorIndex;
             if (anchorMode == AnchorMode.byDate && anchorDate != null) {
               compareKey = _avwapKeyByDate(anchorDate);
-              anchorIndex = _resolveAnchorIndex(candles, anchorMode, anchorDate);
+              anchorIndex =
+                  _resolveAnchorIndex(candles, anchorMode, anchorDate);
             } else {
               compareKey = _avwapKeyStart();
               anchorIndex = 0;
@@ -529,8 +530,7 @@ class BacktestEngineService {
             _indicatorService.calculateBollingerBands(candles, period, 2.0);
         return bb['lower']!;
       case IndicatorType.bollingerWidth:
-        return _indicatorService.calculateBollingerWidth(
-            candles, period, 2.0);
+        return _indicatorService.calculateBollingerWidth(candles, period, 2.0);
       case IndicatorType.vwap:
         return _indicatorService.calculateVWAP(candles, period);
       case IndicatorType.anchoredVwap:
@@ -546,9 +546,11 @@ class BacktestEngineService {
 
   // ----- Anchored VWAP helpers -----
   String _avwapKeyStart() => 'avwap_anchor0';
-  String _avwapKeyByDate(DateTime date) => 'avwap_date_${date.toIso8601String()}';
+  String _avwapKeyByDate(DateTime date) =>
+      'avwap_date_${date.toIso8601String()}';
 
-  int _resolveAnchorIndex(List<Candle> candles, AnchorMode? mode, DateTime? anchorDate) {
+  int _resolveAnchorIndex(
+      List<Candle> candles, AnchorMode? mode, DateTime? anchorDate) {
     if (mode == AnchorMode.byDate && anchorDate != null) {
       for (var i = 0; i < candles.length; i++) {
         final ts = candles[i].timestamp;
@@ -695,8 +697,8 @@ class BacktestEngineService {
             compareKey = _avwapKeyStart();
           }
         } else {
-          compareKey = _getIndicatorKeyForType(
-              type, period ?? _getDefaultPeriod(type));
+          compareKey =
+              _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
         }
         final compareIndicator = indicators[compareKey];
         if (compareIndicator == null ||
@@ -919,7 +921,8 @@ class BacktestEngineService {
           // Simplified lot calculation based on SL distance (points)
           final slDistance = strategy.riskManagement.stopLoss ?? 50;
           lotSize = riskAmount / slDistance;
-          lotSize = (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
+          lotSize =
+              (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
           lotSize = lotSize.clamp(0.01, 10.0); // Min 0.01, Max 10 lots
         }
         break;
@@ -935,21 +938,23 @@ class BacktestEngineService {
           // Compute ATR% up to current index on base timeframe
           final atrPctSeries =
               _indicatorService.calculateATRPct(candles, atrPeriod);
-          final currentAtrPct = atrPctSeries[baseIndex] ?? (() {
-            // Fallback if null: use previous non-null value
-            for (int k = baseIndex - 1; k >= 0; k--) {
-              final v = atrPctSeries[k];
-              if (v != null) return v;
-            }
-            return 0.0; // as last resort
-          })();
+          final currentAtrPct = atrPctSeries[baseIndex] ??
+              (() {
+                // Fallback if null: use previous non-null value
+                for (int k = baseIndex - 1; k >= 0; k--) {
+                  final v = atrPctSeries[k];
+                  if (v != null) return v;
+                }
+                return 0.0; // as last resort
+              })();
           final multiple = strategy.riskManagement.stopLoss ?? 1.0;
           // ATR% is ratio (ATR/Close); convert to absolute price distance
           final slDistancePrice = currentAtrPct * candle.close * multiple;
           // Guard against extremely small values
           final safeDistance = slDistancePrice <= 1e-9 ? 1e-9 : slDistancePrice;
           lotSize = riskAmount / safeDistance;
-          lotSize = (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
+          lotSize =
+              (lotSize * 100).roundToDouble() / 100; // Round to 2 decimals
           lotSize = lotSize.clamp(0.01, 10.0);
         }
         break;

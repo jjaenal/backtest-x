@@ -131,9 +131,10 @@ class BacktestDebugHelper {
       number: (n) => n.toString(),
       indicator: (type, period, anchorMode, anchorDate) {
         if (type == IndicatorType.anchoredVwap) {
-          final anchorLabel = (anchorMode == AnchorMode.byDate && anchorDate != null)
-              ? 'date ${anchorDate.toIso8601String().split('T').first}'
-              : 'start';
+          final anchorLabel =
+              (anchorMode == AnchorMode.byDate && anchorDate != null)
+                  ? 'date ${anchorDate.toIso8601String().split('T').first}'
+                  : 'start';
           return '${type.name}($anchorLabel)';
         }
         return '${type.name}(${period ?? 14})';

@@ -98,7 +98,7 @@
 - Workspace Compare MTF visualization (charts + summary)
 - Backtest Result: per‑TF chart sorting by metric value
 - Performance: memory optimization for large datasets (>10k candles)
- - Anchored VWAP docs & tests
+ 
 
 ## Progress Update — Anchored VWAP
 
@@ -271,8 +271,8 @@
 
 ### UI/UX Improvements
 
-- [ ] Onboarding tutorial
-- [ ] Empty states
+- [x] Onboarding tutorial
+- [x] Empty states
 - [x] Loading skeletons
 - [x] Startup view: centered animated steps (AnimatedSwitcher)
 - [x] Startup view: remove loader and check icon
@@ -280,7 +280,7 @@
 - [x] Home: "Loading cache..." banner saat warm-up background
 - [x] Home: kontrol AppBar untuk pause/enable dan Load Now
 - [x] Home: skeleton angka quick stats saat busy
-- [ ] Error handling UI
+- [x] Error handling UI
 - [ ] Animations & transitions
 - [x] Dark/Light theme toggle
 - [x] Dark theme consistency across views (workspace, backtest result, strategy builder)
@@ -297,12 +297,25 @@
 - [x] Nonaktifkan segmen Number saat operator cross; tampilkan hint penjelasan
 - [x] Strategy Builder: error summary banner under Save button
 - [x] Save/Test button labels show error count when disabled
-- [ ] Add Theming Guide docs for contributors
-- [ ] UI tests for dark mode components (toggle, sheets, chart labels)
+- [x] Add Theming Guide docs for contributors
+- [x] UI tests for dark mode components (toggle, sheets, chart labels)
 - [x] Persist Compare view preferences (Sort/Agg) across sessions
 - [x] Strategy Builder: reset filter template saat keluar layar
 - [x] Strategy Builder: konfirmasi keluar saat ada draft autosave; opsi "Discard & Keluar"
 - [x] Strategy Builder: sembunyikan tombol "Discard Draft" bila tidak ada draft autosave
+
+#### Focused Checklist — Onboarding Revamp
+
+- [x] Tujuan utama: percepat waktu ke nilai, kurangi kebingungan awal
+- [x] Welcome modal singkat: jelaskan 3 langkah (pilih data, pilih template/indikator, jalankan preview)
+- [x] Template Quick‑Start: 3–5 template ("Swing RSI", "Breakout EMA", "Anchored VWAP by date")
+- [x] Data onboarding card: "Import Data" dengan tautan contoh CSV dan penjelasan timeframe
+- [x] Coach marks pada MarketData & timeframe untuk dampak ke indikator
+- [x] Strategy Builder tour (tooltips progresif): rule kiri/kanan, period, operator; tampilkan Anchor Mode & contoh Anchor Date untuk Anchored VWAP
+- [x] Preview cepat: CTA "Run Preview" di AppBar; tampilkan ringkasan (WinRate, Profit, Max DD) + tombol "Save as Template"
+- [x] Draft autosave awareness: badge "Draft tersimpan otomatis" + aksi "Pulihkan Draft"
+- [x] Learn panel: tautan singkat ke README Anchored VWAP & video
+- [x] Deep link onboarding: buka app dengan template + data contoh untuk eksplorasi
 
 ### Data Management
 

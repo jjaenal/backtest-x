@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';

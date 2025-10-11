@@ -16,6 +16,7 @@ import 'package:stacked/stacked.dart';
 import 'package:backtestx/services/prefs_service.dart';
 import 'dart:convert';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:uuid/uuid.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:backtestx/helpers/strategy_templates.dart';
@@ -83,6 +84,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
   final _backtestEngine = locator<BacktestEngineService>();
   final _uuid = const Uuid();
   final _prefs = PrefsService();
+  final _bottomSheetService = locator<BottomSheetService>();
 
   final String? strategyId;
   Strategy? existingStrategy;
@@ -441,6 +443,46 @@ class StrategyBuilderViewModel extends BaseViewModel {
       final qStr = await _prefs.getString('template_search_query');
       if (qStr != null) {
         selectedTemplateQuery = qStr;
+      }
+    } catch (_) {
+      // Non-critical
+    }
+
+    // Ensure available data is loaded early for selection convenience
+    try {
+      loadAvailableData();
+    } catch (_) {}
+
+    // Auto-apply template if onboarding provided a pending key
+    try {
+      final pendingKey =
+          await _prefs.getString('onboarding.pending_template_key');
+      if (pendingKey != null && pendingKey.isNotEmpty) {
+        applyTemplate(pendingKey);
+        // Clear the pending key to avoid re-applying
+        await _prefs.setString('onboarding.pending_template_key', '');
+        _snackbarService.showSnackbar(
+          message: 'Template diterapkan: $pendingKey',
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (_) {
+      // Non-critical
+    }
+
+    // Auto-select data if onboarding provided a pending data id
+    try {
+      final pendingDataId = await _prefs.getString('onboarding.pending_data_id');
+      if (pendingDataId != null && pendingDataId.isNotEmpty) {
+        if (availableData.any((d) => d.id == pendingDataId)) {
+          setSelectedData(pendingDataId);
+          _snackbarService.showSnackbar(
+            message: 'Data contoh dipilih: $pendingDataId',
+            duration: const Duration(seconds: 2),
+          );
+        }
+        // Clear pending regardless
+        await _prefs.setString('onboarding.pending_data_id', '');
       }
     } catch (_) {
       // Non-critical
@@ -821,13 +863,15 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   /// Compute ATR% percentiles (P25, P50, P75, P90) for selected data
   /// Returns percentages (0-100 scale) ready for display
-  Future<List<double>> getAtrPctPercentiles(int period, String? timeframe) async {
+  Future<List<double>> getAtrPctPercentiles(
+      int period, String? timeframe) async {
     if (selectedDataId == null) return [];
     final marketData = _dataManager.getData(selectedDataId!);
     if (marketData == null) return [];
     final baseTf = marketData.timeframe;
     final tf = (timeframe == null || timeframe.isEmpty) ? baseTf : timeframe;
-    final cacheKey = '$tf:$period:${marketData.id}:${marketData.candles.length}';
+    final cacheKey =
+        '$tf:$period:${marketData.id}:${marketData.candles.length}';
     final cached = _atrPctPercentilesCache[cacheKey];
     if (cached != null && cached.isNotEmpty) return cached;
 
@@ -848,6 +892,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
       final idx = ((q / 100.0) * (values.length - 1)).round();
       return values[idx];
     }
+
     final result = [p(25), p(50), p(75), p(90)];
     _atrPctPercentilesCache[cacheKey] = result;
     return result;
@@ -944,6 +989,72 @@ class StrategyBuilderViewModel extends BaseViewModel {
     if (previewResult == null) return;
 
     _navigationService.navigateToBacktestResultView(result: previewResult!);
+  }
+
+  /// Show short builder tips via notice sheet
+  Future<void> showBuilderTips() async {
+    await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Builder Tips Singkat',
+      description:
+          '• Gunakan Template untuk memulai cepat.\n• Atur period indikator sesuai timeframe.\n• Anchored VWAP: set Anchor Mode & tanggal.\n• Cek Preview di AppBar untuk uji cepat.\n• Autosave aktif: pulihkan draft jika tersedia.',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
+  }
+
+  /// Progressive tour: step-by-step coach marks via notice sheets
+  Future<void> startBuilderTour() async {
+    // Step 1: Entry vs Exit rules
+    var resp = await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Langkah 1: Entry vs Exit Rules',
+      description:
+          'Gunakan kolom kiri untuk ENTRY (sinyal masuk) dan kolom kanan untuk EXIT (keluar posisi). Anda dapat menambah/menghapus rule dan menyusun logika dengan AND/OR.',
+      mainButtonTitle: 'Next',
+      secondaryButtonTitle: 'Close',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
+    if (resp == null) return;
+
+    // Step 2: Period di kiri vs Period di kanan
+    resp = await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Langkah 2: Period Utama vs Period Pembanding',
+      description:
+          'Field "Main Period" mengatur period indikator utama (kiri). Field "Period" di bagian pembanding (kanan) hanya muncul bila Anda membandingkan ke indikator lain. Sesuaikan period sesuai timeframe untuk hasil akurat.',
+      mainButtonTitle: 'Next',
+      secondaryButtonTitle: 'Back',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
+    if (resp == null) return;
+
+    // Step 3: Operator
+    resp = await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Langkah 3: Operator & Tips',
+      description:
+          'Operator crossAbove/crossBelow memerlukan pembanding indikator (contoh: EMA vs EMA). Operator rising/falling tidak butuh pembanding; gunakan angka default 0 untuk mendeteksi tren naik/turun.',
+      mainButtonTitle: 'Next',
+      secondaryButtonTitle: 'Back',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
+    if (resp == null) return;
+
+    // Step 4: Anchored VWAP
+    await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Langkah 4: Anchored VWAP',
+      description:
+          'Saat memilih pembanding Anchored VWAP, atur "Anchor Mode". Mode "Start of Backtest" mengunci ke awal periode uji. Mode "Anchor by Date" memungkinkan Anda mengisi tanggal (contoh: 2023-01-01) untuk anchor spesifik.',
+      mainButtonTitle: 'Selesai',
+      secondaryButtonTitle: 'Back',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
   }
 
   @override
@@ -1389,9 +1500,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
             orElse: () => AnchorMode.startOfBacktest,
           )
         : null;
-    final anchorDate = anchorDateStr != null
-        ? DateTime.tryParse(anchorDateStr)
-        : null;
+    final anchorDate =
+        anchorDateStr != null ? DateTime.tryParse(anchorDateStr) : null;
 
     return RuleBuilder(
       indicator: indicator,

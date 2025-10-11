@@ -69,6 +69,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
             title:
                 Text(viewModel.isEditing ? 'Edit Strategy' : 'Create Strategy'),
             actions: [
+              if (viewModel.hasAutosaveDraft)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                  child: TextButton.icon(
+                    onPressed: viewModel.restoreDraftIfAvailable,
+                    icon: const Icon(Icons.restore),
+                    label: const Text('Pulihkan Draft'),
+                  ),
+                ),
               Tooltip(
                 message: 'Pilih Template',
                 child: IconButton(
@@ -78,6 +87,28 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                     viewModel,
                   ),
                   color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Tooltip(
+                message: 'Run Preview',
+                child: IconButton(
+                  icon: const Icon(Icons.play_arrow),
+                  onPressed:
+                      (viewModel.isRunningPreview || viewModel.hasFatalErrors)
+                          ? null
+                          : () {
+                              if (viewModel.availableData.isEmpty) {
+                                viewModel.loadAvailableData();
+                              }
+                              viewModel.quickPreviewBacktest();
+                            },
+                ),
+              ),
+              Tooltip(
+                message: 'Builder Tips',
+                child: IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  onPressed: viewModel.startBuilderTour,
                 ),
               ),
               IconButton(
@@ -627,20 +658,20 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 TextField(
                                   controller: viewModel.riskValueController,
                                   decoration: InputDecoration(
-                                    labelText: viewModel.riskType ==
-                                            RiskType.fixedLot
-                                        ? 'Lot Size'
-                                        : (viewModel.riskType ==
-                                                RiskType.atrBased
-                                            ? 'ATR Multiple'
-                                            : 'Risk Percentage'),
-                                    hintText: viewModel.riskType ==
-                                            RiskType.fixedLot
-                                        ? '0.1'
-                                        : (viewModel.riskType ==
-                                                RiskType.atrBased
-                                            ? '2.0'
-                                            : '2.0'),
+                                    labelText:
+                                        viewModel.riskType == RiskType.fixedLot
+                                            ? 'Lot Size'
+                                            : (viewModel.riskType ==
+                                                    RiskType.atrBased
+                                                ? 'ATR Multiple'
+                                                : 'Risk Percentage'),
+                                    hintText:
+                                        viewModel.riskType == RiskType.fixedLot
+                                            ? '0.1'
+                                            : (viewModel.riskType ==
+                                                    RiskType.atrBased
+                                                ? '2.0'
+                                                : '2.0'),
                                     prefixIcon: const Icon(Icons.percent),
                                   ),
                                   keyboardType: TextInputType.number,
@@ -655,11 +686,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         controller:
                                             viewModel.stopLossController,
                                         decoration: InputDecoration(
-                                          labelText:
-                                              viewModel.riskType ==
-                                                      RiskType.atrBased
-                                                  ? 'ATR Multiple'
-                                                  : 'Stop Loss (points)',
+                                          labelText: viewModel.riskType ==
+                                                  RiskType.atrBased
+                                              ? 'ATR Multiple'
+                                              : 'Stop Loss (points)',
                                           hintText: viewModel.riskType ==
                                                   RiskType.atrBased
                                               ? '2.0'
@@ -1471,6 +1501,20 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             ),
                                             _buildStatCard(
                                               context,
+                                              'Max DD',
+                                              '${viewModel.previewResult!.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
+                                              viewModel.previewResult!.summary
+                                                          .maxDrawdownPercentage <=
+                                                      20
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .primary
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .error,
+                                            ),
+                                            _buildStatCard(
+                                              context,
                                               'Trades',
                                               '${viewModel.previewResult!.summary.totalTrades}',
                                               Theme.of(context)
@@ -1658,6 +1702,25 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         }),
 
                                         const SizedBox(height: 16),
+
+                                        // Save as Template (exports/copies JSON)
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: OutlinedButton.icon(
+                                            onPressed:
+                                                viewModel.exportStrategyJson,
+                                            icon: const Icon(Icons.save_alt),
+                                            label: const Text(
+                                                'Simpan sebagai Template'),
+                                            style: OutlinedButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                            ),
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 8),
 
                                         // View full results button
                                         SizedBox(
@@ -2098,8 +2161,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       children: [
                         Text(
                           'Dynamic ATR% Presets',
-                          style:
-                              Theme.of(context).textTheme.bodyMedium,
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         const SizedBox(height: 8),
                         Wrap(
@@ -2107,32 +2169,32 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           runSpacing: 8,
                           children: [
                             _presetChip(
-                                context,
-                                '${vals[0].toStringAsFixed(1)}% (P25)', () {
+                                context, '${vals[0].toStringAsFixed(1)}% (P25)',
+                                () {
                               final v = vals[0].toStringAsFixed(1);
                               rule.numberController.text = v;
                               viewModel.updateRuleNumberValue(
                                   index, v, isEntry);
                             }),
                             _presetChip(
-                                context,
-                                '${vals[1].toStringAsFixed(1)}% (P50)', () {
+                                context, '${vals[1].toStringAsFixed(1)}% (P50)',
+                                () {
                               final v = vals[1].toStringAsFixed(1);
                               rule.numberController.text = v;
                               viewModel.updateRuleNumberValue(
                                   index, v, isEntry);
                             }),
                             _presetChip(
-                                context,
-                                '${vals[2].toStringAsFixed(1)}% (P75)', () {
+                                context, '${vals[2].toStringAsFixed(1)}% (P75)',
+                                () {
                               final v = vals[2].toStringAsFixed(1);
                               rule.numberController.text = v;
                               viewModel.updateRuleNumberValue(
                                   index, v, isEntry);
                             }),
                             _presetChip(
-                                context,
-                                '${vals[3].toStringAsFixed(1)}% (P90)', () {
+                                context, '${vals[3].toStringAsFixed(1)}% (P90)',
+                                () {
                               final v = vals[3].toStringAsFixed(1);
                               rule.numberController.text = v;
                               viewModel.updateRuleNumberValue(
@@ -2267,8 +2329,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           : null,
                     ),
                     keyboardType: TextInputType.datetime,
-                    onChanged: (value) => viewModel
-                        .updateRuleAnchorDate(index, value, isEntry),
+                    onChanged: (value) =>
+                        viewModel.updateRuleAnchorDate(index, value, isEntry),
                   ),
               ],
             ],

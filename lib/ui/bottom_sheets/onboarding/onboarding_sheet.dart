@@ -17,30 +17,25 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
     OnboardingSheetModel viewModel,
     Widget? child,
   ) {
+    // Ringkas menjadi 3 langkah inti sesuai rencana onboarding
     final steps = [
       (
         icon: Icons.upload_file,
-        title: 'Upload Data Pasar',
+        title: 'Pilih & Upload Data',
         desc:
-            'Unggah file CSV OHLC dan pilih timeframe. Data akan di-cache di memori untuk backtest cepat.',
+            'Unggah file CSV OHLC dan pilih timeframe yang sesuai. Data akan di-cache untuk preview cepat.',
       ),
       (
         icon: Icons.psychology,
-        title: 'Buat Strategi',
+        title: 'Pilih Template / Indikator',
         desc:
-            'Rancang entry/exit rules dan parameter indikator. Simpan strategi untuk digunakan kembali.',
+            'Mulai dengan Template Quick‑Start atau pilih indikator untuk membentuk rules strategi.',
       ),
       (
         icon: Icons.play_arrow,
-        title: 'Jalankan Backtest',
+        title: 'Jalankan Preview',
         desc:
-            'Gunakan Quick Test untuk dataset terpilih atau jalankan batch untuk beberapa dataset sekaligus.',
-      ),
-      (
-        icon: Icons.insights,
-        title: 'Tinjau Hasil',
-        desc:
-            'Lihat metrik utama, equity curve, dan daftar trade. Ekspor CSV jika diperlukan.',
+            'Gunakan Quick Preview untuk melihat ringkasan hasil instan sebelum menyimpan.',
       ),
     ];
 
@@ -77,13 +72,78 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
             current.desc,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.75),
+              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
             ),
           ),
           const SizedBox(height: 16),
+          // Aksi langsung: Import Data, Quick‑Start Templates, dan Pelajari
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              ElevatedButton.icon(
+                onPressed: viewModel.goToImportData,
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Import Data'),
+              ),
+              OutlinedButton.icon(
+                onPressed: viewModel.showQuickStartTemplates,
+                icon: const Icon(Icons.bolt),
+                label: const Text('Quick‑Start Templates'),
+              ),
+              TextButton.icon(
+                onPressed: viewModel.openLearnPanel,
+                icon: const Icon(Icons.school),
+                label: const Text('Pelajari'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (viewModel.step == 0) ...[
+            Card(
+              elevation: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Data Onboarding',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Format CSV: Date, Open, High, Low, Close, Volume (opsional). Timeframe mempengaruhi indikator dan hasil backtest.',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onSurface
+                              .withOpacity(0.8)),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        TextButton.icon(
+                          onPressed: viewModel.showCsvNotice,
+                          icon: const Icon(Icons.description),
+                          label: const Text('Lihat Contoh CSV'),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: viewModel.goToImportData,
+                          icon: const Icon(Icons.upload_file),
+                          label: const Text('Import Data'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

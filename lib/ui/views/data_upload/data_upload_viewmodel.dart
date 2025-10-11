@@ -11,12 +11,14 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
+import 'package:backtestx/app/app.bottomsheets.dart';
 
 class DataUploadViewModel extends BaseViewModel {
   final _dataParserService = locator<DataParserService>();
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
   final _dataManager = DataManager();
+  final _bottomSheetService = locator<BottomSheetService>();
 
   final symbolController = TextEditingController();
 
@@ -246,5 +248,16 @@ class DataUploadViewModel extends BaseViewModel {
   void dispose() {
     symbolController.dispose();
     super.dispose();
+  }
+
+  Future<void> showTimeframeCoach() async {
+    await _bottomSheetService.showCustomSheet(
+      variant: BottomSheetType.notice,
+      title: 'Timeframe & Dampak ke Indikator',
+      description:
+          'Timeframe mempengaruhi hasil indikator (EMA/RSI/VWAP, dll).\n\nContoh: sinyal pada data 1H bisa berbeda dengan 4H. Pilih timeframe yang sesuai dengan gaya strategi Anda. Pastikan konsisten antara data yang diunggah dan saat pengujian.',
+      barrierDismissible: true,
+      isScrollControlled: false,
+    );
   }
 }

@@ -23,6 +23,49 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Coach Marks: Timeframe impact banner
+              Card(
+                color: Theme.of(context)
+                    .colorScheme
+                    .primaryContainer
+                    .withOpacity(0.12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Coach Marks — Timeframe Impact',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Timeframe mempengaruhi indikator (EMA/RSI/VWAP, dll). Data 1H vs 4H dapat menghasilkan sinyal berbeda. Gunakan timeframe yang konsisten.',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            const SizedBox(height: 8),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: TextButton(
+                                onPressed: viewModel.showTimeframeCoach,
+                                child: const Text('Pelajari timeframe'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // File Upload Section
               Card(
                 child: Padding(

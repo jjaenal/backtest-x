@@ -1,6 +1,8 @@
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/data_validation_service.dart';
+import 'package:backtestx/services/prefs_service_io_impl.dart';
 import 'package:backtestx/ui/bottom_sheets/notice/notice_sheet.dart';
+import 'package:backtestx/ui/bottom_sheets/quick_start_templates/quick_start_templates_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/validation_report/validation_report_sheet.dart';
 import 'package:backtestx/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:backtestx/ui/views/home/home_view.dart';
@@ -50,6 +52,7 @@ import 'package:backtestx/services/deep_link_service.dart';
     LazySingleton(classType: IndicatorService),
     LazySingleton(classType: BacktestEngineService),
     LazySingleton(classType: StorageService),
+    LazySingleton(classType: PrefsService),
     LazySingleton(classType: DataValidationService),
     LazySingleton(classType: DataManager),
     LazySingleton(classType: ThemeService),
@@ -64,6 +67,7 @@ import 'package:backtestx/services/deep_link_service.dart';
     StackedBottomsheet(classType: CandlestickPatternGuideSheet),
     StackedBottomsheet(classType: ValidationReportSheet),
     StackedBottomsheet(classType: OnboardingSheet),
+    StackedBottomsheet(classType: QuickStartTemplatesSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [

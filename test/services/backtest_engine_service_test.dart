@@ -92,7 +92,8 @@ void main() {
 
     test('Uses main indicator period when provided (EMA 8 > EMA 13)', () async {
       // Use real IndicatorService to compute indicators, bypassing locator mock
-      final service = BacktestEngineService(indicatorService: IndicatorService());
+      final service =
+          BacktestEngineService(indicatorService: IndicatorService());
 
       // Build rising market data so short EMA stays above long EMA
       final now = DateTime.now();
@@ -139,7 +140,8 @@ void main() {
         createdAt: now,
       );
 
-      final result = await service.runBacktest(marketData: md, strategy: strategy);
+      final result =
+          await service.runBacktest(marketData: md, strategy: strategy);
 
       // Ensure backtest ran and signals were detected on base timeframe
       expect(result.trades, isNotNull);

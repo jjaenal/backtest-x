@@ -2,6 +2,7 @@ import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/services/prefs_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
 
@@ -38,6 +39,26 @@ class DeepLinkService {
       return '$base/#$routePath?$query';
     } else {
       return '$base$routePath?$query';
+    }
+  }
+
+  /// Build a deep link URL to open Strategy Builder with optional template & data selection (onboarding)
+  String buildOnboardingLink({String? templateKey, String? dataId}) {
+    final base = _determineBaseUrl();
+    final useHash = _determineUseHash();
+    const routePath = Routes.strategyBuilderView; // '/strategy-builder-view'
+    final params = <String, String>{};
+    if (templateKey != null && templateKey.isNotEmpty) {
+      params['templateKey'] = Uri.encodeComponent(templateKey);
+    }
+    if (dataId != null && dataId.isNotEmpty) {
+      params['dataId'] = Uri.encodeComponent(dataId);
+    }
+    final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');
+    if (useHash) {
+      return query.isEmpty ? '$base/#$routePath' : '$base/#$routePath?$query';
+    } else {
+      return query.isEmpty ? '$base$routePath' : '$base$routePath?$query';
     }
   }
 
@@ -79,6 +100,23 @@ class DeepLinkService {
       final id = q['strategyId'] ?? q['id'];
       if (id != null && id.isNotEmpty) {
         return _openStrategy(id);
+      }
+      // Onboarding deep link: apply template & data selection
+      final tpl = q['templateKey'];
+      final dataId = q['dataId'];
+      if ((tpl != null && tpl.isNotEmpty) || (dataId != null && dataId.isNotEmpty)) {
+        try {
+          final prefs = locator<PrefsService>();
+          if (tpl != null && tpl.isNotEmpty) {
+            prefs.setString('onboarding.pending_template_key', tpl);
+          }
+          if (dataId != null && dataId.isNotEmpty) {
+            prefs.setString('onboarding.pending_data_id', dataId);
+          }
+        } catch (_) {}
+        final nav = locator<NavigationService>();
+        nav.navigateTo(Routes.strategyBuilderView);
+        return true;
       }
     }
     return false;

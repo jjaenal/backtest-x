@@ -820,8 +820,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['ema_ribbon_stack'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template EMA Ribbon tidak ditemukan. Keys tersedia: '
+          message: 'Template EMA Ribbon tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -853,8 +852,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['breakout_basic'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template Breakout tidak ditemukan. Keys tersedia: '
+          message: 'Template Breakout tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -886,8 +884,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['trend_ema_cross'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template Trend Following tidak ditemukan. Keys tersedia: '
+          message: 'Template Trend Following tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -919,8 +916,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['vwap_pullback_breakout'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template VWAP Pullback tidak ditemukan. Keys tersedia: '
+          message: 'Template VWAP Pullback tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -952,8 +948,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['anchored_vwap_pullback_cross'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template Anchored VWAP tidak ditemukan. Keys tersedia: '
+          message: 'Template Anchored VWAP tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -985,8 +980,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['stoch_kd_cross_adx'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template Stochastic K/D tidak ditemukan. Keys tersedia: '
+          message: 'Template Stochastic K/D tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -1018,8 +1012,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['bb_squeeze_breakout'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template Bollinger Squeeze tidak ditemukan. Keys tersedia: '
+          message: 'Template Bollinger Squeeze tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
@@ -1051,8 +1044,7 @@ class WorkspaceViewModel extends BaseViewModel {
       final tpl = StrategyTemplates.all['rsi_divergence_approx'];
       if (tpl == null) {
         _snackbarService.showSnackbar(
-          message:
-              'Template RSI Divergence tidak ditemukan. Keys tersedia: '
+          message: 'Template RSI Divergence tidak ditemukan. Keys tersedia: '
               '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
           duration: const Duration(seconds: 2),
         );
