@@ -34,6 +34,8 @@ flutter run
 ## 📱 Key Features
 
 - **Strategy Builder**: Create trading strategies with custom entry/exit rules
+- **Strategy Builder Tour**: Tur progresif (notice sheets) untuk panduan cepat di Builder
+- **Deep Link Onboarding**: Buka app dengan template + data contoh untuk eksplorasi
 - **Backtest Engine**: Test strategies against historical data
 - **Performance Analytics**: Comprehensive statistics and visualizations
 - **Backtest Result Header**: Shows tested `Symbol · Timeframe • Date Range` at the top of the results view for quick context
@@ -74,6 +76,11 @@ final url = deepLinkService.buildBacktestResultLink(resultId: result.id);
 
 On Web, links use the current origin with hash/path routing (e.g. `https://example.com/#/backtest-result-view?id=abc123`).
 On app startup, if a deep link to Backtest Result is detected, the app navigates directly to the view.
+ 
+ Deep link onboarding ke Strategy Builder:
+ - Sertakan parameter `template` dan opsional `dataId` pada URL untuk membuka Strategy Builder dengan template diterapkan dan data contoh terpilih.
+ - Contoh: `https://example.com/#/strategy-builder?template=vwap_pullback&dataId=eurusd_1h`.
+ - Saat startup, tautan onboarding akan menavigasi ke Strategy Builder dan otomatis menerapkan template serta memilih data.
   - Pagination/layout optimized for long datasets
   - Dynamic file naming `
     <strategy>-<tf>-<date>.pdf` (sanitized)
@@ -894,3 +901,68 @@ Routing behavior:
 Startup handling on Web:
 
 - `StartupViewModel` calls `DeepLinkService.maybeHandleInitialLink()` to parse the current URL and navigate to either Backtest Result or Strategy Builder based on path and query string.
+## 🚢 Release & Deployment Guide
+
+### Versioning & Pre‑Release Checklist
+
+- Update app version in `pubspec.yaml` (`version: x.y.z+build`).
+- Run `flutter clean && flutter pub get` to ensure a fresh build.
+- Generate code if needed: `flutter pub run build_runner build --delete-conflicting-outputs`.
+- Android: ensure `android/app/build.gradle.kts` has `ndkVersion = "27.0.12077973"` and signing set.
+- iOS/macOS: verify Bundle ID, Team, and signing in Xcode.
+- Run smoke tests on target devices.
+
+### Web
+
+- Build: `flutter build web`
+- Output: `build/web/`
+- Deploy to any static host (Netlify/Vercel/Nginx/GitHub Pages).
+- SPA rewrite (Nginx example):
+  - `location / { try_files $uri $uri/ /index.html; }`
+- Use hash routing as implemented; URLs under `#/` work without extra server rules.
+
+### Android (Play Store)
+
+1) Generate keystore (once):
+   - `keytool -genkeypair -v -keystore ~/android-keystore.jks -alias backtestx -keyalg RSA -keysize 2048 -validity 10000`
+2) Create `android/key.properties`:
+   - `storeFile=/Users/<you>/android-keystore.jks`
+   - `storePassword=<password>`
+   - `keyPassword=<password>`
+   - `keyAlias=backtestx`
+3) Configure signing in `android/app/build.gradle.kts` (Kotlin DSL):
+   - Read properties and set `signingConfigs.release` and use it in `buildTypes.release`.
+4) Build:
+   - App Bundle: `flutter build appbundle`
+   - APK (optional): `flutter build apk`
+5) Upload `.aab` to Play Console, complete store listing, content, testing tracks, and roll‑out.
+
+### iOS (App Store)
+
+- Open `ios/Runner.xcworkspace` in Xcode.
+- Set Bundle Identifier, Team, and signing (automatic recommended).
+- Archive via Xcode (Product → Archive) and upload with Organizer.
+- Alternatively: `flutter build ipa` after configuring export options.
+- Complete App Store Connect metadata, screenshots, and submit to review/TestFlight.
+
+### macOS (Notarized .app/.dmg)
+
+- Build: `flutter build macos --release` → `build/macos/Build/Products/Release/backtestx.app`.
+- Signing: set Developer ID Application certificate in Xcode target.
+- Notarize: use Xcode Organizer or `xcrun notarytool`.
+- Package DMG (optional): `hdiutil create -volname Backtest-X -srcfolder backtestx.app -ov -format UDZO backtestx.dmg`.
+
+### Windows
+
+- Build (on Windows): `flutter build windows --release` → release folder with `.exe`.
+- Packaging options: MSIX (Visual Studio), installer (Inno Setup/Wix), code signing certificate recommended.
+
+### Linux
+
+- Build (on Linux): `flutter build linux --release`.
+- Package: AppImage (`linuxdeploy`), `.deb`/`.rpm` via distro tools, code signing optional.
+
+### CI/CD (Optional)
+
+- Use GitHub Actions for Web/Android; macOS runners required for iOS/macOS.
+- Cache pub (`~/.pub-cache`) and run `flutter pub get` + build steps per job.
