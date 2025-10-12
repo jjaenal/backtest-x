@@ -25,6 +25,11 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
       appBar: AppBar(
         title: const Text('Market Analysis'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: viewModel.refresh,
+            tooltip: 'Refresh',
+          ),
           if (viewModel.selectedMarketData != null)
             IconButton(
               icon: const Icon(Icons.settings),
@@ -73,7 +78,12 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
             const Text('No market data available')
           else
             DropdownButtonFormField<MarketDataInfo>(
-              value: model.selectedMarketData,
+              value: (model.selectedMarketData != null &&
+                      model.marketDataList
+                          .toSet()
+                          .contains(model.selectedMarketData))
+                  ? model.selectedMarketData
+                  : null,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -86,12 +96,14 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                 ),
               ),
               hint: const Text('Select market...'),
-              items: model.marketDataList.map((data) {
-                return DropdownMenuItem(
-                  value: data,
-                  child: Text(data.symbol),
-                );
-              }).toList(),
+              items: model.marketDataList
+                  .toSet()
+                  .map((data) {
+                    return DropdownMenuItem<MarketDataInfo>(
+                      value: data,
+                      child: Text(data.symbol),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   model.selectMarketData(value);
@@ -130,35 +142,37 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
   ) {
     final data = model.analysisData!;
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Price Chart with indicators
-          SizedBox(
-            height: 400,
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: CandlestickChart(
-                  candles: model.marketData!.candles,
-                  sma: model.sma20,
-                  ema: model.ema50,
-                  bollingerBands: model.bb,
-                  showVolume: model.marketData!.hasVolumeData,
-                  title:
-                      '${model.analysisData!.symbol} (${model.analysisData!.timeframe})',
-                  onRangeChanged: (startIndex, endIndex) {
-                    model.updateChartRange(startIndex, endIndex);
-                  },
+    return RefreshIndicator(
+      onRefresh: model.refresh,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Price Chart with indicators
+            SizedBox(
+              height: 400,
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: CandlestickChart(
+                    candles: model.marketData!.candles,
+                    sma: model.sma20,
+                    ema: model.ema50,
+                    bollingerBands: model.bb,
+                    showVolume: model.marketData!.hasVolumeData,
+                    title:
+                        '${model.analysisData!.symbol} (${model.analysisData!.timeframe})',
+                    onRangeChanged: (startIndex, endIndex) {
+                      model.updateChartRange(startIndex, endIndex);
+                    },
+                  ),
                 ),
               ),
-            ),
           ),
           const SizedBox(height: 16),
 
@@ -242,6 +256,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
           const SizedBox(height: 12),
           _buildQualityCard(context, data),
         ],
+      ),
       ),
     );
   }

@@ -6,13 +6,17 @@ import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
-import 'package:stacked/stacked.dart';
+import 'dart:async';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/app/route_observer.dart';
 import 'package:backtestx/services/prefs_service.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:backtestx/app/app.bottomsheets.dart';
 
-class HomeViewModel extends BaseViewModel {
+import 'package:flutter/widgets.dart';
+import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
+
+class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   final _navigationService = locator<NavigationService>();
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
@@ -43,6 +47,13 @@ class HomeViewModel extends BaseViewModel {
   bool get backgroundWarmupEnabled => _dataManager.isBackgroundWarmupEnabled;
   bool get isWarmingUp => _dataManager.isWarmingUp;
 
+  // Subscriptions for realtime updates
+  StreamSubscription? _marketDataSub;
+  StreamSubscription? _strategySub;
+  StreamSubscription? _backtestSub;
+  bool _routeAwareSubscribed = false;
+  bool _refreshScheduled = false;
+
   Future<void> initialize() async {
     // Listen to DataManager warm-up status to refresh indicator
     _dataManager.warmupNotifier.addListener(() {
@@ -72,6 +83,17 @@ class HomeViewModel extends BaseViewModel {
           }
         }
       } catch (_) {}
+    });
+
+    // Realtime subscriptions: refresh stats on storage changes
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      _scheduleStatsRefresh();
+    });
+    _strategySub = _storageService.strategyEvents.listen((event) async {
+      _scheduleStatsRefresh();
+    });
+    _backtestSub = _storageService.backtestEvents.listen((event) async {
+      _scheduleStatsRefresh();
     });
   }
 
@@ -183,6 +205,40 @@ class HomeViewModel extends BaseViewModel {
       message: 'Loading cache in background…',
       duration: const Duration(seconds: 2),
     );
+  }
+
+  Future<void> showCacheInfo() async {
+    try {
+      final mem = _dataManager.getMemoryUsageFormatted();
+      final disk = await _dataManager.getDiskUsageFormatted();
+      final datasets = _dataManager.getAllData().length;
+      final status = isWarmingUp
+          ? 'Warming'
+          : (datasets > 0 ? 'Ready' : 'Empty');
+      final desc = StringBuffer()
+        ..writeln('Status: $status')
+        ..writeln('Datasets: $datasets')
+        ..writeln('Memory: $mem')
+        ..writeln('Disk: $disk');
+
+      final response = await _bottomSheetService.showBottomSheet(
+        title: 'Cache Info',
+        description: desc.toString(),
+        confirmButtonTitle: 'Load Cache Now',
+        cancelButtonTitle:
+            _dataManager.isBackgroundWarmupEnabled ? 'Pause' : 'Enable',
+      );
+      if (response?.confirmed == true) {
+        warmUpCacheNow();
+      } else {
+        toggleBackgroundWarmup();
+      }
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Failed to show cache info',
+        duration: const Duration(seconds: 2),
+      );
+    }
   }
 
   Future<void> runStrategy(String strategyId, int index) async {
@@ -298,5 +354,45 @@ class HomeViewModel extends BaseViewModel {
   // Refresh data when returning to home
   Future<void> refresh() async {
     await _loadStats();
+  }
+
+  // RouteAware hooks
+  @override
+  void didPopNext() {
+    // Coming back from another screen, refresh quick stats
+    refresh();
+  }
+
+  @override
+  void didPush() {}
+  @override
+  void didPop() {}
+  @override
+  void didPushNext() {}
+
+  bool get routeAwareSubscribed => _routeAwareSubscribed;
+  void markRouteAwareSubscribed() {
+    _routeAwareSubscribed = true;
+  }
+
+  void _scheduleStatsRefresh() {
+    if (_refreshScheduled) return;
+    _refreshScheduled = true;
+    Future.delayed(const Duration(milliseconds: 200), () async {
+      _refreshScheduled = false;
+      await _loadStats();
+    });
+  }
+
+  @override
+  void dispose() {
+    // Unsubscribe from route observer if subscribed
+    try {
+      appRouteObserver.unsubscribe(this);
+    } catch (_) {}
+    _marketDataSub?.cancel();
+    _strategySub?.cancel();
+    _backtestSub?.cancel();
+    super.dispose();
   }
 }

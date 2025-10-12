@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:backtestx/models/strategy.dart';
@@ -17,6 +18,18 @@ class StorageService {
   // Save-result performance guards (run schema checks/normalization only once)
   bool _backtestResultsColumnChecked = false;
   bool _backtestResultsNormalized = false;
+
+  // ==== Event Bus (Realtime UI) ====
+  final StreamController<MarketDataEvent> _marketDataController =
+      StreamController<MarketDataEvent>.broadcast();
+  final StreamController<StrategyEvent> _strategyController =
+      StreamController<StrategyEvent>.broadcast();
+  final StreamController<BacktestResultEvent> _resultController =
+      StreamController<BacktestResultEvent>.broadcast();
+
+  Stream<MarketDataEvent> get marketDataEvents => _marketDataController.stream;
+  Stream<StrategyEvent> get strategyEvents => _strategyController.stream;
+  Stream<BacktestResultEvent> get backtestEvents => _resultController.stream;
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -297,6 +310,11 @@ class StorageService {
     _strategyCache[strategy.id] = strategy;
     _strategiesCacheValid = false;
     _allStrategiesCache = null;
+
+    // Emit event
+    _strategyController.add(
+      StrategyEvent(type: StrategyEventType.saved, id: strategy.id),
+    );
   }
 
   Future<List<Strategy>> getAllStrategies() async {
@@ -357,6 +375,11 @@ class StorageService {
     _strategiesCacheValid = false;
     _allStrategiesCache = null;
     _resultCache.remove(id);
+
+    // Emit event
+    _strategyController.add(
+      StrategyEvent(type: StrategyEventType.deleted, id: id),
+    );
   }
 
   // ============ BACKTEST RESULTS ============
@@ -403,6 +426,16 @@ class StorageService {
       _resultCache[result.strategyId] = [];
     }
     _resultCache[result.strategyId]!.insert(0, result);
+
+    // Emit event
+    _resultController.add(
+      BacktestResultEvent(
+        type: BacktestResultEventType.saved,
+        id: result.id,
+        strategyId: result.strategyId,
+        marketDataId: result.marketDataId,
+      ),
+    );
   }
 
   /// Get the latest backtest result across all strategies
@@ -545,6 +578,11 @@ class StorageService {
 
     // Clear relevant cache
     _resultCache.clear();
+
+    // Emit event
+    _resultController.add(
+      BacktestResultEvent(type: BacktestResultEventType.deleted, id: id),
+    );
   }
 
   // ============ MARKET DATA ============
@@ -569,6 +607,23 @@ class StorageService {
 
     // Note: Actual candles NOT stored in DB for performance!
     // They should be kept in memory or re-loaded from CSV when needed
+
+    // Emit event
+    _marketDataController.add(
+      MarketDataEvent(
+        type: MarketDataEventType.saved,
+        id: data.id,
+        info: MarketDataInfo(
+          id: data.id,
+          symbol: data.symbol,
+          timeframe: data.timeframe,
+          candlesCount: data.candles.length,
+          firstDate: data.candles.first.timestamp,
+          lastDate: data.candles.last.timestamp,
+          uploadedAt: data.uploadedAt,
+        ),
+      ),
+    );
   }
 
   Future<List<MarketDataInfo>> getAllMarketDataInfo() async {
@@ -600,6 +655,11 @@ class StorageService {
       where: 'id = ?',
       whereArgs: [id],
     );
+
+    // Emit event
+    _marketDataController.add(
+      MarketDataEvent(type: MarketDataEventType.deleted, id: id),
+    );
   }
 
   // Clear all data (for testing)
@@ -615,6 +675,17 @@ class StorageService {
     _resultCache.clear();
     _strategiesCacheValid = false;
     _allStrategiesCache = null;
+
+    // Emit cleared events
+    _strategyController.add(
+      const StrategyEvent(type: StrategyEventType.cleared),
+    );
+    _resultController.add(
+      const BacktestResultEvent(type: BacktestResultEventType.cleared),
+    );
+    _marketDataController.add(
+      const MarketDataEvent(type: MarketDataEventType.cleared),
+    );
   }
 
   // Clear caches manually
@@ -623,6 +694,21 @@ class StorageService {
     _resultCache.clear();
     _strategiesCacheValid = false;
     _allStrategiesCache = null;
+
+    // Emit cache-cleared events as non-breaking signals
+    _strategyController.add(
+      const StrategyEvent(type: StrategyEventType.cacheInvalidated),
+    );
+    _resultController.add(
+      const BacktestResultEvent(type: BacktestResultEventType.cacheInvalidated),
+    );
+  }
+
+  // Optional: close streams (call manually if needed in app shutdown)
+  void dispose() {
+    _marketDataController.close();
+    _strategyController.close();
+    _resultController.close();
   }
 
   // ============ STRATEGY DRAFTS (AUTOSAVE) ============
@@ -708,5 +794,36 @@ class MarketDataInfo {
     required this.firstDate,
     required this.lastDate,
     required this.uploadedAt,
+  });
+}
+
+// ===== Event payloads for realtime UI =====
+
+enum MarketDataEventType { saved, deleted, cleared }
+class MarketDataEvent {
+  final MarketDataEventType type;
+  final String? id;
+  final MarketDataInfo? info;
+  const MarketDataEvent({required this.type, this.id, this.info});
+}
+
+enum StrategyEventType { saved, deleted, cleared, cacheInvalidated }
+class StrategyEvent {
+  final StrategyEventType type;
+  final String? id;
+  const StrategyEvent({required this.type, this.id});
+}
+
+enum BacktestResultEventType { saved, deleted, cleared, cacheInvalidated }
+class BacktestResultEvent {
+  final BacktestResultEventType type;
+  final String? id;
+  final String? strategyId;
+  final String? marketDataId;
+  const BacktestResultEvent({
+    required this.type,
+    this.id,
+    this.strategyId,
+    this.marketDataId,
   });
 }

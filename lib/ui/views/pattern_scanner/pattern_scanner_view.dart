@@ -76,7 +76,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
             const Text('No market data available. Please upload data first.')
           else
             DropdownButtonFormField<MarketDataInfo>(
-              value: model.selectedMarketData,
+              value: (model.selectedMarketData != null &&
+                      model.marketDataList
+                          .toSet()
+                          .contains(model.selectedMarketData))
+                  ? model.selectedMarketData
+                  : null,
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -89,12 +94,14 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                 ),
               ),
               hint: const Text('Select market data...'),
-              items: model.marketDataList.map((data) {
-                return DropdownMenuItem(
-                  value: data,
-                  child: Text(data.symbol),
-                );
-              }).toList(),
+              items: model.marketDataList
+                  .toSet()
+                  .map((data) {
+                    return DropdownMenuItem<MarketDataInfo>(
+                      value: data,
+                      child: Text(data.symbol),
+                    );
+                  }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   model.selectMarketData(value);
@@ -214,13 +221,16 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
     BuildContext context,
     PatternScannerViewModel model,
   ) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: model.filteredPatterns.length,
-      itemBuilder: (context, index) {
-        final pattern = model.filteredPatterns[index];
-        return _buildPatternCard(context, pattern);
-      },
+    return RefreshIndicator(
+      onRefresh: model.refresh,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: model.filteredPatterns.length,
+        itemBuilder: (context, index) {
+          final pattern = model.filteredPatterns[index];
+          return _buildPatternCard(context, pattern);
+        },
+      ),
     );
   }
 

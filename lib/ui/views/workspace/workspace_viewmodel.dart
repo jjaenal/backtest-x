@@ -11,7 +11,8 @@ import 'package:backtestx/helpers/isolate_backtest.dart';
 import 'package:backtestx/services/clipboard_service.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/storage_service.dart';
-import 'package:stacked/stacked.dart';
+import 'dart:async';
+import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +26,7 @@ import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:backtestx/services/share_service.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 
-class WorkspaceViewModel extends BaseViewModel {
+class WorkspaceViewModel extends BaseRefreshableViewModel {
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
   final _dialogService = locator<DialogService>();
@@ -183,6 +184,18 @@ class WorkspaceViewModel extends BaseViewModel {
   Future<void> initialize() async {
     await runBusyFuture(loadData());
     loadAvailableData();
+    // Realtime subscriptions
+    _strategySub = _storageService.strategyEvents.listen((event) async {
+      await refresh();
+    });
+    _backtestSub = _storageService.backtestEvents.listen((event) async {
+      await refresh();
+    });
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      // Update available data list for quick actions
+      loadAvailableData();
+      notifyListeners();
+    });
   }
 
   Future<void> loadData() async {
@@ -222,6 +235,19 @@ class WorkspaceViewModel extends BaseViewModel {
   Future<void> refresh() async {
     _storageService.clearCache();
     await loadData();
+  }
+
+  // Subscriptions
+  StreamSubscription? _strategySub;
+  StreamSubscription? _backtestSub;
+  StreamSubscription? _marketDataSub;
+
+  @override
+  void dispose() {
+    _strategySub?.cancel();
+    _backtestSub?.cancel();
+    _marketDataSub?.cancel();
+    super.dispose();
   }
 
   void _sortStrategies() {

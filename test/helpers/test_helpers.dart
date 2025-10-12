@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:math';
+import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/share_service.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 import 'package:mockito/annotations.dart';
@@ -58,6 +59,10 @@ void registerServices() {
   }
   if (!locator.isRegistered<BacktestEngineService>()) {
     getAndRegisterBacktestEngineService();
+  }
+  // Ensure DataValidationService available for models that require it
+  if (!locator.isRegistered<DataValidationService>()) {
+    locator.registerSingleton<DataValidationService>(DataValidationService());
   }
   // Ensure DeepLinkService available for tests using deep link generation
   if (!locator.isRegistered<DeepLinkService>()) {
@@ -222,7 +227,7 @@ void mockClipboardForTests({void Function(String text)? onSet}) {
       final args = methodCall.arguments;
       String captured = '';
       if (args is Map || args is Map<dynamic, dynamic>) {
-        final dynamic val = (args as Map)["text"];
+        final dynamic val = (args)["text"];
         if (val is String) captured = val;
       }
       if (onSet != null) onSet(captured);

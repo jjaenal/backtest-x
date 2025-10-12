@@ -12,7 +12,7 @@ import 'dart:async';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:stacked/stacked.dart';
+import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
 import 'package:backtestx/services/prefs_service.dart';
 import 'dart:convert';
 import 'package:stacked_services/stacked_services.dart';
@@ -75,7 +75,7 @@ class RuleBuilder {
   }
 }
 
-class StrategyBuilderViewModel extends BaseViewModel {
+class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   final _storageService = locator<StorageService>();
   final _navigationService = locator<NavigationService>();
   final _snackbarService = locator<SnackbarService>();
@@ -453,6 +453,12 @@ class StrategyBuilderViewModel extends BaseViewModel {
       loadAvailableData();
     } catch (_) {}
 
+    // Subscribe to market data events for realtime updates
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      loadAvailableData();
+      notifyListeners();
+    });
+
     // Auto-apply template if onboarding provided a pending key
     try {
       final pendingKey =
@@ -472,7 +478,8 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
     // Auto-select data if onboarding provided a pending data id
     try {
-      final pendingDataId = await _prefs.getString('onboarding.pending_data_id');
+      final pendingDataId =
+          await _prefs.getString('onboarding.pending_data_id');
       if (pendingDataId != null && pendingDataId.isNotEmpty) {
         if (availableData.any((d) => d.id == pendingDataId)) {
           setSelectedData(pendingDataId);
@@ -490,6 +497,18 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
     setBusy(false);
   }
+
+  // Refresh implementation for consistency
+  @override
+  Future<void> refresh() async {
+    loadAvailableData();
+    notifyListeners();
+  }
+
+  // Subscriptions
+  StreamSubscription? _marketDataSub;
+
+  // Note: dispose handled later in file; ensure subscription is cancelled there
 
   void clearRecentTemplates() {
     recentTemplateKeys = [];
@@ -1059,6 +1078,7 @@ class StrategyBuilderViewModel extends BaseViewModel {
 
   @override
   void dispose() {
+    _marketDataSub?.cancel();
     _autosaveTimer?.cancel();
     _statusTicker?.cancel();
     nameController.dispose();

@@ -1,6 +1,7 @@
 import 'package:backtestx/ui/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/app/route_observer.dart';
 import 'home_viewmodel.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
@@ -12,11 +13,42 @@ class HomeView extends StackedView<HomeViewModel> {
     HomeViewModel viewModel,
     Widget? child,
   ) {
+    // Subscribe to RouteObserver to detect navigation back
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!viewModel.routeAwareSubscribed) {
+        final route = ModalRoute.of(context);
+        if (route != null) {
+          appRouteObserver.subscribe(viewModel, route);
+          viewModel.markRouteAwareSubscribed();
+        }
+      }
+    });
     return Scaffold(
       appBar: AppBar(
         title: const Text('Backtest-X'),
         centerTitle: true,
         actions: [
+          // Cache status indicator
+          IconButton(
+            tooltip: viewModel.isWarmingUp
+                ? 'Cache: warming up'
+                : (viewModel.dataSetsCount > 0
+                    ? 'Cache: ready'
+                    : 'Cache: empty'),
+            icon: Icon(
+              viewModel.isWarmingUp
+                  ? Icons.downloading
+                  : (viewModel.dataSetsCount > 0
+                      ? Icons.offline_pin
+                      : Icons.cloud_off),
+              color: viewModel.isWarmingUp
+                  ? Colors.orange
+                  : (viewModel.dataSetsCount > 0
+                      ? Colors.green
+                      : null),
+            ),
+            onPressed: viewModel.showCacheInfo,
+          ),
           IconButton(
             icon: const Icon(Icons.help_outline),
             tooltip: 'Onboarding',

@@ -6,6 +6,7 @@ import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'dart:async';
 
 class MarketAnalysisData {
   final String symbol;
@@ -70,6 +71,7 @@ class MarketAnalysisViewModel extends BaseViewModel {
   final _indicatorService = locator<IndicatorService>();
   final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = locator<DataManager>();
+  StreamSubscription<MarketDataEvent>? _marketDataSub;
   MarketData? _marketData;
   MarketData? get marketData => _marketData;
 
@@ -96,6 +98,11 @@ class MarketAnalysisViewModel extends BaseViewModel {
 
   Future<void> initialize() async {
     await runBusyFuture(loadMarketData());
+    // Subscribe to realtime market data changes to auto-refresh
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      // Coalesce refreshes by scheduling in microtask queue
+      await refresh();
+    });
   }
 
   Future<void> loadMarketData() async {
@@ -106,6 +113,21 @@ class MarketAnalysisViewModel extends BaseViewModel {
   Future<void> selectMarketData(MarketDataInfo data) async {
     _selectedMarketData = data;
     await analyzeMarketData();
+    notifyListeners();
+  }
+
+  Future<void> refresh() async {
+    // Reload list and re-run analysis for selected item if still exists
+    await loadMarketData();
+    if (_selectedMarketData != null) {
+      final exists = _marketDataList.any((m) => m.id == _selectedMarketData!.id);
+      if (exists) {
+        await analyzeMarketData();
+      } else {
+        _selectedMarketData = null;
+        _marketData = null;
+      }
+    }
     notifyListeners();
   }
 
@@ -261,5 +283,11 @@ class MarketAnalysisViewModel extends BaseViewModel {
         notifyListeners();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _marketDataSub?.cancel();
+    super.dispose();
   }
 }

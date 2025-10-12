@@ -5,7 +5,7 @@ import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/clipboard_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:stacked/stacked.dart';
+import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:csv/csv.dart';
@@ -25,17 +25,66 @@ enum ChartMode { equity, drawdown }
 
 enum TfChartSort { timeframe, valueAsc, valueDesc }
 
-class BacktestResultViewModel extends BaseViewModel {
+class BacktestResultViewModel extends BaseRefreshableViewModel {
   final BacktestResult result;
   final _snackbarService = locator<SnackbarService>();
   final _dataManager = DataManager();
   final _pdfExportService = PdfExportService();
+  final _storageService = locator<StorageService>();
+  final _navigationService = locator<NavigationService>();
 
   // Chart mode state
   ChartMode _chartMode = ChartMode.equity;
   ChartMode get chartMode => _chartMode;
 
   BacktestResultViewModel(this.result);
+
+  // Subscriptions
+  StreamSubscription? _backtestSub;
+  bool _refreshScheduled = false;
+  void _scheduleRefresh() {
+    if (_refreshScheduled) return;
+    _refreshScheduled = true;
+    Future.delayed(const Duration(milliseconds: 120), () {
+      _refreshScheduled = false;
+      notifyListeners();
+    });
+  }
+
+  Future<void> initialize() async {
+    // Subscribe to backtest events for updates/deletes
+    _backtestSub = _storageService.backtestEvents.listen((event) async {
+      try {
+        // If current result was deleted, inform and navigate back
+        if (event.type == BacktestResultEventType.deleted &&
+            event.id == result.id) {
+          _snackbarService.showSnackbar(
+            message: 'Result deleted. Returning to previous screen.',
+            duration: const Duration(seconds: 2),
+          );
+          _navigationService.back(result: true);
+          return;
+        }
+        // For saved or cache invalidated, refresh derived data
+        if (event.type == BacktestResultEventType.saved ||
+            event.type == BacktestResultEventType.cacheInvalidated) {
+          _scheduleRefresh();
+        }
+      } catch (_) {}
+    });
+  }
+
+  @override
+  Future<void> refresh() async {
+    // Recompute any derived data from DataManager and update UI
+    _scheduleRefresh();
+  }
+
+  @override
+  void dispose() {
+    _backtestSub?.cancel();
+    super.dispose();
+  }
 
   // Method untuk mengubah chart mode
   void setChartMode(ChartMode mode) {

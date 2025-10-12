@@ -22,42 +22,42 @@ class WorkspaceView extends StatelessWidget {
         appBar: AppBar(
           title: const Text('Workspace'),
           actions: [
-            // Quick Run EMA Ribbon
-            IconButton(
-              icon: const Icon(Icons.auto_graph),
-              tooltip: 'Quick Run EMA Ribbon',
-              onPressed: model.quickRunEmaRibbon,
-            ),
-            // Quick Run VWAP Pullback
-            IconButton(
-              icon: const Icon(Icons.stacked_line_chart),
-              tooltip: 'Quick Run VWAP Pullback',
-              onPressed: model.quickRunVwapPullback,
-            ),
-            // Quick Run Anchored VWAP Pullback/Cross
-            IconButton(
-              icon: const Icon(Icons.flag),
-              tooltip: 'Quick Run Anchored VWAP',
-              onPressed: model.quickRunAnchoredVwap,
-            ),
-            // Quick Run Stochastic K/D Cross
-            IconButton(
-              icon: const Icon(Icons.tune),
-              tooltip: 'Quick Run Stochastic K/D',
-              onPressed: model.quickRunStochasticKdCross,
-            ),
-            // Quick Run Bollinger Squeeze
-            IconButton(
-              icon: const Icon(Icons.data_usage),
-              tooltip: 'Quick Run Bollinger Squeeze',
-              onPressed: model.quickRunBollingerSqueeze,
-            ),
-            // Quick Run RSI Divergence Approx
-            IconButton(
-              icon: const Icon(Icons.trending_up),
-              tooltip: 'Quick Run RSI Divergence',
-              onPressed: model.quickRunRsiDivergenceApprox,
-            ),
+            // // Quick Run EMA Ribbon
+            // IconButton(
+            //   icon: const Icon(Icons.auto_graph),
+            //   tooltip: 'Quick Run EMA Ribbon',
+            //   onPressed: model.quickRunEmaRibbon,
+            // ),
+            // // Quick Run VWAP Pullback
+            // IconButton(
+            //   icon: const Icon(Icons.stacked_line_chart),
+            //   tooltip: 'Quick Run VWAP Pullback',
+            //   onPressed: model.quickRunVwapPullback,
+            // ),
+            // // Quick Run Anchored VWAP Pullback/Cross
+            // IconButton(
+            //   icon: const Icon(Icons.flag),
+            //   tooltip: 'Quick Run Anchored VWAP',
+            //   onPressed: model.quickRunAnchoredVwap,
+            // ),
+            // // Quick Run Stochastic K/D Cross
+            // IconButton(
+            //   icon: const Icon(Icons.tune),
+            //   tooltip: 'Quick Run Stochastic K/D',
+            //   onPressed: model.quickRunStochasticKdCross,
+            // ),
+            // // Quick Run Bollinger Squeeze
+            // IconButton(
+            //   icon: const Icon(Icons.data_usage),
+            //   tooltip: 'Quick Run Bollinger Squeeze',
+            //   onPressed: model.quickRunBollingerSqueeze,
+            // ),
+            // // Quick Run RSI Divergence Approx
+            // IconButton(
+            //   icon: const Icon(Icons.trending_up),
+            //   tooltip: 'Quick Run RSI Divergence',
+            //   onPressed: model.quickRunRsiDivergenceApprox,
+            // ),
             // Compare mode toggle
             if (model.strategies.isNotEmpty)
               IconButton(

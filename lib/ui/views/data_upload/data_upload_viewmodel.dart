@@ -13,11 +13,13 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/helpers/sample_data_loader.dart';
+import 'dart:async';
 
 class DataUploadViewModel extends BaseViewModel {
   final _dataParserService = locator<DataParserService>();
   final _storageService = locator<StorageService>();
   final _snackbarService = locator<SnackbarService>();
+  final _navigationService = locator<NavigationService>();
   final _dataManager = DataManager();
   final _bottomSheetService = locator<BottomSheetService>();
 
@@ -30,6 +32,7 @@ class DataUploadViewModel extends BaseViewModel {
   ValidationResult? validationResult;
   List<MarketDataInfo> recentUploads = [];
   String? parserErrorMessage;
+  StreamSubscription? _marketDataSub;
 
   final List<String> timeframes = [
     '1m',
@@ -52,6 +55,11 @@ class DataUploadViewModel extends BaseViewModel {
     await _loadRecentUploads();
     _printCacheInfo();
     parserErrorMessage = null;
+
+    // Subscribe to market data events to auto-refresh recent uploads
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      await _loadRecentUploads();
+    });
   }
 
   void _printCacheInfo() {
@@ -214,6 +222,11 @@ class DataUploadViewModel extends BaseViewModel {
 
     // Reload recent uploads
     await _loadRecentUploads();
+
+    // Navigate back to previous screen and signal refresh
+    try {
+      _navigationService.back(result: true);
+    } catch (_) {}
   }
 
   Future<void> deleteMarketData(String id) async {
@@ -283,6 +296,7 @@ class DataUploadViewModel extends BaseViewModel {
   @override
   void dispose() {
     symbolController.dispose();
+    _marketDataSub?.cancel();
     super.dispose();
   }
 

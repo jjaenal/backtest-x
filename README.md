@@ -90,6 +90,7 @@ On app startup, if a deep link to Backtest Result is detected, the app navigates
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
 - **Background Cache Warm-up**: Pause/enable toggle and manual "Load Now" on Home
 - **Warm-up Indicator Banner**: "Loading cache…" visible during background loading
+- **Cache Status Indicator (AppBar)**: Shows cache state — Ready (green), Warming (orange), or Empty (grey)
 - **Quick Stats Skeletons**: Placeholder numbers on Home while data loads
 
 ## 🧭 Usage - Workspace Filters
@@ -133,12 +134,22 @@ Kontrol pemuatan cache market data di Home:
 - Buka menu `⋮` di `AppBar` Home.
 - Pilih `Pause Background Warm-up` atau `Enable Background Warm-up` untuk menonaktifkan/menyalakan proses background.
 - Klik `Load Cache Now` untuk memaksa pemuatan cache segera.
+- Perhatikan ikon status cache di `AppBar`:
+  - Hijau (`offline_pin`): cache siap (data tersedia)
+  - Oranye (`downloading`): cache sedang dipanaskan di background
+  - Abu‑abu (`cloud_off`): cache kosong (belum ada data)
 - Saat proses berjalan, banner teks `Loading cache…` muncul di kiri bawah layar. Angka quick stats menampilkan skeleton sampai data siap.
 
 Catatan:
 
 - Proses warm-up ditahan bila toggle dimatikan, dan dilanjutkan kembali saat diaktifkan.
 - Throttling & batching mengurangi spike I/O sehingga UI tetap responsif.
+
+### Throttling — Realtime UI
+
+- Home: refresh quick stats di‑throttle agar tidak rebuild beruntun saat batch event (upload/simpan)
+- Backtest Result: refresh di‑throttle per‑event untuk menghindari spam render saat cache/result update beruntun
+- Comparison: memiliki throttle ringan untuk interaksi UI cepat
 
 Catatan:
 
@@ -966,3 +977,47 @@ Startup handling on Web:
 
 - Use GitHub Actions for Web/Android; macOS runners required for iOS/macOS.
 - Cache pub (`~/.pub-cache`) and run `flutter pub get` + build steps per job.
+## Realtime UI & Refresh
+
+Dokumentasi ringkas tentang perilaku realtime dan pola refresh di aplikasi.
+
+- Event bus di `StorageService`:
+  - Stream: `marketDataEvents`, `strategyEvents`, `backtestResultEvents`.
+  - Emit pada operasi: `saveMarketData`, `deleteMarketData`, `clearCache`, `clearAllData`.
+
+- Subscriptions di ViewModel:
+  - `MarketAnalysisViewModel`, `PatternScannerViewModel`, `DataUploadViewModel` berlangganan event market data dan memanggil `refresh()` otomatis.
+  - Ingat untuk membatalkan `StreamSubscription` di `dispose` agar bebas kebocoran.
+
+- Route-based refresh (kembali dari layar lain):
+  - App memakai `MaterialApp` dengan `StackedService.routeObserver` (lihat `lib/main.dart`).
+  - Untuk menangkap navigasi balik (`didPopNext`), terapkan `RouteAware` di View/ViewModel Home dan panggil `refresh()` saat dipanggil.
+  - Contoh pola:
+    ```dart
+    class HomeViewState extends State<HomeView> with RouteAware {
+      @override
+      void didPopNext() {
+        // Re-muat quick stats atau daftar terbaru
+        viewModel.refresh();
+      }
+    }
+    ```
+
+- Pull-to-refresh & tombol refresh:
+  - `MarketAnalysisView` dan `PatternScannerView` dibungkus `RefreshIndicator` untuk gesture tarik‑turun.
+  - Keduanya juga menambahkan tombol refresh di `AppBar` yang memanggil `viewModel.refresh()`.
+
+- Debounce/throttle:
+  - `HomeViewModel` memakai debounce sederhana untuk mencegah rebuild berlebihan saat banyak event.
+
+- Status cache & banner warm‑up:
+  - Integrasi dengan `DataManager.warmupNotifier` menampilkan banner “Loading cache…” dan menyinkronkan quick stats saat pemanasan cache background.
+
+- Praktik baik:
+  - Hindari `notifyListeners()` beruntun; kumpulkan perubahan lalu panggil sekali.
+  - Batalkan langganan di `dispose` dan beri guard agar `refresh()` tidak spam.
+
+Referensi cepat:
+
+- File utama: `lib/services/storage_service.dart`, `lib/ui/views/market_analysis/market_analysis_viewmodel.dart`, `lib/ui/views/pattern_scanner/pattern_scanner_viewmodel.dart`, `lib/main.dart`.
+- UI: `lib/ui/views/market_analysis/market_analysis_view.dart`, `lib/ui/views/pattern_scanner/pattern_scanner_view.dart`.

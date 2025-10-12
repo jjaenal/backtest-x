@@ -6,6 +6,7 @@ import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'dart:async';
 
 class PatternMatch {
   final Candle candle;
@@ -65,6 +66,7 @@ class PatternScannerViewModel extends BaseViewModel {
   final _storageService = locator<StorageService>();
   final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = DataManager();
+  StreamSubscription<MarketDataEvent>? _marketDataSub;
 
   List<MarketDataInfo> _marketDataList = [];
   List<MarketDataInfo> get marketDataList => _marketDataList;
@@ -95,6 +97,10 @@ class PatternScannerViewModel extends BaseViewModel {
 
   Future<void> initialize() async {
     await runBusyFuture(loadMarketData());
+    // Subscribe to market data changes to keep selector list fresh
+    _marketDataSub = _storageService.marketDataEvents.listen((event) async {
+      await refresh();
+    });
   }
 
   Future<void> loadMarketData() async {
@@ -125,6 +131,26 @@ class PatternScannerViewModel extends BaseViewModel {
 
     setBusy(false);
     notifyListeners();
+  }
+
+  Future<void> refresh() async {
+    await loadMarketData();
+    if (_selectedMarketData != null) {
+      final exists = _marketDataList.any((m) => m.id == _selectedMarketData!.id);
+      if (exists) {
+        await scanPatterns();
+      } else {
+        _selectedMarketData = null;
+        _patterns = [];
+      }
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _marketDataSub?.cancel();
+    super.dispose();
   }
 
   List<PatternMatch> _scanCandlesForPatterns(List<Candle> candles) {

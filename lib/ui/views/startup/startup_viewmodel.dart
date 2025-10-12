@@ -3,7 +3,6 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/deep_link_service.dart';
-import 'package:backtestx/helpers/sample_data_loader.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/storage_service.dart';
 

@@ -66,18 +66,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
         child: Scaffold(
           appBar: AppBar(
-            title:
-                Text(viewModel.isEditing ? 'Edit Strategy' : 'Create Strategy'),
             actions: [
-              if (viewModel.hasAutosaveDraft)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                  child: TextButton.icon(
-                    onPressed: viewModel.restoreDraftIfAvailable,
-                    icon: const Icon(Icons.restore),
-                    label: const Text('Pulihkan Draft'),
-                  ),
-                ),
+              // if (viewModel.hasAutosaveDraft)
+              //   Padding(
+              //     padding: const EdgeInsets.symmetric(horizontal: 4.0),
+              //     child: TextButton.icon(
+              //       onPressed: viewModel.restoreDraftIfAvailable,
+              //       icon: const Icon(Icons.restore),
+              //       label: const Text('Pulihkan Draft'),
+              //     ),
+              //   ),
               Tooltip(
                 message: 'Pilih Template',
                 child: IconButton(
@@ -93,24 +91,19 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 message: 'Run Preview',
                 child: IconButton(
                   icon: const Icon(Icons.play_arrow),
-                  onPressed:
-                      (viewModel.isRunningPreview || viewModel.hasFatalErrors)
-                          ? null
-                          : () {
-                              if (viewModel.availableData.isEmpty) {
-                                viewModel.loadAvailableData();
-                              }
-                              viewModel.quickPreviewBacktest();
-                            },
+                  onPressed: (viewModel.isRunningPreview ||
+                          viewModel.hasFatalErrors ||
+                          !viewModel.canSave)
+                      ? null
+                      : () {
+                          if (viewModel.availableData.isEmpty) {
+                            viewModel.loadAvailableData();
+                          }
+                          viewModel.quickPreviewBacktest();
+                        },
                 ),
               ),
-              Tooltip(
-                message: 'Builder Tips',
-                child: IconButton(
-                  icon: const Icon(Icons.help_outline),
-                  onPressed: viewModel.startBuilderTour,
-                ),
-              ),
+
               IconButton(
                 icon: const Icon(Icons.more_time),
                 onPressed: () {
@@ -227,6 +220,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) async {
                   switch (value) {
+                    case 'tips':
+                      await viewModel.startBuilderTour();
+                      break;
                     case 'export':
                       await viewModel.exportStrategyJson();
                       break;
@@ -358,6 +354,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 },
                 itemBuilder: (ctx) {
                   final items = <PopupMenuEntry<String>>[];
+                  items.add(
+                    const PopupMenuItem<String>(
+                      value: 'tips',
+                      child: Text('Builder Tips'),
+                    ),
+                  );
+                  items.add(const PopupMenuDivider());
                   if (viewModel.canSave) {
                     items.add(
                       const PopupMenuItem<String>(
@@ -416,1460 +419,1499 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
           ),
           body: viewModel.isBusy
               ? const Center(child: CircularProgressIndicator())
-              : SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Autosave section (compact status bar + settings)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Wrap(
-                            spacing: 12,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              // Status (animated)
-                              if (viewModel.autosaveEnabled)
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 180),
-                                  child: (() {
-                                    if (viewModel.isAutoSaving) {
-                                      return Row(
-                                        key: const ValueKey('saving'),
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          SizedBox(
-                                            height: 14,
-                                            width: 14,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
+              : RefreshIndicator(
+                  onRefresh: viewModel.refresh,
+                  child: SingleChildScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            viewModel.isEditing
+                                ? 'Edit Strategy'
+                                : 'Create Strategy',
+                            style: const TextStyle(
+                                fontSize: 24, fontWeight: FontWeight.bold),
+                          ),
+                          // Autosave section (compact status bar + settings)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12.0),
+                            child: Wrap(
+                              spacing: 12,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                // Status (animated)
+                                if (viewModel.autosaveEnabled)
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 180),
+                                    child: (() {
+                                      if (viewModel.isAutoSaving) {
+                                        return Row(
+                                          key: const ValueKey('saving'),
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            SizedBox(
+                                              height: 14,
+                                              width: 14,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .primary,
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            'Saving…',
-                                            style: TextStyle(
-                                              fontSize: 12,
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Saving…',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                      if (viewModel.autosaveStatus.isNotEmpty) {
+                                        final status = viewModel.autosaveStatus;
+                                        final icon = status
+                                                .contains('Auto-saved')
+                                            ? Icons.check_circle
+                                            : status.contains('Autosave off')
+                                                ? Icons.save_outlined
+                                                : status.contains('failed')
+                                                    ? Icons.error_outline
+                                                    : Icons.info_outline;
+                                        final relative = (() {
+                                          final ts = viewModel.lastAutosaveAt;
+                                          if (ts == null) return '';
+                                          final d =
+                                              DateTime.now().difference(ts);
+                                          if (d.inSeconds < 60) {
+                                            return '${d.inSeconds}s lalu';
+                                          } else if (d.inMinutes < 60) {
+                                            return '${d.inMinutes}m lalu';
+                                          } else if (d.inHours < 24) {
+                                            return '${d.inHours}h lalu';
+                                          } else {
+                                            return '${d.inDays}d lalu';
+                                          }
+                                        })();
+                                        final ts = viewModel.lastAutosaveAt;
+                                        final abs = ts == null
+                                            ? null
+                                            : '${ts.year.toString().padLeft(4, '0')}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')} '
+                                                '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}:${ts.second.toString().padLeft(2, '0')}';
+                                        final statusRow = Row(
+                                          key: const ValueKey('status'),
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              icon,
+                                              size: 16,
                                               color: Theme.of(context)
                                                   .colorScheme
                                                   .onSurfaceVariant,
                                             ),
-                                          ),
-                                        ],
-                                      );
-                                    }
-                                    if (viewModel.autosaveStatus.isNotEmpty) {
-                                      final status = viewModel.autosaveStatus;
-                                      final icon = status.contains('Auto-saved')
-                                          ? Icons.check_circle
-                                          : status.contains('Autosave off')
-                                              ? Icons.save_outlined
-                                              : status.contains('failed')
-                                                  ? Icons.error_outline
-                                                  : Icons.info_outline;
-                                      final relative = (() {
-                                        final ts = viewModel.lastAutosaveAt;
-                                        if (ts == null) return '';
-                                        final d = DateTime.now().difference(ts);
-                                        if (d.inSeconds < 60) {
-                                          return '${d.inSeconds}s lalu';
-                                        } else if (d.inMinutes < 60) {
-                                          return '${d.inMinutes}m lalu';
-                                        } else if (d.inHours < 24) {
-                                          return '${d.inHours}h lalu';
-                                        } else {
-                                          return '${d.inDays}d lalu';
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              relative.isNotEmpty
+                                                  ? 'Terakhir: $relative'
+                                                  : status,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                              overflow: TextOverflow.fade,
+                                              softWrap: false,
+                                            ),
+                                          ],
+                                        );
+                                        return abs == null
+                                            ? statusRow
+                                            : Tooltip(
+                                                message: 'Tersimpan pada $abs',
+                                                child: statusRow,
+                                              );
+                                      }
+                                      return const SizedBox.shrink();
+                                    })(),
+                                  ),
+                                // Retry inline saat gagal
+                                if (viewModel.autosaveEnabled &&
+                                    viewModel.autosaveStatus.contains('failed'))
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.refresh, size: 16),
+                                    label: const Text('Retry'),
+                                    onPressed: viewModel.retryAutosave,
+                                  ),
+                                // Discard (TextButton) hanya saat ada draft autosave
+                                if (viewModel.hasAutosaveDraft)
+                                  Tooltip(
+                                    message: 'Hapus draft autosave saat ini',
+                                    child: TextButton(
+                                      onPressed: () async {
+                                        final confirmed = await showDialog<
+                                                bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title: const Text(
+                                                    'Discard Draft?'),
+                                                content: const Text(
+                                                    'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(ctx)
+                                                            .pop(false),
+                                                    child: const Text('Cancel'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.of(ctx)
+                                                            .pop(true),
+                                                    style: TextButton.styleFrom(
+                                                      foregroundColor:
+                                                          Theme.of(context)
+                                                              .colorScheme
+                                                              .error,
+                                                    ),
+                                                    child:
+                                                        const Text('Discard'),
+                                                  ),
+                                                ],
+                                              ),
+                                            ) ??
+                                            false;
+                                        if (confirmed) {
+                                          await viewModel.discardDraft();
                                         }
-                                      })();
-                                      final ts = viewModel.lastAutosaveAt;
-                                      final abs = ts == null
-                                          ? null
-                                          : '${ts.year.toString().padLeft(4, '0')}-${ts.month.toString().padLeft(2, '0')}-${ts.day.toString().padLeft(2, '0')} '
-                                              '${ts.hour.toString().padLeft(2, '0')}:${ts.minute.toString().padLeft(2, '0')}:${ts.second.toString().padLeft(2, '0')}';
-                                      final statusRow = Row(
-                                        key: const ValueKey('status'),
-                                        mainAxisSize: MainAxisSize.min,
+                                      },
+                                      style: TextButton.styleFrom(
+                                        foregroundColor:
+                                            Theme.of(context).colorScheme.error,
+                                      ),
+                                      child: const Text('Discard Draft'),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          // Strategy Name
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Strategy Details',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  TextField(
+                                    controller: viewModel.nameController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Strategy Name',
+                                      hintText: 'e.g. RSI Mean Reversion',
+                                      prefixIcon: Icon(Icons.label),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller:
+                                        viewModel.initialCapitalController,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Initial Capital',
+                                      hintText: '10000',
+                                      prefixIcon: Icon(Icons.attach_money),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Risk Management
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Risk Management',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Risk Type
+                                  DropdownButtonFormField<RiskType>(
+                                    value: viewModel.riskType,
+                                    decoration: const InputDecoration(
+                                      labelText: 'Risk Type',
+                                      prefixIcon: Icon(Icons.trending_up),
+                                    ),
+                                    items: RiskType.values.map((type) {
+                                      return DropdownMenuItem(
+                                        value: type,
+                                        child: Text(_formatRiskType(type)),
+                                      );
+                                    }).toList(),
+                                    onChanged: viewModel.setRiskType,
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  TextField(
+                                    controller: viewModel.riskValueController,
+                                    decoration: InputDecoration(
+                                      labelText: viewModel.riskType ==
+                                              RiskType.fixedLot
+                                          ? 'Lot Size'
+                                          : (viewModel.riskType ==
+                                                  RiskType.atrBased
+                                              ? 'ATR Multiple'
+                                              : 'Risk Percentage'),
+                                      hintText: viewModel.riskType ==
+                                              RiskType.fixedLot
+                                          ? '0.1'
+                                          : (viewModel.riskType ==
+                                                  RiskType.atrBased
+                                              ? '2.0'
+                                              : '2.0'),
+                                      prefixIcon: const Icon(Icons.percent),
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                  ),
+
+                                  const SizedBox(height: 16),
+
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: TextField(
+                                          controller:
+                                              viewModel.stopLossController,
+                                          decoration: InputDecoration(
+                                            labelText: viewModel.riskType ==
+                                                    RiskType.atrBased
+                                                ? 'ATR Multiple'
+                                                : 'Stop Loss (points)',
+                                            hintText: viewModel.riskType ==
+                                                    RiskType.atrBased
+                                                ? '2.0'
+                                                : '100',
+                                            prefixIcon: const Icon(
+                                                Icons.arrow_downward),
+                                          ),
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: TextField(
+                                          controller:
+                                              viewModel.takeProfitController,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Take Profit (points)',
+                                            hintText: '200',
+                                            prefixIcon:
+                                                Icon(Icons.arrow_upward),
+                                          ),
+                                          keyboardType: TextInputType.number,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Entry Rules
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Entry Rules',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge,
+                                      ),
+                                      Row(
                                         children: [
-                                          Icon(
-                                            icon,
-                                            size: 16,
+                                          IconButton(
+                                            icon: const Icon(Icons.add_circle),
+                                            onPressed: viewModel.addEntryRule,
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            relative.isNotEmpty
-                                                ? 'Terakhir: $relative'
-                                                : status,
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                            overflow: TextOverflow.fade,
-                                            softWrap: false,
+                                                .primary,
                                           ),
                                         ],
-                                      );
-                                      return abs == null
-                                          ? statusRow
-                                          : Tooltip(
-                                              message: 'Tersimpan pada $abs',
-                                              child: statusRow,
-                                            );
-                                    }
-                                    return const SizedBox.shrink();
-                                  })(),
-                                ),
-                              // Retry inline saat gagal
-                              if (viewModel.autosaveEnabled &&
-                                  viewModel.autosaveStatus.contains('failed'))
-                                TextButton.icon(
-                                  icon: const Icon(Icons.refresh, size: 16),
-                                  label: const Text('Retry'),
-                                  onPressed: viewModel.retryAutosave,
-                                ),
-                              // Discard (TextButton) hanya saat ada draft autosave
-                              if (viewModel.hasAutosaveDraft)
-                                Tooltip(
-                                  message: 'Hapus draft autosave saat ini',
-                                  child: TextButton(
-                                    onPressed: () async {
-                                      final confirmed = await showDialog<bool>(
-                                            context: context,
-                                            builder: (ctx) => AlertDialog(
-                                              title:
-                                                  const Text('Discard Draft?'),
-                                              content: const Text(
-                                                  'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(ctx)
-                                                          .pop(false),
-                                                  child: const Text('Cancel'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () =>
-                                                      Navigator.of(ctx)
-                                                          .pop(true),
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        Theme.of(context)
-                                                            .colorScheme
-                                                            .error,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (viewModel.appliedTemplateDescription !=
+                                      null)
+                                    Container(
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .secondaryContainer,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.info_outline,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSecondaryContainer,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                if (viewModel
+                                                        .appliedTemplateName !=
+                                                    null)
+                                                  Text(
+                                                    viewModel
+                                                        .appliedTemplateName!,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          color: Theme.of(
+                                                                  context)
+                                                              .colorScheme
+                                                              .onSecondaryContainer,
+                                                        ),
                                                   ),
-                                                  child: const Text('Discard'),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  viewModel
+                                                      .appliedTemplateDescription!,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onSecondaryContainer
+                                                            .withValues(
+                                                                alpha: 0.9),
+                                                      ),
                                                 ),
                                               ],
                                             ),
-                                          ) ??
-                                          false;
-                                      if (confirmed) {
-                                        await viewModel.discardDraft();
-                                      }
-                                    },
-                                    style: TextButton.styleFrom(
-                                      foregroundColor:
-                                          Theme.of(context).colorScheme.error,
-                                    ),
-                                    child: const Text('Discard Draft'),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        // Strategy Name
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Strategy Details',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 12),
-                                TextField(
-                                  controller: viewModel.nameController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Strategy Name',
-                                    hintText: 'e.g. RSI Mean Reversion',
-                                    prefixIcon: Icon(Icons.label),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                TextField(
-                                  controller:
-                                      viewModel.initialCapitalController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Initial Capital',
-                                    hintText: '10000',
-                                    prefixIcon: Icon(Icons.attach_money),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Risk Management
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Risk Management',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Risk Type
-                                DropdownButtonFormField<RiskType>(
-                                  value: viewModel.riskType,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Risk Type',
-                                    prefixIcon: Icon(Icons.trending_up),
-                                  ),
-                                  items: RiskType.values.map((type) {
-                                    return DropdownMenuItem(
-                                      value: type,
-                                      child: Text(_formatRiskType(type)),
-                                    );
-                                  }).toList(),
-                                  onChanged: viewModel.setRiskType,
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                TextField(
-                                  controller: viewModel.riskValueController,
-                                  decoration: InputDecoration(
-                                    labelText:
-                                        viewModel.riskType == RiskType.fixedLot
-                                            ? 'Lot Size'
-                                            : (viewModel.riskType ==
-                                                    RiskType.atrBased
-                                                ? 'ATR Multiple'
-                                                : 'Risk Percentage'),
-                                    hintText:
-                                        viewModel.riskType == RiskType.fixedLot
-                                            ? '0.1'
-                                            : (viewModel.riskType ==
-                                                    RiskType.atrBased
-                                                ? '2.0'
-                                                : '2.0'),
-                                    prefixIcon: const Icon(Icons.percent),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                ),
-
-                                const SizedBox(height: 16),
-
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: TextField(
-                                        controller:
-                                            viewModel.stopLossController,
-                                        decoration: InputDecoration(
-                                          labelText: viewModel.riskType ==
-                                                  RiskType.atrBased
-                                              ? 'ATR Multiple'
-                                              : 'Stop Loss (points)',
-                                          hintText: viewModel.riskType ==
-                                                  RiskType.atrBased
-                                              ? '2.0'
-                                              : '100',
-                                          prefixIcon:
-                                              const Icon(Icons.arrow_downward),
-                                        ),
-                                        keyboardType: TextInputType.number,
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: TextField(
-                                        controller:
-                                            viewModel.takeProfitController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Take Profit (points)',
-                                          hintText: '200',
-                                          prefixIcon: Icon(Icons.arrow_upward),
+                                  if (viewModel.entryRules.isEmpty)
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(32.0),
+                                        child: Column(
+                                          children: [
+                                            Icon(Icons.add_box,
+                                                size: 48,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.4)),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'No entry rules yet',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.6)),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap + to add a rule',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.5),
+                                                  fontSize: 12),
+                                            ),
+                                          ],
                                         ),
-                                        keyboardType: TextInputType.number,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
+                                    )
+                                  else
+                                    ...viewModel.entryRules
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
+                                      return _buildRuleCard(
+                                        context,
+                                        viewModel,
+                                        entry.key,
+                                        entry.value,
+                                        true,
+                                      );
+                                    }).toList(),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
 
-                        const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                        // Entry Rules
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Entry Rules',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge,
-                                    ),
-                                    Row(
-                                      children: [
-                                        IconButton(
-                                          icon: const Icon(Icons.add_circle),
-                                          onPressed: viewModel.addEntryRule,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
+                          // Exit Rules
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'Exit Rules',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleLarge,
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.add_circle),
+                                        onPressed: viewModel.addExitRule,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  if (viewModel.exitRules.isEmpty)
+                                    Center(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(32.0),
+                                        child: Column(
+                                          children: [
+                                            Icon(Icons.add_box,
+                                                size: 48,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .onSurface
+                                                    .withValues(alpha: 0.4)),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              'No exit rules yet',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.6)),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              'Tap + to add a rule',
+                                              style: TextStyle(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onSurface
+                                                      .withValues(alpha: 0.5),
+                                                  fontSize: 12),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                if (viewModel.appliedTemplateDescription !=
-                                    null)
-                                  Container(
-                                    margin: const EdgeInsets.only(bottom: 8),
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .secondaryContainer,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
+                                      ),
+                                    )
+                                  else
+                                    ...viewModel.exitRules
+                                        .asMap()
+                                        .entries
+                                        .map((entry) {
+                                      return _buildRuleCard(
+                                        context,
+                                        viewModel,
+                                        entry.key,
+                                        entry.value,
+                                        false,
+                                      );
+                                    }).toList(),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Quick Backtest Preview Card
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Quick Backtest Preview',
+                                    style:
+                                        Theme.of(context).textTheme.titleLarge,
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  // Load available data on first build
+                                  Builder(builder: (context) {
+                                    if (viewModel.availableData.isEmpty) {
+                                      viewModel.loadAvailableData();
+                                    }
+
+                                    return Column(
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSecondaryContainer,
+                                        // Data selection dropdown
+                                        DropdownButtonFormField<String>(
+                                          value: viewModel.availableData.any(
+                                                  (d) =>
+                                                      d.id ==
+                                                      viewModel.selectedDataId)
+                                              ? viewModel.selectedDataId
+                                              : null,
+                                          decoration: const InputDecoration(
+                                            labelText: 'Select Market Data',
+                                            prefixIcon: Icon(Icons.bar_chart),
+                                          ),
+                                          items: viewModel.availableData
+                                              .map((data) {
+                                            return DropdownMenuItem(
+                                              value: data.id,
+                                              child: Text(
+                                                  '${data.symbol} ${data.timeframe} (${data.candles.length} candles)'),
+                                            );
+                                          }).toList(),
+                                          onChanged: viewModel.setSelectedData,
                                         ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          child: Column(
+
+                                        const SizedBox(height: 16),
+
+                                        // Test button
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: Tooltip(
+                                            message: (() {
+                                              if (viewModel.hasFatalErrors) {
+                                                final errs = viewModel
+                                                    .getAllFatalErrors();
+                                                final shown =
+                                                    errs.take(2).join('\n• ');
+                                                return 'Perbaiki error sebelum testing:\n• ' +
+                                                    shown +
+                                                    (errs.length > 2
+                                                        ? '...'
+                                                        : '');
+                                              }
+                                              if (viewModel.isRunningPreview) {
+                                                return 'Preview sedang berjalan';
+                                              }
+                                              return 'Jalankan quick test';
+                                            })(),
+                                            child: ElevatedButton.icon(
+                                              onPressed: (viewModel
+                                                          .isRunningPreview ||
+                                                      viewModel.hasFatalErrors)
+                                                  ? null
+                                                  : viewModel
+                                                      .quickPreviewBacktest,
+                                              icon: viewModel.isRunningPreview
+                                                  ? const SizedBox(
+                                                      width: 20,
+                                                      height: 20,
+                                                      child:
+                                                          CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                      ),
+                                                    )
+                                                  : const Icon(
+                                                      Icons.play_arrow),
+                                              label: Text(
+                                                  viewModel.isRunningPreview
+                                                      ? 'Running...'
+                                                      : (() {
+                                                          final errs = viewModel
+                                                              .getAllFatalErrors();
+                                                          if (errs.isNotEmpty) {
+                                                            return 'Perbaiki ${errs.length} error';
+                                                          }
+                                                          return 'Test Strategy';
+                                                        })()),
+                                              style: ElevatedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 12),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // Lightweight data preview (recent candles)
+                                        Builder(builder: (context) {
+                                          if (viewModel.selectedDataId ==
+                                              null) {
+                                            return const SizedBox(height: 0);
+                                          }
+                                          final data = viewModel.availableData
+                                              .where((d) =>
+                                                  d.id ==
+                                                  viewModel.selectedDataId)
+                                              .toList();
+                                          if (data.isEmpty ||
+                                              data.first.candles.isEmpty) {
+                                            return Container(
+                                              margin: const EdgeInsets.only(
+                                                  top: 12),
+                                              padding: const EdgeInsets.all(12),
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .surfaceVariant
+                                                    .withValues(alpha: 0.18),
+                                                borderRadius:
+                                                    const BorderRadius.all(
+                                                        Radius.circular(12)),
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.info_outline,
+                                                      size: 18,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .onSurface
+                                                          .withValues(
+                                                              alpha: 0.8)),
+                                                  const SizedBox(width: 8),
+                                                  Expanded(
+                                                    child: Text(
+                                                      'Data terpilih belum memiliki candles untuk pratinjau.',
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }
+                                          final md = data.first;
+                                          // Dynamic downsampling based on base timeframe
+                                          final baseMin =
+                                              tfHelper.parseTimeframeToMinutes(
+                                                  md.timeframe);
+                                          int recentCount;
+                                          if (baseMin <= 5) {
+                                            recentCount =
+                                                360; // ~30 hours of M5
+                                          } else if (baseMin <= 15) {
+                                            recentCount =
+                                                240; // ~2.5 days of M15
+                                          } else if (baseMin <= 60) {
+                                            recentCount = 180; // ~1 week of H1
+                                          } else {
+                                            recentCount =
+                                                120; // reduce for higher TFs
+                                          }
+                                          final recent =
+                                              md.getRecentCandles(recentCount);
+                                          return Column(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              if (viewModel
-                                                      .appliedTemplateName !=
-                                                  null)
-                                                Text(
-                                                  viewModel
-                                                      .appliedTemplateName!,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium
-                                                      ?.copyWith(
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .onSecondaryContainer,
-                                                      ),
-                                                ),
-                                              const SizedBox(height: 4),
-                                              Text(
-                                                viewModel
-                                                    .appliedTemplateDescription!,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall
-                                                    ?.copyWith(
+                                              const SizedBox(height: 12),
+                                              Row(
+                                                children: [
+                                                  Icon(Icons.timeline,
+                                                      size: 16,
                                                       color: Theme.of(context)
                                                           .colorScheme
-                                                          .onSecondaryContainer
+                                                          .onSurface
                                                           .withValues(
-                                                              alpha: 0.9),
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                if (viewModel.entryRules.isEmpty)
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(32.0),
-                                      child: Column(
-                                        children: [
-                                          Icon(Icons.add_box,
-                                              size: 48,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.4)),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'No entry rules yet',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.6)),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Tap + to add a rule',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.5),
-                                                fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  ...viewModel.entryRules
-                                      .asMap()
-                                      .entries
-                                      .map((entry) {
-                                    return _buildRuleCard(
-                                      context,
-                                      viewModel,
-                                      entry.key,
-                                      entry.value,
-                                      true,
-                                    );
-                                  }).toList(),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // Exit Rules
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Exit Rules',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge,
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add_circle),
-                                      onPressed: viewModel.addExitRule,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                if (viewModel.exitRules.isEmpty)
-                                  Center(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(32.0),
-                                      child: Column(
-                                        children: [
-                                          Icon(Icons.add_box,
-                                              size: 48,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurface
-                                                  .withValues(alpha: 0.4)),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'No exit rules yet',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.6)),
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            'Tap + to add a rule',
-                                            style: TextStyle(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.5),
-                                                fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                else
-                                  ...viewModel.exitRules
-                                      .asMap()
-                                      .entries
-                                      .map((entry) {
-                                    return _buildRuleCard(
-                                      context,
-                                      viewModel,
-                                      entry.key,
-                                      entry.value,
-                                      false,
-                                    );
-                                  }).toList(),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Quick Backtest Preview Card
-                        Card(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Quick Backtest Preview',
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 16),
-
-                                // Load available data on first build
-                                Builder(builder: (context) {
-                                  if (viewModel.availableData.isEmpty) {
-                                    viewModel.loadAvailableData();
-                                  }
-
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Data selection dropdown
-                                      DropdownButtonFormField<String>(
-                                        value: viewModel.availableData.any(
-                                                (d) =>
-                                                    d.id ==
-                                                    viewModel.selectedDataId)
-                                            ? viewModel.selectedDataId
-                                            : null,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Select Market Data',
-                                          prefixIcon: Icon(Icons.bar_chart),
-                                        ),
-                                        items:
-                                            viewModel.availableData.map((data) {
-                                          return DropdownMenuItem(
-                                            value: data.id,
-                                            child: Text(
-                                                '${data.symbol} ${data.timeframe} (${data.candles.length} candles)'),
-                                          );
-                                        }).toList(),
-                                        onChanged: viewModel.setSelectedData,
-                                      ),
-
-                                      const SizedBox(height: 16),
-
-                                      // Test button
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: Tooltip(
-                                          message: (() {
-                                            if (viewModel.hasFatalErrors) {
-                                              final errs =
-                                                  viewModel.getAllFatalErrors();
-                                              final shown =
-                                                  errs.take(2).join('\n• ');
-                                              return 'Perbaiki error sebelum testing:\n• ' +
-                                                  shown +
-                                                  (errs.length > 2
-                                                      ? '...'
-                                                      : '');
-                                            }
-                                            if (viewModel.isRunningPreview) {
-                                              return 'Preview sedang berjalan';
-                                            }
-                                            return 'Jalankan quick test';
-                                          })(),
-                                          child: ElevatedButton.icon(
-                                            onPressed: (viewModel
-                                                        .isRunningPreview ||
-                                                    viewModel.hasFatalErrors)
-                                                ? null
-                                                : viewModel
-                                                    .quickPreviewBacktest,
-                                            icon: viewModel.isRunningPreview
-                                                ? const SizedBox(
-                                                    width: 20,
-                                                    height: 20,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                    ),
-                                                  )
-                                                : const Icon(Icons.play_arrow),
-                                            label:
-                                                Text(viewModel.isRunningPreview
-                                                    ? 'Running...'
-                                                    : (() {
-                                                        final errs = viewModel
-                                                            .getAllFatalErrors();
-                                                        if (errs.isNotEmpty) {
-                                                          return 'Perbaiki ${errs.length} error';
-                                                        }
-                                                        return 'Test Strategy';
-                                                      })()),
-                                            style: ElevatedButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-
-                                      // Lightweight data preview (recent candles)
-                                      Builder(builder: (context) {
-                                        if (viewModel.selectedDataId == null) {
-                                          return const SizedBox(height: 0);
-                                        }
-                                        final data = viewModel.availableData
-                                            .where((d) =>
-                                                d.id ==
-                                                viewModel.selectedDataId)
-                                            .toList();
-                                        if (data.isEmpty ||
-                                            data.first.candles.isEmpty) {
-                                          return Container(
-                                            margin:
-                                                const EdgeInsets.only(top: 12),
-                                            padding: const EdgeInsets.all(12),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceVariant
-                                                  .withValues(alpha: 0.18),
-                                              borderRadius:
-                                                  const BorderRadius.all(
-                                                      Radius.circular(12)),
-                                            ),
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.info_outline,
-                                                    size: 18,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                        .withValues(
-                                                            alpha: 0.8)),
-                                                const SizedBox(width: 8),
-                                                Expanded(
-                                                  child: Text(
-                                                    'Data terpilih belum memiliki candles untuk pratinjau.',
+                                                              alpha: 0.8)),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    'Preview Harga (${md.timeframe}) — ${md.dateRangeLabel}',
                                                     style: Theme.of(context)
                                                         .textTheme
-                                                        .bodySmall,
+                                                        .labelMedium,
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }
-                                        final md = data.first;
-                                        // Dynamic downsampling based on base timeframe
-                                        final baseMin =
-                                            tfHelper.parseTimeframeToMinutes(
-                                                md.timeframe);
-                                        int recentCount;
-                                        if (baseMin <= 5) {
-                                          recentCount = 360; // ~30 hours of M5
-                                        } else if (baseMin <= 15) {
-                                          recentCount = 240; // ~2.5 days of M15
-                                        } else if (baseMin <= 60) {
-                                          recentCount = 180; // ~1 week of H1
-                                        } else {
-                                          recentCount =
-                                              120; // reduce for higher TFs
-                                        }
-                                        final recent =
-                                            md.getRecentCandles(recentCount);
-                                        return Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            const SizedBox(height: 12),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.timeline,
-                                                    size: 16,
-                                                    color: Theme.of(context)
-                                                        .colorScheme
-                                                        .onSurface
-                                                        .withValues(
-                                                            alpha: 0.8)),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  'Preview Harga (${md.timeframe}) — ${md.dateRangeLabel}',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .labelMedium,
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            SizedBox(
-                                              height: 200,
-                                              child: CandlestickChart(
-                                                candles: recent,
-                                                showVolume: false,
-                                                highQuality: baseMin > 60,
-                                                maxDrawCandles: 600,
+                                                ],
                                               ),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Wrap(
+                                              const SizedBox(height: 8),
+                                              SizedBox(
+                                                height: 200,
+                                                child: CandlestickChart(
+                                                  candles: recent,
+                                                  showVolume: false,
+                                                  highQuality: baseMin > 60,
+                                                  maxDrawCandles: 600,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Wrap(
+                                                spacing: 12,
+                                                runSpacing: 8,
+                                                children: [
+                                                  _buildStatChip(
+                                                    context,
+                                                    'Candles',
+                                                    '${md.candlesCount}',
+                                                  ),
+                                                  _buildStatChip(
+                                                    context,
+                                                    'Close (last)',
+                                                    md.candles.isNotEmpty
+                                                        ? md.candles.last.close
+                                                            .toStringAsFixed(2)
+                                                        : '-',
+                                                  ),
+                                                  _buildStatChip(
+                                                    context,
+                                                    'Change %',
+                                                    md.totalPriceChangePercent
+                                                        .toStringAsFixed(2),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          );
+                                        }),
+
+                                        // Preview results
+                                        if (viewModel.previewResult !=
+                                            null) ...[
+                                          const SizedBox(height: 16),
+                                          const Divider(),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            'Preview Results',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          // Quick performance badges (Win Rate & Profit Factor)
+                                          Builder(builder: (context) {
+                                            final summary = viewModel
+                                                .previewResult!.summary;
+                                            final winRate =
+                                                summary.winRate.isNaN
+                                                    ? 0
+                                                    : summary.winRate;
+                                            final pf =
+                                                summary.profitFactor.isNaN
+                                                    ? 0
+                                                    : summary.profitFactor;
+                                            final wrColor = winRate >= 50
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .tertiary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .error;
+                                            final pfColor = pf >= 1.0
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .tertiary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .error;
+                                            return Wrap(
                                               spacing: 12,
                                               runSpacing: 8,
                                               children: [
                                                 _buildStatChip(
                                                   context,
-                                                  'Candles',
-                                                  '${md.candlesCount}',
+                                                  'Win Rate',
+                                                  '${winRate.toStringAsFixed(1)}%',
+                                                  color: wrColor,
+                                                  icon: Icons.percent,
                                                 ),
                                                 _buildStatChip(
                                                   context,
-                                                  'Close (last)',
-                                                  md.candles.isNotEmpty
-                                                      ? md.candles.last.close
-                                                          .toStringAsFixed(2)
-                                                      : '-',
-                                                ),
-                                                _buildStatChip(
-                                                  context,
-                                                  'Change %',
-                                                  md.totalPriceChangePercent
-                                                      .toStringAsFixed(2),
+                                                  'Profit Factor',
+                                                  pf.toStringAsFixed(2),
+                                                  color: pfColor,
+                                                  icon: Icons.trending_up,
                                                 ),
                                               ],
-                                            ),
-                                          ],
-                                        );
-                                      }),
-
-                                      // Preview results
-                                      if (viewModel.previewResult != null) ...[
-                                        const SizedBox(height: 16),
-                                        const Divider(),
-                                        const SizedBox(height: 8),
-                                        Text(
-                                          'Preview Results',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleMedium,
-                                        ),
-                                        const SizedBox(height: 8),
-                                        // Quick performance badges (Win Rate & Profit Factor)
-                                        Builder(builder: (context) {
-                                          final summary =
-                                              viewModel.previewResult!.summary;
-                                          final winRate = summary.winRate.isNaN
-                                              ? 0
-                                              : summary.winRate;
-                                          final pf = summary.profitFactor.isNaN
-                                              ? 0
-                                              : summary.profitFactor;
-                                          final wrColor = winRate >= 50
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .tertiary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .error;
-                                          final pfColor = pf >= 1.0
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .tertiary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .error;
-                                          return Wrap(
-                                            spacing: 12,
-                                            runSpacing: 8,
+                                            );
+                                          }),
+                                          const SizedBox(height: 8),
+                                          // Actions: open full results & reset preview
+                                          Row(
                                             children: [
-                                              _buildStatChip(
-                                                context,
-                                                'Win Rate',
-                                                '${winRate.toStringAsFixed(1)}%',
-                                                color: wrColor,
-                                                icon: Icons.percent,
+                                              TextButton.icon(
+                                                onPressed:
+                                                    viewModel.viewFullResults,
+                                                icon: const Icon(
+                                                    Icons.open_in_new),
+                                                label: const Text(
+                                                    'Lihat Hasil Lengkap'),
                                               ),
-                                              _buildStatChip(
-                                                context,
-                                                'Profit Factor',
-                                                pf.toStringAsFixed(2),
-                                                color: pfColor,
-                                                icon: Icons.trending_up,
+                                              const SizedBox(width: 12),
+                                              TextButton.icon(
+                                                onPressed:
+                                                    viewModel.resetPreview,
+                                                icon: const Icon(Icons.refresh),
+                                                label:
+                                                    const Text('Reset Preview'),
                                               ),
                                             ],
-                                          );
-                                        }),
-                                        const SizedBox(height: 8),
-                                        // Actions: open full results & reset preview
-                                        Row(
-                                          children: [
-                                            TextButton.icon(
-                                              onPressed:
-                                                  viewModel.viewFullResults,
-                                              icon:
-                                                  const Icon(Icons.open_in_new),
-                                              label: const Text(
-                                                  'Lihat Hasil Lengkap'),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            TextButton.icon(
-                                              onPressed: viewModel.resetPreview,
-                                              icon: const Icon(Icons.refresh),
-                                              label:
-                                                  const Text('Reset Preview'),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
+                                          ),
+                                          const SizedBox(height: 8),
 
-                                        // Base TF vs Rule TF badges
-                                        Builder(builder: (context) {
-                                          final baseData = viewModel
-                                              .availableData
-                                              .where((d) =>
-                                                  d.id ==
-                                                  viewModel.selectedDataId)
-                                              .toList();
-                                          final String? baseTf =
-                                              baseData.isNotEmpty
-                                                  ? baseData.first.timeframe
-                                                  : null;
-
-                                          final entryRuleTfs = viewModel
-                                              .entryRules
-                                              .asMap()
-                                              .entries
-                                              .where((e) =>
-                                                  e.value.timeframe != null)
-                                              .map((e) => (
-                                                    tf: e.value.timeframe!,
-                                                    warn: viewModel
-                                                        .getRuleWarningsFor(
-                                                            e.key, true)
-                                                        .any((w) => w.contains(
-                                                            'Timeframe rule lebih kecil')),
-                                                  ))
-                                              .toList();
-                                          final exitRuleTfs = viewModel
-                                              .exitRules
-                                              .asMap()
-                                              .entries
-                                              .where((e) =>
-                                                  e.value.timeframe != null)
-                                              .map((e) => (
-                                                    tf: e.value.timeframe!,
-                                                    warn: viewModel
-                                                        .getRuleWarningsFor(
-                                                            e.key, false)
-                                                        .any((w) => w.contains(
-                                                            'Timeframe rule lebih kecil')),
-                                                  ))
-                                              .toList();
-
-                                          final chips = <Widget>[];
-                                          if (baseTf != null) {
-                                            chips.add(_buildTfChip(context,
-                                                'Base: $baseTf', false));
-                                          }
-                                          for (final r in entryRuleTfs) {
-                                            chips.add(_buildTfChip(context,
-                                                'Entry TF: ${r.tf}', r.warn));
-                                          }
-                                          for (final r in exitRuleTfs) {
-                                            chips.add(_buildTfChip(context,
-                                                'Exit TF: ${r.tf}', r.warn));
-                                          }
-
-                                          if (chips.isEmpty)
-                                            return const SizedBox();
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 8.0),
-                                            child: Wrap(
-                                              spacing: 8,
-                                              runSpacing: 8,
-                                              children: chips,
-                                            ),
-                                          );
-                                        }),
-
-                                        // Per‑timeframe counts (entry vs exit rules per TF)
-                                        Builder(builder: (context) {
-                                          String _resolveBaseTf() {
+                                          // Base TF vs Rule TF badges
+                                          Builder(builder: (context) {
                                             final baseData = viewModel
                                                 .availableData
                                                 .where((d) =>
                                                     d.id ==
                                                     viewModel.selectedDataId)
                                                 .toList();
-                                            return baseData.isNotEmpty
-                                                ? baseData.first.timeframe
-                                                : '';
-                                          }
+                                            final String? baseTf =
+                                                baseData.isNotEmpty
+                                                    ? baseData.first.timeframe
+                                                    : null;
 
-                                          String _resolveRuleTf(
-                                              String? tfRaw, String baseTf) {
-                                            return (tfRaw == null ||
-                                                    tfRaw.isEmpty)
-                                                ? baseTf
-                                                : tfRaw;
-                                          }
+                                            final entryRuleTfs = viewModel
+                                                .entryRules
+                                                .asMap()
+                                                .entries
+                                                .where((e) =>
+                                                    e.value.timeframe != null)
+                                                .map((e) => (
+                                                      tf: e.value.timeframe!,
+                                                      warn: viewModel
+                                                          .getRuleWarningsFor(
+                                                              e.key, true)
+                                                          .any((w) => w.contains(
+                                                              'Timeframe rule lebih kecil')),
+                                                    ))
+                                                .toList();
+                                            final exitRuleTfs = viewModel
+                                                .exitRules
+                                                .asMap()
+                                                .entries
+                                                .where((e) =>
+                                                    e.value.timeframe != null)
+                                                .map((e) => (
+                                                      tf: e.value.timeframe!,
+                                                      warn: viewModel
+                                                          .getRuleWarningsFor(
+                                                              e.key, false)
+                                                          .any((w) => w.contains(
+                                                              'Timeframe rule lebih kecil')),
+                                                    ))
+                                                .toList();
 
-                                          final baseTf = _resolveBaseTf();
-                                          final entryTfCounts = <String, int>{};
-                                          final exitTfCounts = <String, int>{};
-
-                                          for (final r
-                                              in viewModel.entryRules) {
-                                            final tf = _resolveRuleTf(
-                                                r.timeframe, baseTf);
-                                            if (tf.isNotEmpty) {
-                                              entryTfCounts[tf] =
-                                                  (entryTfCounts[tf] ?? 0) + 1;
+                                            final chips = <Widget>[];
+                                            if (baseTf != null) {
+                                              chips.add(_buildTfChip(context,
+                                                  'Base: $baseTf', false));
                                             }
-                                          }
-                                          for (final r in viewModel.exitRules) {
-                                            final tf = _resolveRuleTf(
-                                                r.timeframe, baseTf);
-                                            if (tf.isNotEmpty) {
-                                              exitTfCounts[tf] =
-                                                  (exitTfCounts[tf] ?? 0) + 1;
+                                            for (final r in entryRuleTfs) {
+                                              chips.add(_buildTfChip(context,
+                                                  'Entry TF: ${r.tf}', r.warn));
                                             }
-                                          }
-
-                                          if (entryTfCounts.isEmpty &&
-                                              exitTfCounts.isEmpty) {
-                                            return const SizedBox.shrink();
-                                          }
-
-                                          Chip _tfChip(String tf, int count) {
-                                            bool warn = false;
-                                            if (baseTf.isNotEmpty) {
-                                              final baseMin = tfHelper
-                                                  .parseTimeframeToMinutes(
-                                                      baseTf);
-                                              final tfMin = tfHelper
-                                                  .parseTimeframeToMinutes(tf);
-                                              warn = tfMin < baseMin;
+                                            for (final r in exitRuleTfs) {
+                                              chips.add(_buildTfChip(context,
+                                                  'Exit TF: ${r.tf}', r.warn));
                                             }
-                                            final bg = warn
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .errorContainer
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .secondaryContainer;
-                                            final fg = warn
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .onErrorContainer
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .onSecondaryContainer;
-                                            return Chip(
-                                              backgroundColor: bg,
-                                              label: Text(
-                                                '$tf • ${count} rule${count > 1 ? 's' : ''}',
-                                                style: TextStyle(color: fg),
-                                              ),
-                                            );
-                                          }
 
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                'Per‑Timeframe Rule Counts',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium,
-                                              ),
-                                              const SizedBox(height: 6),
-                                              if (entryTfCounts.isNotEmpty) ...[
-                                                Text('Entry Rules',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall),
-                                                const SizedBox(height: 4),
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: entryTfCounts
-                                                      .entries
-                                                      .map((e) => _tfChip(
-                                                          e.key, e.value))
-                                                      .toList(),
-                                                ),
-                                              ],
-                                              if (exitTfCounts.isNotEmpty) ...[
-                                                const SizedBox(height: 8),
-                                                Text('Exit Rules',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall),
-                                                const SizedBox(height: 4),
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: exitTfCounts.entries
-                                                      .map((e) => _tfChip(
-                                                          e.key, e.value))
-                                                      .toList(),
-                                                ),
-                                              ],
-                                            ],
-                                          );
-                                        }),
-
-                                        // Summary stats
-                                        Row(
-                                          children: [
-                                            _buildStatCard(
-                                              context,
-                                              'Win Rate',
-                                              '${viewModel.previewResult!.summary.winRate.toStringAsFixed(1)}%',
-                                              viewModel.previewResult!.summary.winRate >=
-                                                      50
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .error,
-                                            ),
-                                            _buildStatCard(
-                                              context,
-                                              'PnL',
-                                              '\$${viewModel.previewResult!.summary.totalPnl.toStringAsFixed(2)}',
-                                              viewModel.previewResult!.summary
-                                                          .totalPnl >=
-                                                      0
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .error,
-                                            ),
-                                            _buildStatCard(
-                                              context,
-                                              'Max DD',
-                                              '${viewModel.previewResult!.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
-                                              viewModel.previewResult!.summary
-                                                          .maxDrawdownPercentage <=
-                                                      20
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .error,
-                                            ),
-                                            _buildStatCard(
-                                              context,
-                                              'Trades',
-                                              '${viewModel.previewResult!.summary.totalTrades}',
-                                              Theme.of(context)
-                                                  .colorScheme
-                                                  .secondary,
-                                            ),
-                                            _buildStatCard(
-                                              context,
-                                              'PF',
-                                              viewModel.previewResult!.summary
-                                                  .profitFactor
-                                                  .toStringAsFixed(2),
-                                              viewModel.previewResult!.summary
-                                                          .profitFactor >
-                                                      1
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .primary
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .error,
-                                            ),
-                                          ],
-                                        ),
-
-                                        // Per‑TF signals & performance (from preview)
-                                        Builder(builder: (context) {
-                                          final stats =
-                                              viewModel.previewTfStats;
-                                          if (stats.isEmpty)
-                                            return const SizedBox.shrink();
-
-                                          Widget _statChip(
-                                              String tf, Map<String, num> s) {
-                                            final bg = Theme.of(context)
-                                                .colorScheme
-                                                .surfaceVariant;
-                                            final fg = Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant;
-                                            final winRate =
-                                                (s['winRate'] ?? 0).toDouble();
-                                            final pf = (s['profitFactor'] ?? 0)
-                                                .toDouble();
-                                            final ex = (s['expectancy'] ?? 0)
-                                                .toDouble();
-                                            return Card(
-                                              color: bg,
-                                              child: Padding(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 8,
-                                                        horizontal: 12),
-                                                child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(tf,
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .bodyMedium!
-                                                            .copyWith(
-                                                                color: fg,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600)),
-                                                    const SizedBox(height: 4),
-                                                    Wrap(
-                                                      spacing: 8,
-                                                      runSpacing: 6,
-                                                      crossAxisAlignment:
-                                                          WrapCrossAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                            'Signals: ${s['signals'] ?? 0}',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Text(
-                                                            'Trades: ${s['trades'] ?? 0}',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Text(
-                                                            'Wins: ${s['wins'] ?? 0}',
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodySmall),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Text(
-                                                            'WinRate: ${winRate.toStringAsFixed(1)}%',
-                                                            style:
-                                                                Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .bodySmall!
-                                                                    .copyWith(
-                                                                      color: winRate >=
-                                                                              50
-                                                                          ? Theme.of(context)
-                                                                              .colorScheme
-                                                                              .primary
-                                                                          : Theme.of(context)
-                                                                              .colorScheme
-                                                                              .error,
-                                                                    )),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Text(
-                                                            'PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}',
-                                                            style:
-                                                                Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .bodySmall!
-                                                                    .copyWith(
-                                                                      color: pf >
-                                                                              1
-                                                                          ? Theme.of(context)
-                                                                              .colorScheme
-                                                                              .primary
-                                                                          : Theme.of(context)
-                                                                              .colorScheme
-                                                                              .error,
-                                                                    )),
-                                                        const SizedBox(
-                                                            width: 12),
-                                                        Text(
-                                                            'Expectancy: ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}',
-                                                            style:
-                                                                Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .bodySmall!
-                                                                    .copyWith(
-                                                                      color: ex >
-                                                                              0
-                                                                          ? Theme.of(context)
-                                                                              .colorScheme
-                                                                              .primary
-                                                                          : Theme.of(context)
-                                                                              .colorScheme
-                                                                              .error,
-                                                                    )),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            );
-                                          }
-
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 12),
-                                              Text(
-                                                  'Per‑Timeframe Signals & Performance',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium),
-                                              const SizedBox(height: 6),
-                                              Wrap(
+                                            if (chips.isEmpty)
+                                              return const SizedBox();
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 8.0),
+                                              child: Wrap(
                                                 spacing: 8,
                                                 runSpacing: 8,
-                                                children: stats.entries
-                                                    .map((e) => _statChip(
-                                                        e.key, e.value))
-                                                    .toList(),
+                                                children: chips,
+                                              ),
+                                            );
+                                          }),
+
+                                          // Per‑timeframe counts (entry vs exit rules per TF)
+                                          Builder(builder: (context) {
+                                            String _resolveBaseTf() {
+                                              final baseData = viewModel
+                                                  .availableData
+                                                  .where((d) =>
+                                                      d.id ==
+                                                      viewModel.selectedDataId)
+                                                  .toList();
+                                              return baseData.isNotEmpty
+                                                  ? baseData.first.timeframe
+                                                  : '';
+                                            }
+
+                                            String _resolveRuleTf(
+                                                String? tfRaw, String baseTf) {
+                                              return (tfRaw == null ||
+                                                      tfRaw.isEmpty)
+                                                  ? baseTf
+                                                  : tfRaw;
+                                            }
+
+                                            final baseTf = _resolveBaseTf();
+                                            final entryTfCounts =
+                                                <String, int>{};
+                                            final exitTfCounts =
+                                                <String, int>{};
+
+                                            for (final r
+                                                in viewModel.entryRules) {
+                                              final tf = _resolveRuleTf(
+                                                  r.timeframe, baseTf);
+                                              if (tf.isNotEmpty) {
+                                                entryTfCounts[tf] =
+                                                    (entryTfCounts[tf] ?? 0) +
+                                                        1;
+                                              }
+                                            }
+                                            for (final r
+                                                in viewModel.exitRules) {
+                                              final tf = _resolveRuleTf(
+                                                  r.timeframe, baseTf);
+                                              if (tf.isNotEmpty) {
+                                                exitTfCounts[tf] =
+                                                    (exitTfCounts[tf] ?? 0) + 1;
+                                              }
+                                            }
+
+                                            if (entryTfCounts.isEmpty &&
+                                                exitTfCounts.isEmpty) {
+                                              return const SizedBox.shrink();
+                                            }
+
+                                            Chip _tfChip(String tf, int count) {
+                                              bool warn = false;
+                                              if (baseTf.isNotEmpty) {
+                                                final baseMin = tfHelper
+                                                    .parseTimeframeToMinutes(
+                                                        baseTf);
+                                                final tfMin = tfHelper
+                                                    .parseTimeframeToMinutes(
+                                                        tf);
+                                                warn = tfMin < baseMin;
+                                              }
+                                              final bg = warn
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .errorContainer
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .secondaryContainer;
+                                              final fg = warn
+                                                  ? Theme.of(context)
+                                                      .colorScheme
+                                                      .onErrorContainer
+                                                  : Theme.of(context)
+                                                      .colorScheme
+                                                      .onSecondaryContainer;
+                                              return Chip(
+                                                backgroundColor: bg,
+                                                label: Text(
+                                                  '$tf • ${count} rule${count > 1 ? 's' : ''}',
+                                                  style: TextStyle(color: fg),
+                                                ),
+                                              );
+                                            }
+
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Per‑Timeframe Rule Counts',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
+                                                const SizedBox(height: 6),
+                                                if (entryTfCounts
+                                                    .isNotEmpty) ...[
+                                                  Text('Entry Rules',
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall),
+                                                  const SizedBox(height: 4),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: entryTfCounts
+                                                        .entries
+                                                        .map((e) => _tfChip(
+                                                            e.key, e.value))
+                                                        .toList(),
+                                                  ),
+                                                ],
+                                                if (exitTfCounts
+                                                    .isNotEmpty) ...[
+                                                  const SizedBox(height: 8),
+                                                  Text('Exit Rules',
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall),
+                                                  const SizedBox(height: 4),
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: exitTfCounts
+                                                        .entries
+                                                        .map((e) => _tfChip(
+                                                            e.key, e.value))
+                                                        .toList(),
+                                                  ),
+                                                ],
+                                              ],
+                                            );
+                                          }),
+
+                                          // Summary stats
+                                          Row(
+                                            children: [
+                                              _buildStatCard(
+                                                context,
+                                                'Win Rate',
+                                                '${viewModel.previewResult!.summary.winRate.toStringAsFixed(1)}%',
+                                                viewModel.previewResult!.summary.winRate >=
+                                                        50
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .error,
+                                              ),
+                                              _buildStatCard(
+                                                context,
+                                                'PnL',
+                                                '\$${viewModel.previewResult!.summary.totalPnl.toStringAsFixed(2)}',
+                                                viewModel.previewResult!.summary
+                                                            .totalPnl >=
+                                                        0
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .error,
+                                              ),
+                                              _buildStatCard(
+                                                context,
+                                                'Max DD',
+                                                '${viewModel.previewResult!.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
+                                                viewModel.previewResult!.summary
+                                                            .maxDrawdownPercentage <=
+                                                        20
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .error,
+                                              ),
+                                              _buildStatCard(
+                                                context,
+                                                'Trades',
+                                                '${viewModel.previewResult!.summary.totalTrades}',
+                                                Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary,
+                                              ),
+                                              _buildStatCard(
+                                                context,
+                                                'PF',
+                                                viewModel.previewResult!.summary
+                                                    .profitFactor
+                                                    .toStringAsFixed(2),
+                                                viewModel.previewResult!.summary
+                                                            .profitFactor >
+                                                        1
+                                                    ? Theme.of(context)
+                                                        .colorScheme
+                                                        .primary
+                                                    : Theme.of(context)
+                                                        .colorScheme
+                                                        .error,
                                               ),
                                             ],
-                                          );
-                                        }),
-
-                                        const SizedBox(height: 16),
-
-                                        // Save as Template (exports/copies JSON)
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: OutlinedButton.icon(
-                                            onPressed:
-                                                viewModel.exportStrategyJson,
-                                            icon: const Icon(Icons.save_alt),
-                                            label: const Text(
-                                                'Simpan sebagai Template'),
-                                            style: OutlinedButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                            ),
                                           ),
-                                        ),
 
-                                        const SizedBox(height: 8),
+                                          // Per‑TF signals & performance (from preview)
+                                          Builder(builder: (context) {
+                                            final stats =
+                                                viewModel.previewTfStats;
+                                            if (stats.isEmpty)
+                                              return const SizedBox.shrink();
 
-                                        // View full results button
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: OutlinedButton.icon(
-                                            onPressed:
-                                                viewModel.viewFullResults,
-                                            icon: const Icon(Icons.analytics),
-                                            label:
-                                                const Text('View Full Results'),
-                                            style: OutlinedButton.styleFrom(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 12),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ],
-                                  );
-                                }),
-                              ],
-                            ),
-                          ),
-                        ),
+                                            Widget _statChip(
+                                                String tf, Map<String, num> s) {
+                                              final bg = Theme.of(context)
+                                                  .colorScheme
+                                                  .surfaceVariant;
+                                              final fg = Theme.of(context)
+                                                  .colorScheme
+                                                  .onSurfaceVariant;
+                                              final winRate =
+                                                  (s['winRate'] ?? 0)
+                                                      .toDouble();
+                                              final pf =
+                                                  (s['profitFactor'] ?? 0)
+                                                      .toDouble();
+                                              final ex = (s['expectancy'] ?? 0)
+                                                  .toDouble();
+                                              return Card(
+                                                color: bg,
+                                                child: Padding(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      vertical: 8,
+                                                      horizontal: 12),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Text(tf,
+                                                          style: Theme.of(
+                                                                  context)
+                                                              .textTheme
+                                                              .bodyMedium!
+                                                              .copyWith(
+                                                                  color: fg,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600)),
+                                                      const SizedBox(height: 4),
+                                                      Wrap(
+                                                        spacing: 8,
+                                                        runSpacing: 6,
+                                                        crossAxisAlignment:
+                                                            WrapCrossAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                              'Signals: ${s['signals'] ?? 0}',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Text(
+                                                              'Trades: ${s['trades'] ?? 0}',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Text(
+                                                              'Wins: ${s['wins'] ?? 0}',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Text(
+                                                              'WinRate: ${winRate.toStringAsFixed(1)}%',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                    color: winRate >=
+                                                                            50
+                                                                        ? Theme.of(context)
+                                                                            .colorScheme
+                                                                            .primary
+                                                                        : Theme.of(context)
+                                                                            .colorScheme
+                                                                            .error,
+                                                                  )),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Text(
+                                                              'PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                    color: pf >
+                                                                            1
+                                                                        ? Theme.of(context)
+                                                                            .colorScheme
+                                                                            .primary
+                                                                        : Theme.of(context)
+                                                                            .colorScheme
+                                                                            .error,
+                                                                  )),
+                                                          const SizedBox(
+                                                              width: 12),
+                                                          Text(
+                                                              'Expectancy: ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}',
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodySmall!
+                                                                  .copyWith(
+                                                                    color: ex >
+                                                                            0
+                                                                        ? Theme.of(context)
+                                                                            .colorScheme
+                                                                            .primary
+                                                                        : Theme.of(context)
+                                                                            .colorScheme
+                                                                            .error,
+                                                                  )),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              );
+                                            }
 
-                        const SizedBox(height: 24),
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                const SizedBox(height: 12),
+                                                Text(
+                                                    'Per‑Timeframe Signals & Performance',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium),
+                                                const SizedBox(height: 6),
+                                                Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  children: stats.entries
+                                                      .map((e) => _statChip(
+                                                          e.key, e.value))
+                                                      .toList(),
+                                                ),
+                                              ],
+                                            );
+                                          }),
 
-                        // Save Button
-                        Tooltip(
-                          message: (() {
-                            if (viewModel.hasFatalErrors) {
-                              final errs = viewModel.getAllFatalErrors();
-                              final shown = errs.take(2).join('\n• ');
-                              return 'Perbaiki error sebelum menyimpan:\n• ' +
-                                  shown +
-                                  (errs.length > 2 ? '...' : '');
-                            }
-                            if (!viewModel.canSave) {
-                              return 'Lengkapi nama, modal awal, dan entry rules';
-                            }
-                            if (viewModel.isBusy) {
-                              return 'Sedang menyimpan...';
-                            }
-                            return 'Simpan strategi';
-                          })(),
-                          child: ElevatedButton(
-                            onPressed: (viewModel.canSave &&
-                                    !viewModel.isBusy &&
-                                    !viewModel.hasFatalErrors)
-                                ? () => viewModel.saveStrategy(context)
-                                : null,
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                            ),
-                            child: (() {
-                              if (viewModel.isBusy) {
-                                return const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                );
-                              }
-                              final errs = viewModel.getAllFatalErrors();
-                              if (errs.isNotEmpty) {
-                                return Text(
-                                  'Perbaiki ${errs.length} error',
-                                  style: const TextStyle(fontSize: 16),
-                                );
-                              }
-                              if (!viewModel.canSave) {
-                                return const Text(
-                                  'Lengkapi data dulu',
-                                  style: TextStyle(fontSize: 16),
-                                );
-                              }
-                              return Text(
-                                viewModel.isEditing
-                                    ? 'Update Strategy'
-                                    : 'Save Strategy',
-                                style: const TextStyle(fontSize: 16),
-                              );
-                            })(),
-                          ),
-                        ),
+                                          const SizedBox(height: 16),
 
-                        // Error summary banner for quick fix guidance
-                        const SizedBox(height: 12),
-                        Builder(builder: (context) {
-                          final errs = viewModel.getAllFatalErrors();
-                          if (errs.isEmpty) return const SizedBox.shrink();
-                          final scheme = Theme.of(context).colorScheme;
-                          return Card(
-                            color: scheme.errorContainer,
-                            shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                color: scheme.error.withValues(alpha: 0.5),
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.error_outline,
-                                          size: 18, color: scheme.error),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Perbaikan diperlukan sebelum simpan/preview',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelLarge
-                                            ?.copyWith(color: scheme.error),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  ...errs.map((e) => Padding(
-                                        padding:
-                                            const EdgeInsets.only(bottom: 6.0),
-                                        child: Text(
-                                          '• $e',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodySmall
-                                              ?.copyWith(
-                                                color: scheme.onErrorContainer
-                                                    .withValues(alpha: 0.9),
+                                          // Save as Template (exports/copies JSON)
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: OutlinedButton.icon(
+                                              onPressed:
+                                                  viewModel.exportStrategyJson,
+                                              icon: const Icon(Icons.save_alt),
+                                              label: const Text(
+                                                  'Simpan sebagai Template'),
+                                              style: OutlinedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 12),
                                               ),
-                                        ),
-                                      )),
+                                            ),
+                                          ),
+
+                                          const SizedBox(height: 8),
+
+                                          // View full results button
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: OutlinedButton.icon(
+                                              onPressed:
+                                                  viewModel.viewFullResults,
+                                              icon: const Icon(Icons.analytics),
+                                              label: const Text(
+                                                  'View Full Results'),
+                                              style: OutlinedButton.styleFrom(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 12),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    );
+                                  }),
                                 ],
                               ),
                             ),
-                          );
-                        }),
+                          ),
 
-                        const SizedBox(height: 8),
+                          const SizedBox(height: 24),
 
-                        const SizedBox(height: 24),
-                      ],
+                          // Save Button
+                          Tooltip(
+                            message: (() {
+                              if (viewModel.hasFatalErrors) {
+                                final errs = viewModel.getAllFatalErrors();
+                                final shown = errs.take(2).join('\n• ');
+                                return 'Perbaiki error sebelum menyimpan:\n• ' +
+                                    shown +
+                                    (errs.length > 2 ? '...' : '');
+                              }
+                              if (!viewModel.canSave) {
+                                return 'Lengkapi nama, modal awal, dan entry rules';
+                              }
+                              if (viewModel.isBusy) {
+                                return 'Sedang menyimpan...';
+                              }
+                              return 'Simpan strategi';
+                            })(),
+                            child: ElevatedButton(
+                              onPressed: (viewModel.canSave &&
+                                      !viewModel.isBusy &&
+                                      !viewModel.hasFatalErrors)
+                                  ? () => viewModel.saveStrategy(context)
+                                  : null,
+                              style: ElevatedButton.styleFrom(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 16),
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: (() {
+                                if (viewModel.isBusy) {
+                                  return const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  );
+                                }
+                                final errs = viewModel.getAllFatalErrors();
+                                if (errs.isNotEmpty) {
+                                  return Text(
+                                    'Perbaiki ${errs.length} error',
+                                    style: const TextStyle(fontSize: 16),
+                                  );
+                                }
+                                if (!viewModel.canSave) {
+                                  return const Text(
+                                    'Lengkapi data dulu',
+                                    style: TextStyle(fontSize: 16),
+                                  );
+                                }
+                                return Text(
+                                  viewModel.isEditing
+                                      ? 'Update Strategy'
+                                      : 'Save Strategy',
+                                  style: const TextStyle(fontSize: 16),
+                                );
+                              })(),
+                            ),
+                          ),
+
+                          // Error summary banner for quick fix guidance
+                          const SizedBox(height: 12),
+                          Builder(builder: (context) {
+                            final errs = viewModel.getAllFatalErrors();
+                            if (errs.isEmpty) return const SizedBox.shrink();
+                            final scheme = Theme.of(context).colorScheme;
+                            return Card(
+                              color: scheme.errorContainer,
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: scheme.error.withValues(alpha: 0.5),
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(Icons.error_outline,
+                                            size: 18, color: scheme.error),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Perbaikan diperlukan sebelum simpan/preview',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelLarge
+                                              ?.copyWith(color: scheme.error),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ...errs.map((e) => Padding(
+                                          padding: const EdgeInsets.only(
+                                              bottom: 6.0),
+                                          child: Text(
+                                            '• $e',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  color: scheme.onErrorContainer
+                                                      .withValues(alpha: 0.9),
+                                                ),
+                                          ),
+                                        )),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+
+                          const SizedBox(height: 8),
+
+                          const SizedBox(height: 24),
+                        ],
+                      ),
                     ),
                   ),
                 ),

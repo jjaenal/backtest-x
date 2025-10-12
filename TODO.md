@@ -1,5 +1,29 @@
 # TODO - Implementation Checklist
 
+## Focused Checklist — Realtime UI & Refresh
+
+- [x] Buat AppEventBus/stream perubahan di `StorageService` (market_data, strategies, results)
+- [x] Emit event pada `saveMarketData`, `deleteMarketData` (dan operasi terkait strategi/hasil)
+- [x] Tambah `ReactiveServiceMixin`/stream subscription di ViewModel untuk dengar event
+- [x] HomeViewModel: subscribe event market_data & refresh stats/recent uploads otomatis
+- [x] HomeViewModel: pasang `RouteObserver` (`didPopNext`) untuk refresh saat kembali dari layar lain
+- [x] DataUploadViewModel: emit event setelah upload/delete; refresh `recentUploads` tanpa re‑enter view
+- [x] WorkspaceViewModel: subscribe event strategi/hasil; tambah pull‑to‑refresh
+- [x] StrategyBuilderViewModel: subscribe market_data; refresh `availableData` & preview list
+- [x] PatternScannerViewModel: subscribe market_data; tambah tombol/gesture refresh
+- [x] MarketAnalysisViewModel: subscribe market_data; tambah tombol/gesture refresh
+- [x] BacktestResultViewModel: subscribe hasil backtest; tombol refresh dan sinkronisasi menu share/export
+- [x] Konsolidasi `RefreshIndicator` di view yang belum punya aksi refresh
+- [x] Tambah Base class `BaseRefreshableViewModel` (metode `refresh()`) untuk konsistensi
+- [x] Invalidate cache `StorageService` pada event; pastikan data terbaru di query berikutnya
+- [x] Integrasi dengan `DataManager.warmupNotifier` untuk banner/status cache realtime
+- [x] Navigasi hasil: dari Upload → `NavigationService.back(result: true)`; Home tangkap & refresh
+- [x] Debounce/throttle event agar UI tidak spam rebuild saat batch operasi
+- [x] Throttle per‑event di Backtest Result untuk mencegah over‑refresh
+- [x] Indikator status cache di AppBar (ikon validasi cache)
+- [x] Unit test: propagasi event → `notifyListeners()` dipanggil; verifikasi refresh via `RouteObserver`
+- [x] Dokumentasi di README: perilaku realtime & pola refresh (subscription, RouteObserver)
+
 ## Top Priorities (Sorted)
 
 ### High Priority
@@ -98,7 +122,6 @@
 - Workspace Compare MTF visualization (charts + summary)
 - Backtest Result: per‑TF chart sorting by metric value
 - Performance: memory optimization for large datasets (>10k candles)
- 
 
 ## Progress Update — Anchored VWAP
 

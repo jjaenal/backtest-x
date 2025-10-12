@@ -5,6 +5,7 @@ import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/app/route_observer.dart';
 import 'package:backtestx/services/theme_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart';
@@ -81,7 +82,7 @@ class MyApp extends StatelessWidget {
           initialRoute: Routes.startupView,
           navigatorKey: StackedService.navigatorKey,
           onGenerateRoute: StackedRouter().onGenerateRoute,
-          navigatorObservers: [StackedService.routeObserver],
+          navigatorObservers: [StackedService.routeObserver, appRouteObserver],
         );
       },
     );

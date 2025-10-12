@@ -38,6 +38,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       appBar: AppBar(
         actions: [
           IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () => viewModel.refresh(),
+            tooltip: 'Refresh',
+          ),
+          IconButton(
             icon: const Icon(Icons.link),
             onPressed: () => viewModel.copyResultLinkToClipboard(),
             tooltip: 'Copy Link',
@@ -1888,6 +1893,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         viewModel.getCandles();
       }),
     );
+    // Initialize subscriptions and realtime updates
+    viewModel.initialize();
   }
 
   String _metricTooltip(String label) {
