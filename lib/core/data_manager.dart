@@ -121,9 +121,26 @@ class DataManager {
         return;
       }
 
+      // Extra safety: ensure cache directory exists before writing
+      if (!await _cacheDir!.exists()) {
+        await _cacheDir!.create(recursive: true);
+        debugPrint('📁 Ensured cache directory exists: ${_cacheDir!.path}');
+      }
+
       final file = File('${_cacheDir!.path}/${data.id}.json');
       final json = jsonEncode(data.toJson());
-      await file.writeAsString(json);
+      try {
+        await file.writeAsString(json);
+      } catch (e) {
+        // Attempt one-time recovery if parent path was missing
+        try {
+          await file.parent.create(recursive: true);
+          await file.writeAsString(json);
+          debugPrint('💾 Saved to disk after path recovery: ${data.id}');
+        } catch (_) {
+          rethrow;
+        }
+      }
 
       debugPrint('💾 Saved to disk: ${data.id}');
     } catch (e) {

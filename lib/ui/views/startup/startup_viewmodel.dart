@@ -3,6 +3,9 @@ import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/deep_link_service.dart';
+import 'package:backtestx/helpers/sample_data_loader.dart';
+import 'package:backtestx/core/data_manager.dart';
+import 'package:backtestx/services/storage_service.dart';
 
 class StartupViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
@@ -27,6 +30,7 @@ class StartupViewModel extends BaseViewModel {
     _completedSteps = 0;
     notifyListeners();
 
+    // Step 1: Initialize services (DB, caches)
     for (var i = 0; i < _startupSteps.length; i++) {
       // Base work delay per step
       await Future.delayed(const Duration(milliseconds: 700));
@@ -34,6 +38,15 @@ class StartupViewModel extends BaseViewModel {
       notifyListeners();
       // Micro-delay to let UI transition breathe
       await Future.delayed(const Duration(milliseconds: 220));
+
+      // Hook actual work per step
+      if (i == 0) {
+        // Initialize storage to create DB tables early
+        await locator<StorageService>().database;
+      } else if (i == 1) {
+        // Warm up cache from disk only; no auto-seeding sample data
+        locator<DataManager>().warmUpCacheInBackground(force: true);
+      }
     }
 
     await Future.delayed(const Duration(milliseconds: 4000));

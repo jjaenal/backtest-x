@@ -62,3 +62,4 @@ flutter:
     - assets/icons/
     - assets/images/png/
     - assets/images/jpg/
+    - assets/sample_data/

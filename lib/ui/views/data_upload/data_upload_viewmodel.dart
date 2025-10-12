@@ -12,6 +12,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:backtestx/app/app.bottomsheets.dart';
+import 'package:backtestx/helpers/sample_data_loader.dart';
 
 class DataUploadViewModel extends BaseViewModel {
   final _dataParserService = locator<DataParserService>();
@@ -217,6 +218,15 @@ class DataUploadViewModel extends BaseViewModel {
 
   Future<void> deleteMarketData(String id) async {
     try {
+      // Prevent deleting locked sample dataset
+      if (SampleDataLoader.isSampleId(id)) {
+        _snackbarService.showSnackbar(
+          message: 'Sample data tidak dapat dihapus',
+          duration: const Duration(seconds: 2),
+        );
+        return;
+      }
+
       debugPrint('\n🗑️  Deleting market data: $id');
 
       // Remove from database
@@ -241,6 +251,32 @@ class DataUploadViewModel extends BaseViewModel {
         message: 'Delete failed: $e',
         duration: const Duration(seconds: 3),
       );
+    }
+  }
+
+  Future<void> activateSampleData() async {
+    setBusy(true);
+    try {
+      final ok = await SampleDataLoader.ensureSeeded();
+      await _loadRecentUploads();
+      if (ok) {
+        _snackbarService.showSnackbar(
+          message: 'Sample data EURUSD H1 diaktifkan',
+          duration: const Duration(seconds: 2),
+        );
+      } else {
+        _snackbarService.showSnackbar(
+          message: 'Gagal mengaktifkan sample data',
+          duration: const Duration(seconds: 3),
+        );
+      }
+    } catch (e) {
+      _snackbarService.showSnackbar(
+        message: 'Gagal mengaktifkan sample data: $e',
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      setBusy(false);
     }
   }
 
