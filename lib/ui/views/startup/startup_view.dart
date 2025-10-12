@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:backtestx/ui/common/branding.dart';
 
 import 'startup_viewmodel.dart';
@@ -93,9 +94,9 @@ class StartupView extends StackedView<StartupViewModel> {
                             shaderCallback: (Rect bounds) =>
                                 Branding.horizontalPrimaryGradientShader(
                                     context, bounds),
-                            child: const Text(
-                              'Backtest‑X',
-                              style: TextStyle(
+                            child: Text(
+                              AppLocalizations.of(context)?.appTitle ?? 'Backtest‑X',
+                              style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white,
@@ -138,8 +139,8 @@ class StartupView extends StackedView<StartupViewModel> {
                         shaderCallback: (Rect bounds) =>
                             Branding.horizontalPrimaryGradientShader(
                                 context, bounds),
-                        child: const Text(
-                          'Analyze • Backtest • Optimize',
+                        child: Text(
+                          AppLocalizations.of(context)?.tagline ?? 'Analyze • Backtest • Optimize',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white,
@@ -180,8 +181,13 @@ class StartupView extends StackedView<StartupViewModel> {
                       child: Builder(
                         key: ValueKey(viewModel.completedSteps),
                         builder: (_) {
-                          final idx = viewModel.completedSteps <
-                                  viewModel.startupSteps.length
+                          final t = AppLocalizations.of(context)!;
+                          final steps = [
+                            t.startupInitServices,
+                            t.startupLoadCache,
+                            t.startupPrepareUi,
+                          ];
+                          final idx = viewModel.completedSteps < steps.length
                               ? viewModel.completedSteps
                               : -1;
                           if (idx >= 0) {
@@ -191,7 +197,7 @@ class StartupView extends StackedView<StartupViewModel> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  '${viewModel.startupSteps[idx]}  (${idx + 1}/${viewModel.startupSteps.length})',
+                                  '${steps[idx]}  (${idx + 1}/${steps.length})',
                                   style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.white70,
@@ -205,8 +211,8 @@ class StartupView extends StackedView<StartupViewModel> {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Text(
-                                  'Semua langkah selesai. Menyiapkan aplikasi…',
+                                Text(
+                                  AppLocalizations.of(context)?.startupStepsDone ?? 'All steps completed. Preparing app…',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.white70,
@@ -239,7 +245,7 @@ class StartupView extends StackedView<StartupViewModel> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            '© Backtest‑X ${viewModel.appVersion}',
+                            '© ${AppLocalizations.of(context)?.appTitle ?? 'Backtest‑X'} ${viewModel.appVersion}',
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.white70,
@@ -249,7 +255,9 @@ class StartupView extends StackedView<StartupViewModel> {
                           const SizedBox(width: 8),
                           Chip(
                             label: Text(
-                              kReleaseMode ? 'Prod' : 'Dev',
+                              kReleaseMode
+                                  ? (AppLocalizations.of(context)?.envProd ?? 'Prod')
+                                  : (AppLocalizations.of(context)?.envDev ?? 'Dev'),
                               style: const TextStyle(fontSize: 11),
                             ),
                             backgroundColor: Theme.of(context)

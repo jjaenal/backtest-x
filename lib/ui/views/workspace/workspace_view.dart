@@ -9,6 +9,7 @@ import 'package:backtestx/ui/widgets/common/empty_state.dart';
 import 'workspace_viewmodel.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class WorkspaceView extends StatelessWidget {
   const WorkspaceView({Key? key}) : super(key: key);
@@ -20,7 +21,7 @@ class WorkspaceView extends StatelessWidget {
       onViewModelReady: (model) => model.initialize(),
       builder: (context, model, child) => Scaffold(
         appBar: AppBar(
-          title: const Text('Workspace'),
+          title: Text(AppLocalizations.of(context)!.homeActionWorkspaceTitle),
           actions: [
             // // Quick Run EMA Ribbon
             // IconButton(
@@ -370,7 +371,9 @@ class WorkspaceView extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Created ${_formatDate(strategy.createdAt)}',
+                              AppLocalizations.of(context)!.createdLabel(
+                                  _formatRelativeDate(
+                                      context, strategy.createdAt)),
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
@@ -384,23 +387,25 @@ class WorkspaceView extends StatelessWidget {
                       PopupMenuButton(
                         icon: const Icon(Icons.more_vert),
                         itemBuilder: (context) => [
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'export_trades_all',
                             child: Row(
                               children: [
                                 Icon(Icons.table_view, size: 20),
                                 SizedBox(width: 12),
-                                Text('Export All Trades CSV'),
+                                Text(AppLocalizations.of(context)!
+                                    .exportAllTradesCsv),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'export_tfstats_csv',
                             child: Row(
                               children: [
                                 Icon(Icons.stacked_line_chart, size: 20),
                                 SizedBox(width: 12),
-                                Text('Export TF Stats CSV'),
+                                Text(AppLocalizations.of(context)!
+                                    .exportTfStatsCsv),
                               ],
                             ),
                           ),
@@ -410,7 +415,8 @@ class WorkspaceView extends StatelessWidget {
                               children: [
                                 Icon(Icons.file_download, size: 20),
                                 SizedBox(width: 12),
-                                Text('Export Results CSV'),
+                                Text(AppLocalizations.of(context)!
+                                    .exportResultsCsv),
                               ],
                             ),
                           ),
@@ -455,14 +461,14 @@ class WorkspaceView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'delete',
                             child: Row(
                               children: [
                                 Icon(Icons.delete, size: 20, color: Colors.red),
                                 SizedBox(width: 12),
-                                Text('Delete',
-                                    style: TextStyle(color: Colors.red)),
+                                Text(AppLocalizations.of(context)!.deleteLabel,
+                                    style: const TextStyle(color: Colors.red)),
                               ],
                             ),
                           ),
@@ -654,6 +660,43 @@ class WorkspaceView extends StatelessWidget {
 
   Widget _buildStatItem(BuildContext context, String label, String value,
       IconData icon, Color color) {
+    final t = AppLocalizations.of(context)!;
+    String _metricLabelLocalized(String key) {
+      switch (key) {
+        case 'Tests':
+          return t.workspaceTestsLabel;
+        case 'Avg P&L':
+          return t.workspaceAvgPnlLabel;
+        case 'Win Rate':
+          return t.workspaceWinRateLabel;
+        case 'P&L':
+          return t.workspacePnlLabel;
+        case 'PF':
+          return t.workspacePfLabel;
+        case 'Trades':
+          return t.metricsTrades;
+        default:
+          return key;
+      }
+    }
+
+    String _metricTooltipLocalized(String key) {
+      switch (key) {
+        case 'Tests':
+          return t.metricTooltipTests;
+        case 'Avg P&L':
+          return t.metricTooltipAvgPnl;
+        case 'Win Rate':
+          return t.metricTooltipWinRate;
+        case 'P&L':
+          return t.metricTooltipPnl;
+        case 'PF':
+          return t.metricTooltipPf;
+        default:
+          return t.metricTooltipDefault;
+      }
+    }
+
     return Column(
       children: [
         Icon(icon, color: color, size: 20),
@@ -667,9 +710,9 @@ class WorkspaceView extends StatelessWidget {
           ),
         ),
         Tooltip(
-          message: _metricTooltip(label),
+          message: _metricTooltipLocalized(label),
           child: Text(
-            label,
+            _metricLabelLocalized(label),
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context)
@@ -1012,8 +1055,8 @@ class WorkspaceView extends StatelessWidget {
                   icon: const Icon(Icons.calendar_today),
                   label: Text(
                     model.startDateFilter != null
-                        ? 'Start: ${DateFormat('MMM dd, yyyy').format(model.startDateFilter!)}'
-                        : 'Start Date',
+                        ? '${AppLocalizations.of(context)!.filterStartLabel} ${DateFormat('MMM dd, yyyy').format(model.startDateFilter!)}'
+                        : AppLocalizations.of(context)!.filterStartDate,
                   ),
                 ),
                 // End date picker
@@ -1036,8 +1079,8 @@ class WorkspaceView extends StatelessWidget {
                   icon: const Icon(Icons.event),
                   label: Text(
                     model.endDateFilter != null
-                        ? 'End: ${DateFormat('MMM dd, yyyy').format(model.endDateFilter!)}'
-                        : 'End Date',
+                        ? '${AppLocalizations.of(context)!.filterEndLabel} ${DateFormat('MMM dd, yyyy').format(model.endDateFilter!)}'
+                        : AppLocalizations.of(context)!.filterEndDate,
                   ),
                 ),
                 if (model.filterProfitOnly ||
@@ -1074,7 +1117,7 @@ class WorkspaceView extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: () => model.loadMoreResults(strategy.id),
                   icon: const Icon(Icons.unfold_more),
-                  label: const Text('Load more'),
+                  label: Text(AppLocalizations.of(context)!.loadMore),
                 ),
               ),
             ),
@@ -1235,13 +1278,33 @@ class WorkspaceView extends StatelessWidget {
     String? subtitle,
     Color color,
   ) {
+    final t = AppLocalizations.of(context)!;
+    String _metricLabelLocalized(String key) {
+      switch (key) {
+        case 'Tests':
+          return t.workspaceTestsLabel;
+        case 'Avg P&L':
+          return t.workspaceAvgPnlLabel;
+        case 'Win Rate':
+          return t.workspaceWinRateLabel;
+        case 'P&L':
+          return t.workspacePnlLabel;
+        case 'PF':
+          return t.workspacePfLabel;
+        case 'Trades':
+          return t.metricsTrades;
+        default:
+          return key;
+      }
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Tooltip(
           message: _metricTooltip(label),
           child: Text(
-            label,
+            _metricLabelLocalized(label),
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context)
@@ -1275,33 +1338,41 @@ class WorkspaceView extends StatelessWidget {
     );
   }
 
+  // Kept for compatibility if used elsewhere
   String _metricTooltip(String label) {
+    return _metricTooltipLocalized(label);
+  }
+
+  // Localized tooltip fallback mapping (no BuildContext available here)
+  String _metricTooltipLocalized(String label) {
     switch (label) {
+      case 'P&L':
+        return 'Total profit or loss in currency for this result.';
+      case 'Win Rate':
+        return 'Average percentage of winning trades across results.';
+      case 'PF':
+      case 'Profit Factor':
+        return 'Profit Factor = gross profit divided by gross loss.';
       case 'Tests':
         return 'Number of backtests executed for this strategy.';
       case 'Avg P&L':
         return 'Average profit/loss percentage across backtests.';
-      case 'Win Rate':
-        return 'Average percentage of winning trades across results.';
-      case 'P&L':
-        return 'Total profit or loss in currency for this result.';
-      case 'PF':
-        return 'Profit Factor = gross profit divided by gross loss.';
       default:
         return 'Metric description';
     }
   }
 
-  String _formatDate(DateTime date) {
+  String _formatRelativeDate(BuildContext context, DateTime date) {
+    final t = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final diff = now.difference(date);
-
-    if (diff.inDays == 0) return 'Today';
-    if (diff.inDays == 1) return 'Yesterday';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
-    if (diff.inDays < 30) return '${(diff.inDays / 7).floor()} weeks ago';
-    if (diff.inDays < 365) return '${(diff.inDays / 30).floor()} months ago';
-
+    if (diff.inDays == 0) return t.relativeToday;
+    if (diff.inDays == 1) return t.relativeYesterday;
+    if (diff.inDays < 7) return t.relativeDaysAgo(diff.inDays);
+    if (diff.inDays < 30) return t.relativeWeeksAgo((diff.inDays / 7).floor());
+    if (diff.inDays < 365) {
+      return t.relativeMonthsAgo((diff.inDays / 30).floor());
+    }
     return DateFormat('MMM dd, yyyy').format(date);
   }
 
@@ -1432,52 +1503,52 @@ class WorkspaceView extends StatelessWidget {
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints.tightFor(width: 36, height: 36),
               onPressed: () => model.viewResult(result),
-              tooltip: 'View Details',
+              tooltip: AppLocalizations.of(context)!.viewDetails,
             ),
             SizedBox(
               width: 36,
               height: 36,
               child: PopupMenuButton<int>(
                 icon: const Icon(Icons.more_horiz, size: 18),
-                tooltip: 'More',
-                itemBuilder: (context) => const [
+                tooltip: AppLocalizations.of(context)!.moreLabel,
+                itemBuilder: (context) => [
                   PopupMenuItem(
                     value: 0,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.table_chart, size: 18),
                         SizedBox(width: 8),
-                        Text('Copy Trades CSV'),
+                        Text(AppLocalizations.of(context)!.copyTradesCsv),
                       ],
                     ),
                   ),
                   PopupMenuItem(
                     value: 1,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.copy, size: 18),
                         SizedBox(width: 8),
-                        Text('Copy Summary'),
+                        Text(AppLocalizations.of(context)!.copySummary),
                       ],
                     ),
                   ),
                   PopupMenuItem(
                     value: 2,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.download, size: 18),
                         SizedBox(width: 8),
-                        Text('Export CSV'),
+                        Text(AppLocalizations.of(context)!.exportCsv),
                       ],
                     ),
                   ),
                   PopupMenuItem(
                     value: 3,
                     child: Row(
-                      children: const [
+                      children: [
                         Icon(Icons.delete_outline, size: 18),
                         SizedBox(width: 8),
-                        Text('Delete'),
+                        Text(AppLocalizations.of(context)!.deleteLabel),
                       ],
                     ),
                   ),
@@ -1524,7 +1595,7 @@ class WorkspaceView extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             onPressed: () => model.copyTradesCsvToClipboard(result),
-            tooltip: 'Copy Trades CSV',
+            tooltip: AppLocalizations.of(context)!.copyTradesCsv,
           ),
           IconButton(
             icon: const Icon(Icons.copy, size: 18),
@@ -1532,7 +1603,7 @@ class WorkspaceView extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             onPressed: () => model.copyResultSummaryToClipboard(result),
-            tooltip: 'Copy Summary',
+            tooltip: AppLocalizations.of(context)!.copySummary,
           ),
           IconButton(
             icon: const Icon(Icons.download, size: 18),
@@ -1540,7 +1611,7 @@ class WorkspaceView extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             onPressed: () => model.exportResultCsv(result),
-            tooltip: 'Export CSV',
+            tooltip: AppLocalizations.of(context)!.exportCsv,
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, size: 18),
@@ -1548,7 +1619,7 @@ class WorkspaceView extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             onPressed: () => model.viewResult(result),
-            tooltip: 'View Details',
+            tooltip: AppLocalizations.of(context)!.viewDetails,
           ),
           IconButton(
             icon: const Icon(Icons.delete_outline, size: 18),
@@ -1557,7 +1628,7 @@ class WorkspaceView extends StatelessWidget {
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             color: Theme.of(context).colorScheme.error,
             onPressed: () => model.deleteResult(result),
-            tooltip: 'Delete',
+            tooltip: AppLocalizations.of(context)!.deleteLabel,
           ),
         ],
       );

@@ -29,10 +29,11 @@
 ### High Priority
 
 - Workspace Compare: visualize results across timeframes
-- Backtest Result: per‑TF chart sorting by metric value
-- Performance: memory optimization for large datasets (>10k candles)
-- Known Issues: BacktestEngine edge cases; division by zero; parser messages; storage migration
+- Backtest Result: per‑TF chart sorting by metric value [Completed]
+- Performance: memory optimization for large datasets (>10k candles) [Completed]
+- Known Issues: BacktestEngine edge cases; division by zero; parser messages; storage migration [Completed]
 - Anchored VWAP: Anchor Mode (Start/Date) with Strategy Builder controls [Completed]
+- Multi‑language support (English + Indonesian)
 
 ## 🎯 Focused Checklist — Performance: Memory Optimization (>10k candles)
 
@@ -106,9 +107,41 @@
 ## Next Sprint (1–2 weeks)
 
 - Deliver Workspace Compare MTF visualization (charts + summary)
-- Implement per‑TF chart sorting by selected metric
-- Tackle memory optimization for 10k+ candles datasets
+- Multi‑timeframe analysis across views (Phase 2 milestone)
+- Expand tests coverage (IndicatorService, BacktestEngine, refresh propagation)
 - Draft Theming Guide section (colorScheme, opacity rationale)
+- Implement core multi‑language infra (id/en) and migrate key screens
+
+## 🎯 Focused Checklist — Multi‑language (i18n/L10n)
+
+- [x] Decide approach: Flutter `gen_l10n` + ARB files (`intl`, `flutter_localizations`) — interim stub `AppLocalizations` to compile now
+- [x] Enable localization in `pubspec.yaml` (generate `AppLocalizations` via `flutter gen-l10n`) — deferred; stub active and wired
+- [x] Create base ARB files: `lib/l10n/app_en.arb`, `lib/l10n/app_id.arb` — added keys for Home/Startup
+- [x] Wire `MaterialApp` with `localizationsDelegates`, `supportedLocales: [en, id]`, and `AppLocalizations` — using stub delegate
+- [x] Locale state & persistence via `PrefsService` (system default, English, Indonesian) — menu toggles working
+- [x] Settings: add Language selector (System default / English / Indonesian) — available in Home options
+- [x] Migrate hardcoded strings across views/widgets (Home, Startup) — remaining:
+  - [x] Data Upload
+  - [ ] Workspace
+  - [ ] Workspace Compare
+  - [ ] Backtest Result
+  - [ ] Strategy Builder
+  - [x] Pattern Scanner
+  - [x] Market Analysis
+  - [x] sheets
+    - [x] candlestick pattern guide
+    - [x] indicator settings
+    - [x] pattern guide
+    - [x] onboarding
+    - [x] quick start template
+- [x] Localize menu labels, tooltips, banners, errors, snackbar/toasts — core Home/Startup tooltips/banners
+- [ ] Localize PDF export labels/content and file naming
+- [ ] Locale‑aware number/date formatting (`intl`: WinRate %, PF, expectancy, dates)
+- [ ] Interpolation & plurals for counts (trades, signals, wins)
+- [ ] RTL readiness baseline (no layout break; respect `Directionality` where applicable)
+- [ ] Tests: unit for localization lookups; golden for key screens in `en`/`id`
+- [ ] Docs: README section for localization and contribution guidelines
+- [ ] CI/guard: script to check ARB key consistency and unused keys (optional)
 
 ## Progress Update — ATR Enhancements
 
@@ -120,8 +153,7 @@
 ### Next Up (Prioritized)
 
 - Workspace Compare MTF visualization (charts + summary)
-- Backtest Result: per‑TF chart sorting by metric value
-- Performance: memory optimization for large datasets (>10k candles)
+- Multi‑timeframe analysis across views (Phase 2 milestone)
 
 ## Progress Update — Anchored VWAP
 
@@ -468,11 +500,11 @@
 
 ## 🎯 Success Metrics (MVP)
 
-- [ ] User can upload CSV data
-- [ ] User can create basic strategy (3 indicators minimum)
-- [ ] User can run backtest
-- [ ] User can view results with charts
-- [ ] User can save/load strategies
+- [x] User can upload CSV data
+- [x] User can create basic strategy (3 indicators minimum)
+- [x] User can run backtest
+- [x] User can view results with charts
+- [x] User can save/load strategies
 - [ ] App runs smoothly on Android & iOS
 - [ ] No critical bugs
 - [ ] App size < 50MB
@@ -501,11 +533,11 @@
 
 ### High Priority
 
-- [ ] BacktestEngine: Handle edge cases (empty data, single candle)
-- [ ] IndicatorService: Division by zero checks
-- [ ] DataParser: Better error messages for malformed CSV
-- [ ] Storage: Handle database migration failures
-- [ ] Memory: Large datasets (>10k candles) crash on low-end devices
+- [x] BacktestEngine: Handle edge cases (empty data, single candle)
+- [x] IndicatorService: Division by zero checks
+- [x] DataParser: Better error messages for malformed CSV
+- [x] Storage: Handle database migration failures
+- [x] Memory: Large datasets (>10k candles) crash on low-end devices
 
 ### Medium Priority
 

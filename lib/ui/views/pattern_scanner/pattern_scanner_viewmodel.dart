@@ -248,10 +248,10 @@ class PatternScannerViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  showPatternsGuide() {
+  showPatternsGuide(String title) {
     _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.candlestickPatternGuide,
-      title: 'Candlestick Patterns Guide',
+      title: title,
       barrierDismissible: true,
       isScrollControlled: true,
     );

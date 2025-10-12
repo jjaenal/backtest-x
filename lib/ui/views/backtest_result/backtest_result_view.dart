@@ -2,6 +2,7 @@ import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/ui/widgets/equity_curve_chart.dart';
 import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
 import 'package:backtestx/ui/widgets/per_tf_bar_chart.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
     as html;
@@ -34,6 +35,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
     BacktestResultViewModel viewModel,
     Widget? child,
   ) {
+    final t = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
         actions: [
@@ -50,12 +52,12 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           IconButton(
             icon: const Icon(Icons.copy),
             onPressed: () => viewModel.copySummaryToClipboard(),
-            tooltip: 'Copy Summary',
+            tooltip: t.copySummary,
           ),
           IconButton(
             icon: const Icon(Icons.table_chart),
             onPressed: () => viewModel.copyTradesCsvToClipboard(),
-            tooltip: 'Copy Trades CSV',
+            tooltip: t.copyTradesCsv,
           ),
           IconButton(
             icon: const Icon(Icons.share),
@@ -65,12 +67,12 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
           IconButton(
             icon: const Icon(Icons.picture_as_pdf),
             onPressed: () => viewModel.exportPdf(),
-            tooltip: 'Export PDF',
+            tooltip: t.menuExportBacktestPdf,
           ),
           IconButton(
             icon: const Icon(Icons.download),
             onPressed: () => viewModel.exportResults(),
-            tooltip: 'Export CSV',
+            tooltip: t.exportCsv,
           ),
         ],
       ),
@@ -80,10 +82,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: Text('Backtest Results',
-                        style: TextStyle(
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Text(t.backtestResultsTitle,
+                        style: const TextStyle(
                             fontSize: 24, fontWeight: FontWeight.bold)),
                   ),
                   // Top info section: symbol, timeframe, date range
@@ -415,13 +417,14 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'pdf_report',
                                     child: Row(
                                       children: [
                                         Icon(Icons.picture_as_pdf, size: 18),
                                         SizedBox(width: 8),
-                                        Text('Export Backtest PDF'),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportBacktestPdf),
                                       ],
                                     ),
                                   ),
@@ -430,7 +433,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                   onPressed: null,
                                   icon: const Icon(Icons.download_rounded,
                                       size: 18),
-                                  label: const Text('Export'),
+                                  label: Text(t.exportLabel),
                                 ),
                               ),
                             ],
@@ -454,27 +457,27 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                           children: [
                             _buildSectionTitle('Trade History'),
                             PopupMenuButton<String>(
-                              tooltip: 'Export trade history',
+                              tooltip: t.exportTradeHistoryTooltip,
                               onSelected: (value) =>
                                   viewModel.exportTradeHistory(format: value),
                               itemBuilder: (context) => [
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'csv',
                                   child: Row(
                                     children: [
                                       Icon(Icons.table_chart, size: 18),
                                       SizedBox(width: 8),
-                                      Text('Export CSV'),
+                                      Text(t.exportCsv),
                                     ],
                                   ),
                                 ),
-                                const PopupMenuItem(
+                                PopupMenuItem(
                                   value: 'tsv',
                                   child: Row(
                                     children: [
                                       Icon(Icons.grid_on, size: 18),
                                       SizedBox(width: 8),
-                                      Text('Export TSV'),
+                                      Text(t.exportTsv),
                                     ],
                                   ),
                                 ),
@@ -483,7 +486,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                 onPressed: null,
                                 icon: const Icon(Icons.download_rounded,
                                     size: 18),
-                                label: const Text('Export'),
+                                label: Text(t.exportLabel),
                               ),
                             ),
                           ],
@@ -1682,7 +1685,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               ),
               child: Center(
                 child: Text(
-                  '+ ${closedTrades.length - 10} more trades',
+                  AppLocalizations.of(context)!
+                      .moreTrades(closedTrades.length - 10),
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context)

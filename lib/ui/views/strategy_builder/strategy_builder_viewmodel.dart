@@ -1,4 +1,5 @@
 import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/helpers/timeframe_helper.dart';
 import 'package:backtestx/app/app.router.dart';
@@ -1014,7 +1015,9 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   Future<void> showBuilderTips() async {
     await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Builder Tips Singkat',
+      title:
+          AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!
+              .sbBuilderTips,
       description:
           '• Gunakan Template untuk memulai cepat.\n• Atur period indikator sesuai timeframe.\n• Anchored VWAP: set Anchor Mode & tanggal.\n• Cek Preview di AppBar untuk uji cepat.\n• Autosave aktif: pulihkan draft jika tersedia.',
       barrierDismissible: true,

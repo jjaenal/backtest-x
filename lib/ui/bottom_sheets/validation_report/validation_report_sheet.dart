@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'validation_report_sheet_model.dart';
 
@@ -127,14 +128,14 @@ class ValidationReportSheet extends StackedView<ValidationReportSheetModel> {
                           ClipboardData(text: textBuffer.toString()));
                     },
                     icon: const Icon(Icons.copy, size: 18),
-                    label: const Text('Copy report'),
+                    label: Text(AppLocalizations.of(context)!.copySummary),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Close'),
+                    child: Text(AppLocalizations.of(context)!.commonClose),
                   ),
                 ),
               ],

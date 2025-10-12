@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -6,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.backtestx"
+    namespace = "com.tuangkang.backtestx"
     compileSdk = flutter.compileSdkVersion
     // Override Flutter's default NDK to match plugin requirements
     ndkVersion = "27.0.12077973"
@@ -22,15 +24,15 @@ android {
 
     // Load release signing configuration from key.properties if present
     val keystorePropertiesFile = rootProject.file("android/key.properties")
-    val keystoreProperties = java.util.Properties()
+    val keystoreProperties = Properties()
     val hasSigning = keystorePropertiesFile.exists()
     if (hasSigning) {
-        keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+        keystoreProperties.load(keystorePropertiesFile.inputStream())
     }
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.backtestx"
+        applicationId = "com.tuangkang.backtestx"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion

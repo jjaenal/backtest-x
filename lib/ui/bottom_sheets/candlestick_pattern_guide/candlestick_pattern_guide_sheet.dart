@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import 'candlestick_pattern_guide_sheet_model.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class CandlestickPatternGuideSheet
     extends StackedView<CandlestickPatternGuideSheetModel> {
@@ -20,6 +21,7 @@ class CandlestickPatternGuideSheet
     CandlestickPatternGuideSheetModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
@@ -40,50 +42,46 @@ class CandlestickPatternGuideSheet
               children: [
                 Icon(Icons.candlestick_chart,
                     size: 24, color: Theme.of(context).colorScheme.primary),
-                const Text(
-                  'Candlestick Patterns Guide',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                Text(
+                  l10n.psPatternsGuideTitle,
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
             const SizedBox(height: 16),
             _buildPatternGuideItem(
               context,
-              'Hammer',
-              'Bullish reversal pattern with long lower wick and small body at top. '
-                  'Forms at bottom of downtrend.',
+              l10n.cpHammerTitle,
+              l10n.cpHammerDesc,
               Colors.green,
             ),
             const SizedBox(height: 12),
             _buildPatternGuideItem(
               context,
-              'Shooting Star',
-              'Bearish reversal pattern with long upper wick and small body at bottom. '
-                  'Forms at top of uptrend.',
+              l10n.cpShootingStarTitle,
+              l10n.cpShootingStarDesc,
               Colors.red,
             ),
             const SizedBox(height: 12),
             _buildPatternGuideItem(
               context,
-              'Doji',
-              'Indecision pattern where open and close are nearly equal. '
-                  'Indicates potential reversal or continuation.',
+              l10n.cpDojiTitle,
+              l10n.cpDojiDesc,
               Colors.orange,
             ),
             const SizedBox(height: 12),
             _buildPatternGuideItem(
               context,
-              'Marubozu',
-              'Strong momentum pattern with little to no wicks. '
-                  'Indicates continuation of current trend.',
+              l10n.cpMarubozuTitle,
+              l10n.cpMarubozuDesc,
               Colors.blue,
             ),
             const SizedBox(height: 12),
             _buildPatternGuideItem(
               context,
-              'Spinning Top',
-              'Indecision pattern with small body and long wicks. '
-                  'Indicates uncertainty in market direction.',
+              l10n.psPatternSpinningTop,
+              l10n.psDescSpinningTop,
               Colors.purple,
             ),
             const SizedBox(height: 24),

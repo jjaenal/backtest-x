@@ -186,10 +186,19 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     loadAvailableData();
     // Realtime subscriptions
     _strategySub = _storageService.strategyEvents.listen((event) async {
-      await refresh();
+      // Ignore non-data-changing signals to prevent refresh loops
+      if (event.type == StrategyEventType.saved ||
+          event.type == StrategyEventType.deleted ||
+          event.type == StrategyEventType.cleared) {
+        await refresh();
+      }
     });
     _backtestSub = _storageService.backtestEvents.listen((event) async {
-      await refresh();
+      if (event.type == BacktestResultEventType.saved ||
+          event.type == BacktestResultEventType.deleted ||
+          event.type == BacktestResultEventType.cleared) {
+        await refresh();
+      }
     });
     _marketDataSub = _storageService.marketDataEvents.listen((event) async {
       // Update available data list for quick actions
@@ -232,9 +241,17 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     notifyListeners();
   }
 
+  bool _isRefreshing = false;
+  @override
   Future<void> refresh() async {
-    _storageService.clearCache();
-    await loadData();
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+    try {
+      _storageService.clearCache();
+      await loadData();
+    } finally {
+      _isRefreshing = false;
+    }
   }
 
   // Subscriptions

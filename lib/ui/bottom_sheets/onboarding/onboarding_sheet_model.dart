@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:backtestx/app/app.bottomsheets.dart';
 
 class OnboardingSheetModel extends BaseViewModel {
@@ -48,22 +49,24 @@ class OnboardingSheetModel extends BaseViewModel {
   }
 
   Future<void> openLearnPanel() async {
+    final l10n = AppLocalizations.of(
+        locator<NavigationService>().navigatorKey!.currentContext!)!;
     await locator<BottomSheetService>().showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Pelajari Cepat',
-      description:
-          'Lihat STRATEGY_BUILDER_GUIDE.md dan README untuk langkah mendalam. Cari "Anchored VWAP" untuk contoh Anchor Mode & Anchor Date.',
+      title: l10n.onboardingLearn,
+      description: l10n.onboardingCsvTips,
       barrierDismissible: true,
       isScrollControlled: true,
     );
   }
 
   Future<void> showCsvNotice() async {
+    final l10n = AppLocalizations.of(
+        locator<NavigationService>().navigatorKey!.currentContext!)!;
     await locator<BottomSheetService>().showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Contoh CSV & Tips',
-      description:
-          'Header diperbolehkan. Pastikan urutan kolom: Date, Open, High, Low, Close, Volume (opsional). Gunakan timeframe konsisten (mis. 1h, 4h, 1d).',
+      title: l10n.onboardingViewCsvExample,
+      description: l10n.onboardingCsvTips,
       barrierDismissible: true,
     );
   }

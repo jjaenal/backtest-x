@@ -9,6 +9,7 @@ import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
   final String? strategyId;
@@ -21,20 +22,19 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     StrategyBuilderViewModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     return WillPopScope(
       onWillPop: () async {
         if (viewModel.hasAutosaveDraft) {
           final confirm = await showDialog<bool>(
             context: context,
             builder: (ctx) => AlertDialog(
-              title: const Text('Keluar dari Strategy Builder?'),
-              content: const Text(
-                'Ada draft di autosave. Yakin ingin menutup layar?',
-              ),
+              title: Text(l10n.sbExitConfirmTitle),
+              content: Text(l10n.sbExitConfirmContent),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Batal'),
+                  child: Text(l10n.commonCancel),
                 ),
                 TextButton(
                   onPressed: () async {
@@ -45,11 +45,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.error,
                   ),
-                  child: const Text('Discard & Keluar'),
+                  child: Text(l10n.sbDiscardAndExit),
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child: const Text('Tutup'),
+                  child: Text(l10n.commonClose),
                 ),
               ],
             ),
@@ -77,7 +77,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               //     ),
               //   ),
               Tooltip(
-                message: 'Pilih Template',
+                message: l10n.sbPickTemplateTooltip,
                 child: IconButton(
                   icon: const Icon(Icons.auto_awesome),
                   onPressed: () => _showTemplateSheet(
@@ -88,7 +88,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 ),
               ),
               Tooltip(
-                message: 'Run Preview',
+                message: l10n.sbRunPreviewTooltip,
                 child: IconButton(
                   icon: const Icon(Icons.play_arrow),
                   onPressed: (viewModel.isRunningPreview ||
@@ -140,7 +140,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     });
                                     viewModel.toggleAutosave(v);
                                   },
-                                  title: const Text('Enable Autosave'),
+                                  title: Text(l10n.sbEnableAutosaveTitle),
                                   subtitle: const Text(
                                     'Simpan draft otomatis saat ada perubahan',
                                   ),
@@ -216,7 +216,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               // Unified actions menu to reduce AppBar crowding
 
               PopupMenuButton<String>(
-                tooltip: 'Menu',
+                tooltip: l10n.sbMenuTooltip,
                 icon: const Icon(Icons.more_vert),
                 onSelected: (value) async {
                   switch (value) {
@@ -252,19 +252,19 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               proceed = await showDialog<bool>(
                                     context: context,
                                     builder: (c2) => AlertDialog(
-                                      title: const Text('Konfirmasi Impor'),
-                                      content: const Text(
-                                          'Template baru akan menimpa builder saat ini. Lanjutkan?'),
+                                      title: Text(l10n.sbImportConfirmTitle),
+                                      content:
+                                          Text(l10n.sbImportConfirmContent),
                                       actions: [
                                         TextButton(
                                           onPressed: () =>
                                               Navigator.of(c2).pop(false),
-                                          child: const Text('Batal'),
+                                          child: Text(l10n.commonCancel),
                                         ),
                                         ElevatedButton(
                                           onPressed: () =>
                                               Navigator.of(c2).pop(true),
-                                          child: const Text('Timpa'),
+                                          child: Text(l10n.sbOverwrite),
                                         ),
                                       ],
                                     ),
@@ -283,24 +283,24 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       await showDialog<void>(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('Impor Template JSON'),
+                          title: Text(l10n.sbImportTemplateJsonTitle),
                           content: SizedBox(
                             width: 480,
                             child: TextField(
                               controller: importController,
                               minLines: 5,
                               maxLines: 12,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 hintText:
-                                    'Tempel JSON template di sini lalu tekan Terapkan',
-                                border: OutlineInputBorder(),
+                                    'Tempel JSON template di sini lalu tekan ${l10n.sbApply}',
+                                border: const OutlineInputBorder(),
                               ),
                             ),
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.of(ctx).pop(),
-                              child: const Text('Batal'),
+                              child: Text(l10n.commonCancel),
                             ),
                             ElevatedButton(
                               onPressed: () async {
@@ -312,19 +312,19 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                           context: context,
                                           builder: (c2) => AlertDialog(
                                             title:
-                                                const Text('Konfirmasi Impor'),
-                                            content: const Text(
-                                                'Template baru akan menimpa builder saat ini. Lanjutkan?'),
+                                                Text(l10n.sbImportConfirmTitle),
+                                            content: Text(
+                                                l10n.sbImportConfirmContent),
                                             actions: [
                                               TextButton(
                                                 onPressed: () =>
                                                     Navigator.of(c2).pop(false),
-                                                child: const Text('Batal'),
+                                                child: Text(l10n.commonCancel),
                                               ),
                                               ElevatedButton(
                                                 onPressed: () =>
                                                     Navigator.of(c2).pop(true),
-                                                child: const Text('Timpa'),
+                                                child: Text(l10n.sbOverwrite),
                                               ),
                                             ],
                                           ),
@@ -339,7 +339,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   Navigator.of(ctx).pop();
                                 }
                               },
-                              child: const Text('Terapkan'),
+                              child: Text(l10n.sbApply),
                             ),
                           ],
                         ),
@@ -355,30 +355,30 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 itemBuilder: (ctx) {
                   final items = <PopupMenuEntry<String>>[];
                   items.add(
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'tips',
-                      child: Text('Builder Tips'),
+                      child: Text(l10n.sbBuilderTips),
                     ),
                   );
                   items.add(const PopupMenuDivider());
                   if (viewModel.canSave) {
                     items.add(
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'export',
-                        child: Text('Export JSON'),
+                        child: Text(l10n.sbExportJson),
                       ),
                     );
                     items.add(
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'copy',
-                        child: Text('Copy JSON'),
+                        child: Text(l10n.sbCopyJson),
                       ),
                     );
                     if (!kIsWeb) {
                       items.add(
-                        const PopupMenuItem<String>(
+                        PopupMenuItem<String>(
                           value: 'save',
-                          child: Text('Save .json'),
+                          child: Text(l10n.sbSaveJson),
                         ),
                       );
                     }
@@ -386,16 +386,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   }
                   if (!kIsWeb) {
                     items.add(
-                      const PopupMenuItem<String>(
+                      PopupMenuItem<String>(
                         value: 'import_file',
-                        child: Text('Import dari file .json'),
+                        child: Text(l10n.sbImportFromFile),
                       ),
                     );
                   }
                   items.add(
-                    const PopupMenuItem<String>(
+                    PopupMenuItem<String>(
                       value: 'import',
-                      child: Text('Import JSON...'),
+                      child: Text(l10n.sbImportJsonEllipsis),
                     ),
                   );
                   if (viewModel.isEditing) {
@@ -536,7 +536,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         return abs == null
                                             ? statusRow
                                             : Tooltip(
-                                                message: 'Tersimpan pada $abs',
+                                                message:
+                                                    l10n.sbSavedAtPrefix + abs,
                                                 child: statusRow,
                                               );
                                       }
@@ -548,13 +549,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     viewModel.autosaveStatus.contains('failed'))
                                   TextButton.icon(
                                     icon: const Icon(Icons.refresh, size: 16),
-                                    label: const Text('Retry'),
+                                    label: Text(l10n.sbRetry),
                                     onPressed: viewModel.retryAutosave,
                                   ),
                                 // Discard (TextButton) hanya saat ada draft autosave
                                 if (viewModel.hasAutosaveDraft)
                                   Tooltip(
-                                    message: 'Hapus draft autosave saat ini',
+                                    message: l10n.sbDiscardAutosaveTooltip,
                                     child: TextButton(
                                       onPressed: () async {
                                         final confirmed = await showDialog<
@@ -570,7 +571,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     onPressed: () =>
                                                         Navigator.of(ctx)
                                                             .pop(false),
-                                                    child: const Text('Cancel'),
+                                                    child:
+                                                        Text(l10n.commonCancel),
                                                   ),
                                                   TextButton(
                                                     onPressed: () =>
@@ -582,8 +584,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                               .colorScheme
                                                               .error,
                                                     ),
-                                                    child:
-                                                        const Text('Discard'),
+                                                    child: Text(l10n.sbDiscard),
                                                   ),
                                                 ],
                                               ),
@@ -597,7 +598,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         foregroundColor:
                                             Theme.of(context).colorScheme.error,
                                       ),
-                                      child: const Text('Discard Draft'),
+                                      child: Text(l10n.sbDiscardDraft),
                                     ),
                                   ),
                               ],
@@ -618,20 +619,21 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   const SizedBox(height: 12),
                                   TextField(
                                     controller: viewModel.nameController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Strategy Name',
-                                      hintText: 'e.g. RSI Mean Reversion',
-                                      prefixIcon: Icon(Icons.label),
+                                    decoration: InputDecoration(
+                                      labelText: l10n.sbStrategyNameLabel,
+                                      hintText: l10n.sbStrategyNameHint,
+                                      prefixIcon: const Icon(Icons.label),
                                     ),
                                   ),
                                   const SizedBox(height: 16),
                                   TextField(
                                     controller:
                                         viewModel.initialCapitalController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Initial Capital',
+                                    decoration: InputDecoration(
+                                      labelText: l10n.sbInitialCapitalLabel,
                                       hintText: '10000',
-                                      prefixIcon: Icon(Icons.attach_money),
+                                      prefixIcon:
+                                          const Icon(Icons.attach_money),
                                     ),
                                     keyboardType: TextInputType.number,
                                   ),
@@ -650,7 +652,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Risk Management',
+                                    l10n.sbRiskManagementTitle,
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
@@ -659,9 +661,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   // Risk Type
                                   DropdownButtonFormField<RiskType>(
                                     value: viewModel.riskType,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Risk Type',
-                                      prefixIcon: Icon(Icons.trending_up),
+                                    decoration: InputDecoration(
+                                      labelText: l10n.sbRiskTypeLabel,
+                                      prefixIcon: const Icon(Icons.trending_up),
                                     ),
                                     items: RiskType.values.map((type) {
                                       return DropdownMenuItem(
@@ -679,11 +681,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     decoration: InputDecoration(
                                       labelText: viewModel.riskType ==
                                               RiskType.fixedLot
-                                          ? 'Lot Size'
+                                          ? l10n.sbLotSizeLabel
                                           : (viewModel.riskType ==
                                                   RiskType.atrBased
-                                              ? 'ATR Multiple'
-                                              : 'Risk Percentage'),
+                                              ? l10n.sbAtrMultipleLabel
+                                              : l10n.sbRiskPercentageLabel),
                                       hintText: viewModel.riskType ==
                                               RiskType.fixedLot
                                           ? '0.1'
@@ -724,11 +726,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         child: TextField(
                                           controller:
                                               viewModel.takeProfitController,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Take Profit (points)',
+                                          decoration: InputDecoration(
+                                            labelText: l10n.sbTakeProfitPoints,
                                             hintText: '200',
                                             prefixIcon:
-                                                Icon(Icons.arrow_upward),
+                                                const Icon(Icons.arrow_upward),
                                           ),
                                           keyboardType: TextInputType.number,
                                         ),
@@ -1008,9 +1010,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                       viewModel.selectedDataId)
                                               ? viewModel.selectedDataId
                                               : null,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Select Market Data',
-                                            prefixIcon: Icon(Icons.bar_chart),
+                                          decoration: InputDecoration(
+                                            labelText: l10n.sbSelectMarketData,
+                                            prefixIcon:
+                                                const Icon(Icons.bar_chart),
                                           ),
                                           items: viewModel.availableData
                                               .map((data) {
@@ -1284,8 +1287,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     viewModel.viewFullResults,
                                                 icon: const Icon(
                                                     Icons.open_in_new),
-                                                label: const Text(
-                                                    'Lihat Hasil Lengkap'),
+                                                label: Text(
+                                                    l10n.sbViewFullResults),
                                               ),
                                               const SizedBox(width: 12),
                                               TextButton.icon(
@@ -1293,7 +1296,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     viewModel.resetPreview,
                                                 icon: const Icon(Icons.refresh),
                                                 label:
-                                                    const Text('Reset Preview'),
+                                                    Text(l10n.sbResetPreview),
                                               ),
                                             ],
                                           ),
@@ -1927,6 +1930,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     RuleBuilder rule,
     bool isEntry,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final hasRuleErrors = viewModel.getRuleErrorsFor(index, isEntry).isNotEmpty;
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1970,11 +1974,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
             // Indicator dropdown
             DropdownButtonFormField<IndicatorType>(
               value: rule.indicator,
-              decoration: const InputDecoration(
-                labelText: 'Indicator',
+              decoration: InputDecoration(
+                labelText: l10n.sbIndicatorLabel,
                 isDense: false,
                 contentPadding:
-                    EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               ),
               items: IndicatorType.values.map((indicator) {
                 return DropdownMenuItem(
@@ -2010,8 +2014,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               return TextField(
                 controller: rule.mainPeriodController,
                 decoration: InputDecoration(
-                  labelText: 'Main Period',
-                  hintText: 'e.g. 14 or 20',
+                  labelText: l10n.sbMainPeriodLabel,
+                  hintText: l10n.sbMainPeriodHint,
                   isDense: false,
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
@@ -2041,16 +2045,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                     : 'Opsional: gunakan timeframe >= data dasar untuk menghindari resampling otomatis.',
                 child: DropdownButtonFormField<String?>(
                   value: rule.timeframe,
-                  decoration: const InputDecoration(
-                    labelText: 'Timeframe (opsional)',
+                  decoration: InputDecoration(
+                    labelText: l10n.sbTimeframeOptionalLabel,
                     isDense: false,
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 12),
                   ),
                   items: [
-                    const DropdownMenuItem<String?>(
+                    DropdownMenuItem<String?>(
                       value: null,
-                      child: Text('Gunakan timeframe dasar'),
+                      child: Text(l10n.sbUseBaseTimeframe),
                     ),
                     ...['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1']
                         .map((tf) => DropdownMenuItem<String?>(
@@ -2073,11 +2077,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               message: _operatorTooltip(rule.operator),
               child: DropdownButtonFormField<ComparisonOperator>(
                 value: rule.operator,
-                decoration: const InputDecoration(
-                  labelText: 'Operator',
+                decoration: InputDecoration(
+                  labelText: l10n.sbOperatorLabel,
                   isDense: false,
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 ),
                 items: ComparisonOperator.values.map((op) {
                   return DropdownMenuItem(
@@ -2102,14 +2106,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 children: [
                   Expanded(
                     child: SegmentedButton<bool>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: true,
-                          label: Text('Number'),
+                          label: Text(l10n.sbNumberLabel),
                         ),
                         ButtonSegment(
                           value: false,
-                          label: Text('Indicator'),
+                          label: Text(l10n.sbIndicatorLabel),
                         ),
                       ],
                       selected: {rule.isNumberValue},
@@ -2144,8 +2148,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                 TextField(
                   controller: rule.numberController,
                   decoration: InputDecoration(
-                    labelText: 'Value',
-                    hintText: 'e.g. 30, 70, 50',
+                    labelText: l10n.sbValueLabel,
+                    hintText: l10n.sbValueHint,
                     isDense: false,
                     contentPadding: const EdgeInsets.symmetric(
                         vertical: 12, horizontal: 12),
@@ -2284,7 +2288,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                     child: DropdownButtonFormField<IndicatorType>(
                       value: rule.compareIndicator,
                       decoration: InputDecoration(
-                        labelText: 'Compare With',
+                        labelText: l10n.sbCompareWithLabel,
                         isDense: false,
                         contentPadding: const EdgeInsets.symmetric(
                             vertical: 12, horizontal: 12),
@@ -2311,7 +2315,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                     child: TextField(
                       controller: rule.periodController,
                       decoration: InputDecoration(
-                        labelText: 'Period',
+                        labelText: l10n.sbPeriodLabel,
                         hintText: '14',
                         isDense: false,
                         contentPadding: const EdgeInsets.symmetric(
@@ -2333,20 +2337,20 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               if (rule.compareIndicator == IndicatorType.anchoredVwap) ...[
                 DropdownButtonFormField<AnchorMode?>(
                   value: rule.anchorMode,
-                  decoration: const InputDecoration(
-                    labelText: 'Anchor Mode',
+                  decoration: InputDecoration(
+                    labelText: l10n.sbAnchorModeLabel,
                     isDense: false,
-                    contentPadding:
-                        EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 12),
                   ),
-                  items: const [
+                  items: [
                     DropdownMenuItem(
                       value: AnchorMode.startOfBacktest,
-                      child: Text('Start of Backtest'),
+                      child: Text(l10n.sbStartOfBacktest),
                     ),
                     DropdownMenuItem(
                       value: AnchorMode.byDate,
-                      child: Text('Anchor by Date'),
+                      child: Text(l10n.sbAnchorByDate),
                     ),
                   ],
                   onChanged: (mode) {
@@ -2358,8 +2362,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   TextField(
                     controller: rule.anchorDateController,
                     decoration: InputDecoration(
-                      labelText: 'Anchor Date (ISO)',
-                      hintText: 'YYYY-MM-DD or ISO',
+                      labelText: l10n.sbAnchorDateLabel,
+                      hintText: l10n.sbAnchorDateHint,
                       isDense: false,
                       contentPadding: const EdgeInsets.symmetric(
                           vertical: 12, horizontal: 12),
@@ -2411,14 +2415,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
               const SizedBox(height: 12),
               DropdownButtonFormField<LogicalOperator?>(
                 value: rule.logicalOperator,
-                decoration: const InputDecoration(
-                  labelText: 'Then (Logic)',
+                decoration: InputDecoration(
+                  labelText: l10n.sbThenLogicLabel,
                   isDense: false,
                   contentPadding:
-                      EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 ),
                 items: [
-                  const DropdownMenuItem(value: null, child: Text('None')),
+                  DropdownMenuItem(value: null, child: Text(l10n.commonNone)),
                   ...LogicalOperator.values.map((op) {
                     return DropdownMenuItem(
                       value: op,
@@ -2604,6 +2608,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     BuildContext context,
     StrategyBuilderViewModel viewModel,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     showModalBottomSheet(
       context: context,
       isDismissible: true,
@@ -2652,7 +2657,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           ),
                           const SizedBox(width: 8),
                           Tooltip(
-                            message: 'Tutup',
+                            message: l10n.commonClose,
                             child: IconButton(
                               icon: const Icon(Icons.close),
                               onPressed: () => Navigator.of(ctx).pop(),
@@ -2665,7 +2670,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       TextField(
                         controller: searchController,
                         decoration: InputDecoration(
-                          labelText: 'Cari template...',
+                          labelText: l10n.sbSearchTemplateHint,
                           prefixIcon: const Icon(Icons.search),
                           suffixIcon: query.isEmpty
                               ? null
@@ -2750,7 +2755,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           // Filter chips per kategori (dengan badge jumlah)
                           final chips = <Widget>[
                             Tooltip(
-                              message: 'Tampilkan semua kategori',
+                              message: l10n.sbShowAllCategories,
                               child: ChoiceChip(
                                 avatar: selectedCats.isEmpty
                                     ? const Icon(Icons.check, size: 16)
@@ -2799,7 +2804,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               ),
                             ),
                             ...order.map((cat) => Tooltip(
-                                  message: 'Filter: ' + cat,
+                                  message: l10n.sbFilterPrefix + cat,
                                   child: ChoiceChip(
                                     avatar: selectedCats.contains(cat)
                                         ? const Icon(Icons.check, size: 16)
@@ -2884,7 +2889,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     viewModel.clearRecentTemplates();
                                     setState(() {});
                                   },
-                                  child: const Text('Clear'),
+                                  child: Text(l10n.commonClear),
                                 ),
                               ],
                             ));
@@ -2932,7 +2937,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       Navigator.of(ctx).pop();
                                       viewModel.applyTemplate(e.key);
                                     },
-                                    child: const Text('Terapkan'),
+                                    child: Text(l10n.sbApply),
                                   ),
                                   onTap: () {
                                     Navigator.of(ctx).pop();
@@ -3002,7 +3007,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       Navigator.of(ctx).pop();
                                       viewModel.applyTemplate(e.key);
                                     },
-                                    child: const Text('Terapkan'),
+                                    child: Text(l10n.sbApply),
                                   ),
                                   onTap: () {
                                     Navigator.of(ctx).pop();
@@ -3032,7 +3037,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   if (query.isNotEmpty ||
                                       selectedCats.isNotEmpty)
                                     Tooltip(
-                                      message: 'Bersihkan filter',
+                                      message: l10n.sbClearFilters,
                                       child: ActionChip(
                                         backgroundColor: Theme.of(context)
                                             .colorScheme

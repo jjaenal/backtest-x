@@ -3,6 +3,7 @@ import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'pattern_scanner_viewmodel.dart';
 
@@ -21,11 +22,13 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pattern Scanner'),
+        title: Text(AppLocalizations.of(context)!.patternScannerTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: viewModel.showPatternsGuide,
+            onPressed: () => viewModel
+                .showPatternsGuide(AppLocalizations.of(context)!
+                    .psPatternsGuideTitle),
           ),
         ],
       ),
@@ -64,8 +67,8 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select Market Data',
+          Text(
+            AppLocalizations.of(context)!.psSelectMarketData,
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -73,7 +76,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           ),
           const SizedBox(height: 12),
           if (model.marketDataList.isEmpty)
-            const Text('No market data available. Please upload data first.')
+            Text(AppLocalizations.of(context)!.psNoMarketData)
           else
             DropdownButtonFormField<MarketDataInfo>(
               value: (model.selectedMarketData != null &&
@@ -93,7 +96,8 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                   vertical: 12,
                 ),
               ),
-              hint: const Text('Select market data...'),
+              hint:
+                  Text(AppLocalizations.of(context)!.psSelectMarketHint),
               items: model.marketDataList
                   .toSet()
                   .map((data) {
@@ -119,14 +123,14 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Filters:',
-            style: TextStyle(fontWeight: FontWeight.w600),
+          Text(
+            AppLocalizations.of(context)!.psFiltersHeader,
+            style: const TextStyle(fontWeight: FontWeight.w600),
           ),
           Row(
             children: [
               FilterChip(
-                label: const Text('Bullish'),
+                label: Text(AppLocalizations.of(context)!.psFilterBullish),
                 selected: model.showBullish,
                 onSelected: (_) => model.toggleBullishFilter(),
                 selectedColor: Colors.green.withValues(alpha: 0.3),
@@ -134,7 +138,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               ),
               const SizedBox(width: 8),
               FilterChip(
-                label: const Text('Bearish'),
+                label: Text(AppLocalizations.of(context)!.psFilterBearish),
                 selected: model.showBearish,
                 onSelected: (_) => model.toggleBearishFilter(),
                 selectedColor: Colors.red.withValues(alpha: 0.3),
@@ -142,7 +146,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               ),
               const SizedBox(width: 8),
               FilterChip(
-                label: const Text('Indecision'),
+                label: Text(AppLocalizations.of(context)!.psFilterIndecision),
                 selected: model.showIndecision,
                 onSelected: (_) => model.toggleIndecisionFilter(),
                 selectedColor: Colors.orange.withValues(alpha: 0.3),
@@ -167,13 +171,13 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                 Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Select market data to scan',
+          Text(
+            AppLocalizations.of(context)!.psEmptySelectMarket,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
-            'Choose a market data from dropdown above',
+            AppLocalizations.of(context)!.psEmptySelectHint,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -198,13 +202,13 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                 Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No patterns found',
+          Text(
+            AppLocalizations.of(context)!.psNoPatternsFound,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
-            'Try adjusting your filters',
+            AppLocalizations.of(context)!.psTryAdjustFilters,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -269,7 +273,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        pattern.pattern,
+                        _localizedPatternName(context, pattern.pattern),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -277,7 +281,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        pattern.signal,
+                        _localizedSignal(context, pattern.signal),
                         style: TextStyle(
                           fontSize: 14,
                           color: pattern.signalColor,
@@ -299,7 +303,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    pattern.strength.label,
+                    _localizedStrength(context, pattern.strength),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -320,16 +324,18 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                 Expanded(
                   child: _buildCandleDetail(
                       context,
-                      'Time',
+                      AppLocalizations.of(context)!.psCandleTime,
                       DateFormat('MMM dd, HH:mm')
                           .format(pattern.candle.timestamp)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(
-                      context, 'Open', pattern.candle.open.toStringAsFixed(4)),
+                  child: _buildCandleDetail(context,
+                      AppLocalizations.of(context)!.psCandleOpen,
+                      pattern.candle.open.toStringAsFixed(4)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(context, 'Close',
+                  child: _buildCandleDetail(context,
+                      AppLocalizations.of(context)!.psCandleClose,
                       pattern.candle.close.toStringAsFixed(4)),
                 ),
               ],
@@ -341,14 +347,20 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               children: [
                 Expanded(
                   child: _buildCandleDetail(
-                      context, 'High', pattern.candle.high.toStringAsFixed(4)),
+                      context,
+                      AppLocalizations.of(context)!.psCandleHigh,
+                      pattern.candle.high.toStringAsFixed(4)),
                 ),
                 Expanded(
                   child: _buildCandleDetail(
-                      context, 'Low', pattern.candle.low.toStringAsFixed(4)),
+                      context,
+                      AppLocalizations.of(context)!.psCandleLow,
+                      pattern.candle.low.toStringAsFixed(4)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(context, 'Body',
+                  child: _buildCandleDetail(
+                      context,
+                      AppLocalizations.of(context)!.psCandleBody,
                       '${pattern.candle.bodyPercentage.toStringAsFixed(1)}%'),
                 ),
               ],
@@ -380,7 +392,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      pattern.description,
+                      _localizedDescription(context, pattern.description),
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context)
@@ -422,6 +434,48 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
         ),
       ],
     );
+  }
+
+  String _localizedStrength(BuildContext context, PatternStrength s) {
+    final loc = AppLocalizations.of(context)!;
+    switch (s) {
+      case PatternStrength.weak:
+        return loc.psStrengthWeak;
+      case PatternStrength.medium:
+        return loc.psStrengthMedium;
+      case PatternStrength.strong:
+        return loc.psStrengthStrong;
+    }
+  }
+
+  String _localizedSignal(BuildContext context, String signal) {
+    final loc = AppLocalizations.of(context)!;
+    if (signal.contains('Bullish')) return loc.psSignalBullish;
+    if (signal.contains('Bearish')) return loc.psSignalBearish;
+    return loc.psSignalIndecision;
+  }
+
+  String _localizedPatternName(BuildContext context, String name) {
+    final loc = AppLocalizations.of(context)!;
+    if (name == 'Spinning Top') return loc.psPatternSpinningTop;
+    if (name == 'Strong Bullish Continuation')
+      return loc.psPatternStrongBullishCont;
+    if (name == 'Strong Bearish Continuation')
+      return loc.psPatternStrongBearishCont;
+    return name;
+  }
+
+  String _localizedDescription(BuildContext context, String desc) {
+    final loc = AppLocalizations.of(context)!;
+    if (desc ==
+        'Little to no wicks. Strong momentum in one direction. Indicates continuation of current trend.') {
+      return loc.psDescStrongCont;
+    }
+    if (desc ==
+        'Small body with long wicks on both sides. Indicates uncertainty and potential reversal.') {
+      return loc.psDescSpinningTop;
+    }
+    return desc;
   }
 
   @override

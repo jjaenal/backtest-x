@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'onboarding_sheet_model.dart';
 
@@ -17,25 +18,23 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
     OnboardingSheetModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     // Ringkas menjadi 3 langkah inti sesuai rencana onboarding
     final steps = [
       (
         icon: Icons.upload_file,
-        title: 'Pilih & Upload Data',
-        desc:
-            'Unggah file CSV OHLC dan pilih timeframe yang sesuai. Data akan di-cache untuk preview cepat.',
+        title: l10n.onboardingStep1Title,
+        desc: l10n.onboardingStep1Desc,
       ),
       (
         icon: Icons.psychology,
-        title: 'Pilih Template / Indikator',
-        desc:
-            'Mulai dengan Template Quick‑Start atau pilih indikator untuk membentuk rules strategi.',
+        title: l10n.onboardingStep2Title,
+        desc: l10n.onboardingStep2Desc,
       ),
       (
         icon: Icons.play_arrow,
-        title: 'Jalankan Preview',
-        desc:
-            'Gunakan Quick Preview untuk melihat ringkasan hasil instan sebelum menyimpan.',
+        title: l10n.onboardingStep3Title,
+        desc: l10n.onboardingStep3Desc,
       ),
     ];
 
@@ -84,17 +83,17 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
               ElevatedButton.icon(
                 onPressed: viewModel.goToImportData,
                 icon: const Icon(Icons.upload_file),
-                label: const Text('Import Data'),
+                label: Text(l10n.onboardingImportData),
               ),
               OutlinedButton.icon(
                 onPressed: viewModel.showQuickStartTemplates,
                 icon: const Icon(Icons.bolt),
-                label: const Text('Quick‑Start Templates'),
+                label: Text(l10n.onboardingQuickStartTemplates),
               ),
               TextButton.icon(
                 onPressed: viewModel.openLearnPanel,
                 icon: const Icon(Icons.school),
-                label: const Text('Pelajari'),
+                label: Text(l10n.onboardingLearn),
               ),
             ],
           ),
@@ -108,7 +107,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Data Onboarding',
+                      l10n.onboardingDataTitle,
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
@@ -116,7 +115,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'Format CSV: Date, Open, High, Low, Close, Volume (opsional). Timeframe mempengaruhi indikator dan hasil backtest.',
+                      l10n.onboardingCsvTips,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context)
                               .colorScheme
@@ -129,13 +128,13 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                         TextButton.icon(
                           onPressed: viewModel.showCsvNotice,
                           icon: const Icon(Icons.description),
-                          label: const Text('Lihat Contoh CSV'),
+                          label: Text(l10n.onboardingViewCsvExample),
                         ),
                         const SizedBox(width: 8),
                         ElevatedButton.icon(
                           onPressed: viewModel.goToImportData,
                           icon: const Icon(Icons.upload_file),
-                          label: const Text('Import Data'),
+                          label: Text(l10n.onboardingImportData),
                         ),
                       ],
                     ),
@@ -151,7 +150,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                 TextButton.icon(
                   onPressed: viewModel.back,
                   icon: const Icon(Icons.chevron_left),
-                  label: const Text('Kembali'),
+                  label: Text(l10n.onboardingBack),
                 )
               else
                 const SizedBox.shrink(),
@@ -159,21 +158,22 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                 FilledButton.icon(
                   onPressed: viewModel.next,
                   icon: const Icon(Icons.chevron_right),
-                  label: const Text('Lanjut'),
+                  label: Text(l10n.onboardingNext),
                 )
               else
                 FilledButton.icon(
                   onPressed: () =>
                       completer?.call(SheetResponse(confirmed: true)),
                   icon: const Icon(Icons.check),
-                  label: const Text('Tandai Selesai'),
+                  label: Text(l10n.onboardingMarkDone),
                 ),
             ],
           ),
           const SizedBox(height: 8),
           Center(
             child: Chip(
-              label: Text('Langkah ${viewModel.step + 1} dari ${steps.length}'),
+              label: Text(
+                  l10n.onboardingStepProgress(viewModel.step + 1, steps.length)),
             ),
           ),
           const SizedBox(height: 8),
@@ -181,7 +181,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
             width: double.infinity,
             child: TextButton(
               onPressed: () => completer?.call(SheetResponse(confirmed: false)),
-              child: const Text('Nanti Saja'),
+              child: Text(l10n.onboardingRemindLater),
             ),
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.
 import 'package:backtestx/ui/widgets/common/indicator_panel/indicator_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'market_analysis_viewmodel.dart';
 
@@ -23,18 +24,18 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Market Analysis'),
+        title: Text(AppLocalizations.of(context)!.marketAnalysisTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: viewModel.refresh,
-            tooltip: 'Refresh',
+            tooltip: AppLocalizations.of(context)!.maRefreshTooltip,
           ),
           if (viewModel.selectedMarketData != null)
             IconButton(
               icon: const Icon(Icons.settings),
               onPressed: () => viewModel.showIndicatorSettings(),
-              tooltip: 'Chart Settings',
+              tooltip: AppLocalizations.of(context)!.maChartSettingsTooltip,
             ),
         ],
       ),
@@ -69,13 +70,13 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Select Market',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          Text(
+            AppLocalizations.of(context)!.maSelectMarketLabel,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           if (model.marketDataList.isEmpty)
-            const Text('No market data available')
+            Text(AppLocalizations.of(context)!.maNoMarketData)
           else
             DropdownButtonFormField<MarketDataInfo>(
               value: (model.selectedMarketData != null &&
@@ -95,7 +96,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                   vertical: 12,
                 ),
               ),
-              hint: const Text('Select market...'),
+              hint: Text(AppLocalizations.of(context)!.maSelectMarketHint),
               items: model.marketDataList
                   .toSet()
                   .map((data) {
@@ -127,9 +128,9 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                 Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Select market to analyze',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          Text(
+            AppLocalizations.of(context)!.maEmptySelectMarket,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -226,33 +227,33 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
           const SizedBox(height: 16),
 
           // Price statistics
-          _buildSectionTitle('Price Statistics'),
+          _buildSectionTitle(AppLocalizations.of(context)!.maPriceStatistics),
           const SizedBox(height: 12),
           _buildPriceStats(context, data),
           const SizedBox(height: 16),
 
           // Trend analysis
-          _buildSectionTitle('Trend Analysis'),
+          _buildSectionTitle(AppLocalizations.of(context)!.maTrendAnalysis),
           const SizedBox(height: 12),
           _buildTrendAnalysis(context, data),
           const SizedBox(height: 16),
 
           // Volatility
-          _buildSectionTitle('Volatility'),
+          _buildSectionTitle(AppLocalizations.of(context)!.maVolatility),
           const SizedBox(height: 12),
           _buildVolatilityCard(context, data),
           const SizedBox(height: 16),
 
           // Volume (if available)
           if (data.hasVolumeData) ...[
-            _buildSectionTitle('Volume'),
+            _buildSectionTitle(AppLocalizations.of(context)!.maVolume),
             const SizedBox(height: 12),
             _buildVolumeCard(context, data),
             const SizedBox(height: 16),
           ],
 
           // Data quality
-          _buildSectionTitle('Data Quality'),
+          _buildSectionTitle(AppLocalizations.of(context)!.maDataQuality),
           const SizedBox(height: 12),
           _buildQualityCard(context, data),
         ],
@@ -301,7 +302,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
               children: [
                 Expanded(
                   child: _buildOverviewStat(
-                    'Current',
+                    AppLocalizations.of(context)!.maOverviewCurrentLabel,
                     data.currentPrice.toStringAsFixed(4),
                     Icons.attach_money,
                     Colors.blue,
@@ -309,7 +310,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                 ),
                 Expanded(
                   child: _buildOverviewStat(
-                    'Change',
+                    AppLocalizations.of(context)!.maOverviewChangeLabel,
                     '${data.totalChangePercent >= 0 ? '+' : ''}${data.totalChangePercent.toStringAsFixed(2)}%',
                     data.totalChangePercent >= 0
                         ? Icons.trending_up
@@ -362,13 +363,13 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow('Highest', data.highestPrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceHighest, data.highestPrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow('Lowest', data.lowestPrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceLowest, data.lowestPrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow('Average', data.averagePrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceAverage, data.averagePrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow('Range', data.priceRange.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceRange, data.priceRange.toStringAsFixed(4)),
           ],
         ),
       ),
@@ -411,7 +412,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    data.trend,
+                    _localizedTrend(context, data.trend),
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -420,7 +421,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Strength: ${data.trendStrength}',
+                    '${AppLocalizations.of(context)!.maTrendStrengthLabel}: ${_localizedTrendStrength(context, data.trendStrength)}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Theme.of(context)
@@ -452,14 +453,14 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow('ATR', data.atr.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolatilityAtrLabel, data.atr.toStringAsFixed(4)),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Level',
-                  style: TextStyle(fontSize: 14),
+                Text(
+                  AppLocalizations.of(context)!.maVolatilityLevelLabel,
+                  style: const TextStyle(fontSize: 14),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -471,7 +472,7 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    data.volatility,
+                    _localizedVolatility(context, data.volatility),
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -495,10 +496,9 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow('Total Volume', data.totalVolume.toStringAsFixed(0)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolumeTotal, data.totalVolume.toStringAsFixed(0)),
             const Divider(),
-            _buildStatRow(
-                'Average Volume', data.averageVolume.toStringAsFixed(0)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolumeAverage, data.averageVolume.toStringAsFixed(0)),
           ],
         ),
       ),
@@ -513,15 +513,38 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildQualityRow('Valid Data', data.isValid),
+            _buildQualityRow(AppLocalizations.of(context)!.maQualityValidData, data.isValid),
             const Divider(),
-            _buildQualityRow('Complete (No Gaps)', !data.hasGaps),
+            _buildQualityRow(AppLocalizations.of(context)!.maQualityCompleteNoGaps, !data.hasGaps),
             const Divider(),
-            _buildStatRow('Candles', data.candlesCount.toString()),
+            _buildStatRow(AppLocalizations.of(context)!.maQualityCandles, data.candlesCount.toString()),
           ],
         ),
       ),
     );
+  }
+
+  String _localizedTrend(BuildContext context, String trend) {
+    final loc = AppLocalizations.of(context)!;
+    if (trend == 'Uptrend') return loc.maTrendUptrend;
+    if (trend == 'Downtrend') return loc.maTrendDowntrend;
+    return loc.maTrendSideways;
+  }
+
+  String _localizedTrendStrength(BuildContext context, String s) {
+    final loc = AppLocalizations.of(context)!;
+    if (s == 'Strong') return loc.psStrengthStrong;
+    if (s == 'Medium') return loc.psStrengthMedium;
+    if (s == 'Weak') return loc.psStrengthWeak;
+    return loc.maStrengthUnknown;
+  }
+
+  String _localizedVolatility(BuildContext context, String v) {
+    final loc = AppLocalizations.of(context)!;
+    if (v == 'High') return loc.maVolatilityHigh;
+    if (v == 'Medium') return loc.maVolatilityMedium;
+    if (v == 'Low') return loc.maVolatilityLow;
+    return loc.maVolatilityUnknown;
   }
 
   Widget _buildStatRow(String label, String value) {

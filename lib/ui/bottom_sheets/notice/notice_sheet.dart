@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'notice_sheet_model.dart';
 
@@ -16,6 +17,7 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
     NoticeSheetModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final payload = request.data as Map<String, dynamic>? ?? {};
     final options = (payload['options'] as List?)
             ?.cast<Map>()
@@ -69,7 +71,7 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
           if (options.isNotEmpty) ...[
             const SizedBox(height: 12),
             Text(
-              'Pilih salah satu opsi:',
+              l10n.noticePickOption,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -132,7 +134,7 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                 onPressed: () {
                   Navigator.of(context).maybePop();
                 },
-                child: const Text('Tutup'),
+                child: Text(l10n.commonClose),
               ),
             ),
         ],

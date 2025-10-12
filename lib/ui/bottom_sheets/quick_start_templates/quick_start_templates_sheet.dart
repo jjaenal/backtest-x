@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/helpers/strategy_templates.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'quick_start_templates_sheet_model.dart';
 
 class QuickStartTemplatesSheet
@@ -15,6 +16,7 @@ class QuickStartTemplatesSheet
   @override
   Widget builder(BuildContext context, QuickStartTemplatesSheetModel viewModel,
       Widget? child) {
+    final l10n = AppLocalizations.of(context)!;
     final curatedKeys = [
       'mean_reversion_rsi',
       'trend_ema_cross',
@@ -44,13 +46,15 @@ class QuickStartTemplatesSheet
             children: [
               Icon(Icons.bolt, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
-              const Text('Quick‑Start Templates',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text(l10n.onboardingQuickStartTemplates,
+                  style:
+                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
           Text(
-            'Mulai cepat dengan template terkurasi. Setelah memilih, buka Strategy Builder untuk meninjau dan menjalankan preview.',
+            // Using onboarding descriptors for consistency
+            l10n.onboardingStep2Desc,
             style: TextStyle(
                 color:
                     Theme.of(context).colorScheme.onSurface.withOpacity(0.75)),
@@ -99,7 +103,7 @@ class QuickStartTemplatesSheet
                             );
                           },
                           icon: const Icon(Icons.psychology),
-                          label: const Text('Buka di Builder'),
+                          label: Text(l10n.quickOpenInBuilder),
                         ),
                       ),
                     ],
@@ -113,7 +117,7 @@ class QuickStartTemplatesSheet
             width: double.infinity,
             child: TextButton(
               onPressed: () => completer?.call(SheetResponse(confirmed: false)),
-              child: const Text('Tutup'),
+              child: Text(l10n.commonClose),
             ),
           ),
         ],

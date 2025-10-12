@@ -1,4 +1,4 @@
-package com.example.backtestx
+package com.tuangkang.backtestx
 
 import io.flutter.embedding.android.FlutterActivity
 

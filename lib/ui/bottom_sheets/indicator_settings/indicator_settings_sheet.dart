@@ -3,6 +3,7 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 import 'indicator_settings_sheet_model.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
   final Function(SheetResponse response)? completer;
@@ -19,6 +20,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
     IndicatorSettingsSheetModel viewModel,
     Widget? child,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -44,21 +46,21 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
           children: [
             Row(
               children: [
-                const Text(
-                  'Chart Indicators',
-                  style: TextStyle(
+                Text(
+                  l10n.indicatorSettingsTitle,
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const Spacer(),
                 IconButton(
-                  tooltip: 'Reset ke default',
+                  tooltip: l10n.commonResetToDefault,
                   icon: const Icon(Icons.restore),
                   onPressed: viewModel.resetDefaults,
                 ),
                 IconButton(
-                  tooltip: 'Tutup',
+                  tooltip: l10n.commonClose,
                   icon: const Icon(Icons.close),
                   onPressed: () => Navigator.pop(context),
                 ),
@@ -67,19 +69,19 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             const SizedBox(height: 8),
 
             // Overlays Section
-            _SectionTitle('Overlays'),
+            _SectionTitle(l10n.isOverlays),
             const SizedBox(height: 8),
             _SwitchTile(
               context: context,
-              title: 'SMA',
-              subtitle: 'Simple Moving Average',
+              title: l10n.isSma,
+              subtitle: l10n.isSimpleMovingAverage,
               value: viewModel.showSMA,
               onChanged: (v) {
                 viewModel.showSMA = v;
                 viewModel.notifyListeners();
               },
               trailing: _PeriodSlider(
-                label: 'Period',
+                label: l10n.isPeriod,
                 value: viewModel.smaPeriod.toDouble(),
                 min: 5,
                 max: 200,
@@ -92,15 +94,15 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
             _SwitchTile(
               context: context,
-              title: 'EMA',
-              subtitle: 'Exponential Moving Average',
+              title: l10n.isEma,
+              subtitle: l10n.isExponentialMovingAverage,
               value: viewModel.showEMA,
               onChanged: (v) {
                 viewModel.showEMA = v;
                 viewModel.notifyListeners();
               },
               trailing: _PeriodSlider(
-                label: 'Period',
+                label: l10n.isPeriod,
                 value: viewModel.emaPeriod.toDouble(),
                 min: 5,
                 max: 200,
@@ -113,8 +115,8 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
             _SwitchTile(
               context: context,
-              title: 'Bollinger Bands',
-              subtitle: 'Volatility bands',
+              title: l10n.isBollingerBands,
+              subtitle: l10n.isVolatilityBands,
               value: viewModel.showBB,
               onChanged: (v) {
                 viewModel.showBB = v;
@@ -125,12 +127,12 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 children: [
                   _NumberChip(
                     context: context,
-                    label: 'Period',
+                    label: l10n.isPeriod,
                     value: viewModel.bbPeriod.toString(),
                     onTap: () async {
                       final newVal = await _showNumberDialog(
                         context,
-                        'BB Period',
+                        '${l10n.isBollingerBands} ${l10n.isPeriod}',
                         viewModel.bbPeriod,
                         5,
                         200,
@@ -144,12 +146,12 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                   const SizedBox(width: 8),
                   _NumberChip(
                     context: context,
-                    label: 'StdDev',
+                    label: l10n.isStddev,
                     value: viewModel.bbStdDev.toStringAsFixed(1),
                     onTap: () async {
                       final newVal = await _showDoubleDialog(
                         context,
-                        'BB StdDev',
+                        '${l10n.isBollingerBands} ${l10n.isStddev}',
                         viewModel.bbStdDev,
                         1.0,
                         4.0,
@@ -169,7 +171,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             const SizedBox(height: 12),
 
             // Oscillators Section
-            _SectionTitle('Oscillators'),
+            _SectionTitle(l10n.isOscillators),
             const SizedBox(height: 8),
             _SwitchTile(
               context: context,
@@ -181,7 +183,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 viewModel.notifyListeners();
               },
               trailing: _PeriodSlider(
-                label: 'Period',
+                label: l10n.isPeriod,
                 value: viewModel.rsiPeriod.toDouble(),
                 min: 5,
                 max: 50,
@@ -194,7 +196,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
             _SwitchTile(
               context: context,
-              title: 'MACD',
+              title: l10n.isMacd,
               subtitle: '12 / 26 / 9',
               value: viewModel.showMACD,
               onChanged: (v) {
@@ -206,11 +208,15 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 children: [
                   _NumberChip(
                     context: context,
-                    label: 'Fast',
+                    label: l10n.isFast,
                     value: viewModel.macdFast.toString(),
                     onTap: () async {
                       final n = await _showNumberDialog(
-                          context, 'MACD Fast', viewModel.macdFast, 2, 50);
+                          context,
+                          '${l10n.isMacd} ${l10n.isFast}',
+                          viewModel.macdFast,
+                          2,
+                          50);
                       if (n != null) {
                         viewModel.macdFast = n;
                         viewModel.notifyListeners();
@@ -220,11 +226,15 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                   const SizedBox(width: 8),
                   _NumberChip(
                     context: context,
-                    label: 'Slow',
+                    label: l10n.isSlow,
                     value: viewModel.macdSlow.toString(),
                     onTap: () async {
                       final n = await _showNumberDialog(
-                          context, 'MACD Slow', viewModel.macdSlow, 5, 200);
+                          context,
+                          '${l10n.isMacd} ${l10n.isSlow}',
+                          viewModel.macdSlow,
+                          5,
+                          200);
                       if (n != null) {
                         viewModel.macdSlow = n;
                         viewModel.notifyListeners();
@@ -234,11 +244,15 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                   const SizedBox(width: 8),
                   _NumberChip(
                     context: context,
-                    label: 'Signal',
+                    label: l10n.isSignal,
                     value: viewModel.macdSignal.toString(),
                     onTap: () async {
                       final n = await _showNumberDialog(
-                          context, 'MACD Signal', viewModel.macdSignal, 2, 50);
+                          context,
+                          '${l10n.isMacd} ${l10n.isSignal}',
+                          viewModel.macdSignal,
+                          2,
+                          50);
                       if (n != null) {
                         viewModel.macdSignal = n;
                         viewModel.notifyListeners();
@@ -254,12 +268,12 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             const SizedBox(height: 12),
 
             // Chart Options Section
-            _SectionTitle('Chart Options'),
+            _SectionTitle(l10n.isChartOptions),
             const SizedBox(height: 8),
             _SwitchTile(
               context: context,
-              title: 'High Quality Rendering',
-              subtitle: 'Detail maksimal, performa lebih rendah',
+              title: l10n.isHighQualityRendering,
+              subtitle: l10n.isHighQualitySubtitle,
               value: viewModel.highQuality,
               onChanged: (v) {
                 viewModel.highQuality = v;
@@ -268,8 +282,8 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
             _SwitchTile(
               context: context,
-              title: 'Show Volume (if available)',
-              subtitle: 'Tampilkan panel volume di bawah chart',
+              title: l10n.isShowVolume,
+              subtitle: l10n.isShowVolumeSubtitle,
               value: viewModel.showVolume,
               onChanged: (v) {
                 viewModel.showVolume = v;
@@ -283,7 +297,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 Expanded(
                   child: OutlinedButton.icon(
                     icon: const Icon(Icons.clear_all),
-                    label: const Text('Clear'),
+                    label: Text(l10n.commonClear),
                     onPressed: viewModel.resetDefaults,
                   ),
                 ),
@@ -291,7 +305,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 Expanded(
                   child: ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle),
-                    label: const Text('Apply'),
+                    label: Text(l10n.commonApply),
                     onPressed: () {
                       completer?.call(SheetResponse(
                         confirmed: true,
@@ -480,7 +494,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(AppLocalizations.of(context)!.commonCancel)),
             TextButton(
               onPressed: () {
                 final val = int.tryParse(controller.text);
@@ -490,7 +504,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                   Navigator.pop(ctx);
                 }
               },
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.commonApply),
             ),
           ],
         );
@@ -519,7 +533,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel')),
+                child: Text(AppLocalizations.of(context)!.commonCancel)),
             TextButton(
               onPressed: () {
                 final val = double.tryParse(controller.text);
@@ -529,7 +543,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                   Navigator.pop(ctx);
                 }
               },
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.commonApply),
             ),
           ],
         );

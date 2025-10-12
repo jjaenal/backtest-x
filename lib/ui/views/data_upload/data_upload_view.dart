@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:backtestx/ui/widgets/error_banner.dart';
 import 'package:backtestx/ui/widgets/common/empty_state.dart';
 import 'package:stacked/stacked.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'data_upload_viewmodel.dart';
 
 class DataUploadView extends StackedView<DataUploadViewModel> {
@@ -15,7 +16,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
   ) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Upload Market Data'),
+        title: Text(AppLocalizations.of(context)!.dataUploadTitle),
       ),
       body: SafeArea(
         child: Padding(
@@ -42,21 +43,25 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Coach Marks — Timeframe Impact',
-                                style: Theme.of(context).textTheme.titleMedium,
+                                AppLocalizations.of(context)!
+                                    .coachTimeframeHeader,
+                                style:
+                                    Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 6),
-                              const Text(
-                                'Timeframe mempengaruhi indikator (EMA/RSI/VWAP, dll). Data 1H vs 4H dapat menghasilkan sinyal berbeda. Gunakan timeframe yang konsisten.',
-                                style: TextStyle(fontSize: 12),
+                              Text(
+                                AppLocalizations.of(context)!
+                                    .coachTimeframeBody,
+                                style: const TextStyle(fontSize: 12),
                               ),
                               const SizedBox(height: 8),
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: TextButton(
                                   onPressed: viewModel.showTimeframeCoach,
-                                  child: const Text('Pelajari timeframe'),
-                                ),
+                                  child: Text(AppLocalizations.of(context)!
+                                      .coachTimeframeLearn),
+                                  ),
                               ),
                             ],
                           ),
@@ -80,7 +85,9 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          viewModel.selectedFileName ?? 'No file selected',
+                          viewModel.selectedFileName ??
+                              AppLocalizations.of(context)!
+                                  .uploadNoFileSelected,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -88,9 +95,10 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'CSV format: Date, Open, High, Low, Close, Volume',
-                          style: TextStyle(
+                        Text(
+                          AppLocalizations.of(context)!
+                              .uploadCsvFormatHint,
+                          style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
                           ),
@@ -101,7 +109,8 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                           onPressed:
                               viewModel.isBusy ? null : viewModel.pickFile,
                           icon: const Icon(Icons.file_open),
-                          label: const Text('Select CSV File'),
+                          label: Text(AppLocalizations.of(context)!
+                              .uploadSelectCsvFile),
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 24,
@@ -138,19 +147,22 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                 if (viewModel.selectedFileName != null) ...[
                   TextField(
                     controller: viewModel.symbolController,
-                    decoration: const InputDecoration(
-                      labelText: 'Symbol',
-                      hintText: 'e.g. EURUSD, BTCUSDT',
-                      prefixIcon: Icon(Icons.trending_up),
+                    decoration: InputDecoration(
+                      labelText:
+                          AppLocalizations.of(context)!.inputSymbolLabel,
+                      hintText:
+                          AppLocalizations.of(context)!.inputSymbolHint,
+                      prefixIcon: const Icon(Icons.trending_up),
                     ),
                     textCapitalization: TextCapitalization.characters,
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     value: viewModel.selectedTimeframe,
-                    decoration: const InputDecoration(
-                      labelText: 'Timeframe',
-                      prefixIcon: Icon(Icons.schedule),
+                    decoration: InputDecoration(
+                      labelText:
+                          AppLocalizations.of(context)!.inputTimeframeLabel,
+                      prefixIcon: const Icon(Icons.schedule),
                     ),
                     items: viewModel.timeframes.map((tf) {
                       return DropdownMenuItem(
@@ -183,9 +195,10 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Text(
-                              'Upload & Process',
-                              style: TextStyle(fontSize: 16),
+                          : Text(
+                              AppLocalizations.of(context)!
+                                  .uploadActionProcess,
+                              style: const TextStyle(fontSize: 16),
                             ),
                     ),
                   ),
@@ -218,8 +231,10 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                               const SizedBox(width: 8),
                               Text(
                                 viewModel.validationResult!.isValid
-                                    ? 'Validation Passed'
-                                    : 'Validation Failed',
+                                    ? AppLocalizations.of(context)!
+                                        .validationPassed
+                                    : AppLocalizations.of(context)!
+                                        .validationFailed,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -230,15 +245,18 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                           if (viewModel.validationResult!.totalCandles !=
                               null) ...[
                             const SizedBox(height: 8),
-                            Text(
-                                'Total Candles: ${viewModel.validationResult!.totalCandles}'),
+                            Text(AppLocalizations.of(context)!
+                                .validationTotalCandles(viewModel
+                                    .validationResult!.totalCandles!)),
                           ],
                           if (viewModel
                               .validationResult!.errors.isNotEmpty) ...[
                             const SizedBox(height: 8),
-                            const Text(
-                              'Errors:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                            Text(
+                              AppLocalizations.of(context)!
+                                  .validationErrorsLabel,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             ...viewModel.validationResult!.errors.map(
                               (error) => Padding(
@@ -257,9 +275,9 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
 
                 // Recent Uploads List
                 if (viewModel.recentUploads.isNotEmpty) ...[
-                  const Text(
-                    'Recent Uploads',
-                    style: TextStyle(
+                  Text(
+                    AppLocalizations.of(context)!.recentUploads,
+                    style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
@@ -276,7 +294,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                           leading: const Icon(Icons.dataset),
                           title: Text('${data.symbol} - ${data.timeframe}'),
                           subtitle: Text(
-                            '${data.candlesCount} candles • ${_formatDate(data.uploadedAt)}',
+                            '${AppLocalizations.of(context)!.candlesCountLabel(data.candlesCount)} • ${_formatDate(data.uploadedAt)}',
                           ),
                           trailing: IconButton(
                             icon: const Icon(Icons.delete),
@@ -300,9 +318,9 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Tidak ada data pasar. Anda dapat mengaktifkan sample data untuk mencoba aplikasi.',
-                            style: TextStyle(fontSize: 12),
+                          Text(
+                            AppLocalizations.of(context)!.noMarketDataInfo,
+                            style: const TextStyle(fontSize: 12),
                           ),
                           const SizedBox(height: 8),
                           Align(
@@ -312,8 +330,8 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                                   ? null
                                   : viewModel.activateSampleData,
                               icon: const Icon(Icons.play_circle_outline),
-                              label: const Text(
-                                  'Aktifkan Sample Data (EURUSD H1)'),
+                              label: Text(AppLocalizations.of(context)!
+                                  .activateSampleDataLabel('EURUSD H1')),
                             ),
                           ),
                         ],
@@ -322,10 +340,10 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                   ),
                   EmptyState(
                     icon: Icons.cloud_upload_outlined,
-                    title: 'Belum ada upload data',
-                    message:
-                        'Pilih file CSV dan isi simbol untuk mengunggah market data.',
-                    primaryLabel: 'Pilih File CSV',
+                    title: AppLocalizations.of(context)!.emptyNoUploads,
+                    message: AppLocalizations.of(context)!.emptyUploadMessage,
+                    primaryLabel:
+                        AppLocalizations.of(context)!.uploadSelectCsvFile,
                     onPrimary: viewModel.isBusy ? null : viewModel.pickFile,
                   ),
                 ],

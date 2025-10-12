@@ -1,7 +1,11 @@
 import 'package:backtestx/ui/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
+import 'package:backtestx/services/theme_service.dart';
+import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:backtestx/app/route_observer.dart';
+import 'package:intl/intl.dart';
 import 'home_viewmodel.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
@@ -25,16 +29,16 @@ class HomeView extends StackedView<HomeViewModel> {
     });
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Backtest-X'),
+        title: Text(AppLocalizations.of(context)?.homeTitle ?? 'Backtest‑X'),
         centerTitle: true,
         actions: [
           // Cache status indicator
           IconButton(
             tooltip: viewModel.isWarmingUp
-                ? 'Cache: warming up'
+                ? (AppLocalizations.of(context)?.homeCacheWarming ?? 'Cache: warming up')
                 : (viewModel.dataSetsCount > 0
-                    ? 'Cache: ready'
-                    : 'Cache: empty'),
+                    ? (AppLocalizations.of(context)?.homeCacheReady ?? 'Cache: ready')
+                    : (AppLocalizations.of(context)?.homeCacheEmpty ?? 'Cache: empty')),
             icon: Icon(
               viewModel.isWarmingUp
                   ? Icons.downloading
@@ -51,7 +55,7 @@ class HomeView extends StackedView<HomeViewModel> {
           ),
           IconButton(
             icon: const Icon(Icons.help_outline),
-            tooltip: 'Onboarding',
+            tooltip: AppLocalizations.of(context)?.homeTooltipOnboarding ?? 'Onboarding',
             onPressed: viewModel.showOnboarding,
           ),
           // IconButton(
@@ -66,7 +70,7 @@ class HomeView extends StackedView<HomeViewModel> {
             onPressed: () {},
           ),
           PopupMenuButton<int>(
-            tooltip: 'Options',
+            tooltip: AppLocalizations.of(context)?.homeTooltipOptions ?? 'Options',
             onSelected: (value) {
               switch (value) {
                 case 1:
@@ -74,6 +78,15 @@ class HomeView extends StackedView<HomeViewModel> {
                   break;
                 case 2:
                   viewModel.warmUpCacheNow();
+                  break;
+                case 100:
+                  locator<ThemeService>().setLocaleCode(null);
+                  break;
+                case 101:
+                  locator<ThemeService>().setLocaleCode('en');
+                  break;
+                case 102:
+                  locator<ThemeService>().setLocaleCode('id');
                   break;
               }
             },
@@ -89,19 +102,50 @@ class HomeView extends StackedView<HomeViewModel> {
                     ),
                     const SizedBox(width: 8),
                     Text(viewModel.backgroundWarmupEnabled
-                        ? 'Pause Background Loading'
-                        : 'Enable Background Loading'),
+                        ? (AppLocalizations.of(context)?.homeOptionPauseBg ?? 'Pause Background Loading')
+                        : (AppLocalizations.of(context)?.homeOptionEnableBg ?? 'Enable Background Loading')),
                   ],
                 ),
               ),
               const PopupMenuDivider(),
-              const PopupMenuItem<int>(
+              PopupMenuItem<int>(
                 value: 2,
                 child: Row(
                   children: [
                     Icon(Icons.download_for_offline_outlined),
                     SizedBox(width: 8),
-                    Text('Load Cache Now'),
+                    Text(AppLocalizations.of(context)?.homeOptionLoadCache ?? 'Load Cache Now'),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
+              PopupMenuItem<int>(
+                value: 100,
+                child: Row(
+                  children: [
+                    const Icon(Icons.language),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)?.languageMenuSystem ?? 'Use System Language'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<int>(
+                value: 101,
+                child: Row(
+                  children: [
+                    const Icon(Icons.translate),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)?.languageMenuEnglish ?? 'English'),
+                  ],
+                ),
+              ),
+              PopupMenuItem<int>(
+                value: 102,
+                child: Row(
+                  children: [
+                    const Icon(Icons.translate),
+                    const SizedBox(width: 8),
+                    Text(AppLocalizations.of(context)?.languageMenuIndonesian ?? 'Indonesian'),
                   ],
                 ),
               ),
@@ -161,36 +205,36 @@ class HomeView extends StackedView<HomeViewModel> {
                           _buildActionButton(
                             context,
                             icon: Icons.upload_file,
-                            title: 'Upload Data',
-                            subtitle: 'Import historical market data',
+                            title: AppLocalizations.of(context)?.homeActionUploadTitle ?? 'Upload Data',
+                            subtitle: AppLocalizations.of(context)?.homeActionUploadSubtitle ?? 'Import historical market data',
                             onTap: viewModel.navigateToDataUpload,
                           ),
                           _buildActionButton(
                             context,
                             icon: Icons.candlestick_chart,
-                            title: 'Pattern Scanner',
-                            subtitle: 'Detect candlestick patterns',
+                            title: AppLocalizations.of(context)?.homeActionScannerTitle ?? 'Pattern Scanner',
+                            subtitle: AppLocalizations.of(context)?.homeActionScannerSubtitle ?? 'Detect candlestick patterns',
                             onTap: viewModel.navigateToPatternScanner,
                           ),
                           _buildActionButton(
                             context,
                             icon: Icons.psychology,
-                            title: 'Create Strategy',
-                            subtitle: 'Build your trading strategy',
+                            title: AppLocalizations.of(context)?.homeActionStrategyTitle ?? 'Create Strategy',
+                            subtitle: AppLocalizations.of(context)?.homeActionStrategySubtitle ?? 'Build your trading strategy',
                             onTap: viewModel.navigateToStrategyBuilder,
                           ),
                           _buildActionButton(
                             context,
                             icon: Icons.show_chart_outlined,
-                            title: 'Market Analysis',
-                            subtitle: 'Analyze market data',
+                            title: AppLocalizations.of(context)?.homeActionAnalysisTitle ?? 'Market Analysis',
+                            subtitle: AppLocalizations.of(context)?.homeActionAnalysisSubtitle ?? 'Analyze market data',
                             onTap: viewModel.navigateToMarketAnalysis,
                           ),
                           _buildActionButton(
                             context,
                             icon: Icons.folder_open,
-                            title: 'Workspace',
-                            subtitle: 'Manage strategies',
+                            title: AppLocalizations.of(context)?.homeActionWorkspaceTitle ?? 'Workspace',
+                            subtitle: AppLocalizations.of(context)?.homeActionWorkspaceSubtitle ?? 'Manage strategies',
                             onTap: viewModel.navigateToWorkspace,
                           ),
                         ];
@@ -215,9 +259,9 @@ class HomeView extends StackedView<HomeViewModel> {
 
                     // Recent Activity
                     if (viewModel.recentStrategies.isNotEmpty) ...[
-                      const Text(
-                        'Recent Strategies',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)?.homeRecentStrategies ?? 'Recent Strategies',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -233,7 +277,7 @@ class HomeView extends StackedView<HomeViewModel> {
                             child: ListTile(
                               title: Text(strategy.name),
                               subtitle: Text(
-                                'Created: ${_formatDate(strategy.createdAt)}',
+                                AppLocalizations.of(context)?.createdLabel(_formatDate(context, strategy.createdAt)) ?? 'Created: ${_formatDate(context, strategy.createdAt)}',
                               ),
                               trailing: Row(
                                 mainAxisSize: MainAxisSize.min,
@@ -242,7 +286,7 @@ class HomeView extends StackedView<HomeViewModel> {
                                     icon: const Icon(Icons.edit, size: 20),
                                     onPressed: () =>
                                         viewModel.editStrategy(strategy.id),
-                                    tooltip: 'Edit',
+                                    tooltip: AppLocalizations.of(context)?.editLabel ?? 'Edit',
                                   ),
                                   InkWell(
                                     child:
@@ -282,7 +326,7 @@ class HomeView extends StackedView<HomeViewModel> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Loading cache…',
+                          AppLocalizations.of(context)?.homeLoadingCache ?? 'Loading cache…',
                           style: TextStyle(
                             color: Theme.of(context).colorScheme.onSurface,
                           ),
@@ -301,21 +345,21 @@ class HomeView extends StackedView<HomeViewModel> {
                   ignoring: false,
                   child: Container(
                     color: Colors.black.withOpacity(0.2),
-                    child: const Center(
+                    child: Center(
                       child: Card(
                         elevation: 4,
                         child: Padding(
-                          padding: EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(16.0),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              SizedBox(
+                              const SizedBox(
                                 width: 24,
                                 height: 24,
                                 child: CircularProgressIndicator(),
                               ),
-                              SizedBox(width: 12),
-                              Text('Running backtest...'),
+                              const SizedBox(width: 12),
+                              Text(AppLocalizations.of(context)?.homeRunningBacktest ?? 'Running backtest...'),
                             ],
                           ),
                         ),
@@ -343,21 +387,21 @@ class HomeView extends StackedView<HomeViewModel> {
               children: [
                 _buildStatItem(
                   context,
-                  'Strategies',
+                  AppLocalizations.of(context)?.statsStrategies ?? 'Strategies',
                   '${viewModel.strategiesCount}',
                   Icons.psychology,
                   isLoading: viewModel.isBusy,
                 ),
                 _buildStatItem(
                   context,
-                  'Data Sets',
+                  AppLocalizations.of(context)?.statsDataSets ?? 'Data Sets',
                   '${viewModel.dataSetsCount}',
                   Icons.storage,
                   isLoading: viewModel.isBusy,
                 ),
                 _buildStatItem(
                   context,
-                  'Tests Run',
+                  AppLocalizations.of(context)?.statsTestsRun ?? 'Tests Run',
                   '${viewModel.testsCount}',
                   Icons.speed,
                   isLoading: viewModel.isBusy,
@@ -409,9 +453,9 @@ class HomeView extends StackedView<HomeViewModel> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Last Result',
-                        style: TextStyle(
+                      Text(
+                        AppLocalizations.of(context)?.lastResultHeader ?? 'Last Result',
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -437,7 +481,7 @@ class HomeView extends StackedView<HomeViewModel> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  _formatDate(result.executedAt),
+                  _formatDate(context, result.executedAt),
                   style: TextStyle(
                     fontSize: 12,
                     color: Theme.of(context)
@@ -458,31 +502,31 @@ class HomeView extends StackedView<HomeViewModel> {
                   _buildMetricChip(
                     context,
                     icon: Icons.swap_vert,
-                    label: 'Trades',
+                    label: AppLocalizations.of(context)?.metricsTrades ?? 'Trades',
                     value: '${summary.totalTrades}',
                   ),
                   _buildMetricChip(
                     context,
                     icon: Icons.percent,
-                    label: 'Win Rate',
+                    label: AppLocalizations.of(context)?.metricsWinRate ?? 'Win Rate',
                     value: '${summary.winRate.toStringAsFixed(2)}%',
                   ),
                   _buildMetricChip(
                     context,
                     icon: Icons.attach_money,
-                    label: 'PnL',
+                    label: AppLocalizations.of(context)?.metricsPnl ?? 'PnL',
                     value: '\$${summary.totalPnl.toStringAsFixed(2)}',
                   ),
                   _buildMetricChip(
                     context,
                     icon: Icons.insights,
-                    label: 'Profit Factor',
+                    label: AppLocalizations.of(context)?.metricsProfitFactor ?? 'Profit Factor',
                     value: summary.profitFactor.toStringAsFixed(2),
                   ),
                   _buildMetricChip(
                     context,
                     icon: Icons.trending_down,
-                    label: 'Max Drawdown',
+                    label: AppLocalizations.of(context)?.metricsMaxDrawdown ?? 'Max Drawdown',
                     value:
                         '${summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
                   ),
@@ -513,7 +557,7 @@ class HomeView extends StackedView<HomeViewModel> {
                 OutlinedButton.icon(
                   onPressed: viewModel.viewLastResult,
                   icon: const Icon(Icons.open_in_new),
-                  label: const Text('View Details'),
+                  label: Text(AppLocalizations.of(context)?.viewDetails ?? 'View Details'),
                 ),
               ],
             ),
@@ -584,7 +628,7 @@ class HomeView extends StackedView<HomeViewModel> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Getting Started',
+              AppLocalizations.of(context)?.gettingStartedTitle ?? 'Getting Started',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -593,10 +637,10 @@ class HomeView extends StackedView<HomeViewModel> {
             const SizedBox(height: 8),
             Text(
               noData && noStrategy
-                  ? 'Belum ada data dan strategi. Mulai dengan upload data dan buat strategi pertama.'
+                  ? (AppLocalizations.of(context)?.emptyBoth ?? 'No data and strategies yet. Upload data and create your first strategy.')
                   : noData
-                      ? 'Belum ada data market. Upload CSV untuk mulai backtest.'
-                      : 'Belum ada strategi. Buat strategi pertama untuk memulai.',
+                      ? (AppLocalizations.of(context)?.emptyNoData ?? 'No market data yet. Upload CSV to start backtesting.')
+                      : (AppLocalizations.of(context)?.emptyNoStrategy ?? 'No strategies yet. Create your first strategy to get started.'),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
@@ -608,13 +652,13 @@ class HomeView extends StackedView<HomeViewModel> {
                   ElevatedButton.icon(
                     onPressed: viewModel.navigateToDataUpload,
                     icon: const Icon(Icons.upload_file),
-                    label: const Text('Upload Data'),
+                    label: Text(AppLocalizations.of(context)?.homeActionUploadTitle ?? 'Upload Data'),
                   ),
                 if (noStrategy)
                   OutlinedButton.icon(
                     onPressed: viewModel.navigateToStrategyBuilder,
                     icon: const Icon(Icons.psychology),
-                    label: const Text('Create Strategy'),
+                    label: Text(AppLocalizations.of(context)?.homeActionStrategyTitle ?? 'Create Strategy'),
                   ),
               ],
             ),
@@ -763,8 +807,9 @@ class HomeView extends StackedView<HomeViewModel> {
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
+  String _formatDate(BuildContext context, DateTime date) {
+    final locale = Localizations.localeOf(context).toString();
+    return DateFormat.yMMMd(locale).format(date);
   }
 
   @override
