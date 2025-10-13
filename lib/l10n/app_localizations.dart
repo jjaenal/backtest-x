@@ -122,6 +122,7 @@ class AppLocalizations {
       'home_title': 'Backtest‑X',
       'home_tooltip_onboarding': 'Onboarding',
       'home_tooltip_options': 'Options',
+      'home_help_options': 'Help',
       'home_action_upload_title': 'Upload Data',
       'home_action_upload_subtitle': 'Import historical market data',
       'home_action_scanner_title': 'Pattern Scanner',
@@ -175,6 +176,30 @@ class AppLocalizations {
       'workspace_pnl': 'P&L',
       'workspace_pf': 'PF',
       'workspace_no_results': 'No backtest results yet',
+      'workspace_search_hint': 'Search strategies...',
+      'workspace_search_no_results_tip': 'Try a different search term',
+      'workspace_quick_test_button': 'Quick Test',
+      'workspace_quick_test_result_title': 'Quick Test Result',
+      'workspace_export_filtered_results_csv': 'Export filtered results (CSV)',
+      'workspace_filter_profit_only': 'Profit Only',
+      'workspace_filter_pf_positive': 'PF > 1',
+      'workspace_filter_win_rate_50': 'Win Rate > 50%',
+      'copy_strategy_link': 'Copy Strategy Link',
+      'copy_result_link': 'Copy Result Link',
+      'common_expand': 'Expand',
+      'common_collapse': 'Collapse',
+      'common_all_symbols': 'All Symbols',
+      'workspace_compare_exit_tooltip': 'Exit Compare',
+      'workspace_compare_enter_tooltip': 'Compare Results',
+      'workspace_empty_no_strategies': 'No strategies yet',
+      'workspace_empty_no_strategies_found': 'No strategies found',
+      'workspace_empty_create_first_message':
+          'Create your first trading strategy',
+      'workspace_run_batch': 'Run Batch',
+      'duplicate_label': 'Duplicate',
+      'workspace_compare_count_label': 'Compare ({count})',
+      'workspace_compare_banner_text': 'Select 2-4 results to compare',
+      'workspace_compare_banner_selected_suffix': '({selected}/4 selected)',
 
       'filter_start_date': 'Start Date',
       'filter_end_date': 'End Date',
@@ -188,6 +213,42 @@ class AppLocalizations {
       'export_all_trades_csv': 'Export All Trades CSV',
       'export_tf_stats_csv': 'Export TF Stats CSV',
       'export_results_csv': 'Export Results CSV',
+
+      // WorkspaceViewModel messages
+      'strategy_results_exported': 'Strategy results exported to CSV',
+      'tf_stats_exported': 'TF Stats exported to CSV',
+      'trades_exported': 'All trades exported to CSV',
+      'no_results_to_export': 'No results to export for this strategy',
+      'no_per_tf_stats_found': 'No per-timeframe stats found',
+      'no_trades_found_or_cache': 'No trades found or data missing in cache',
+      'trades_csv_copied': 'Trades CSV copied to clipboard',
+      'summary_copied': 'Summary copied to clipboard',
+      'copy_failed': 'Copy failed: {error}',
+      'copy_failed_generic': 'Copy failed',
+      'export_failed': 'Export failed: {error}',
+      'strategy_duplicated': 'Strategy duplicated',
+      'strategy_deleted': 'Strategy deleted',
+      'batch_complete_saved': 'Batch complete: {completed}/{total} saved',
+      'batch_complete_saved_skipped':
+          'Batch complete: {completed}/{total} saved (skipped {skipped} invalid)',
+      'result_deleted': 'Result deleted',
+      'maximum_compare': 'Maximum 4 results can be compared',
+      'error_loading_selected_results': 'Error loading selected results',
+      'data_validation_report_title': 'Data Validation Report',
+      // Quick Test summaries
+      'qt_zero_trade_title': 'Quick Test: 0 Trade',
+      'qt_zero_trade_desc':
+          'No trades generated for this strategy and data. Result will not be saved and detail view is unavailable.',
+      'qt_done_title': 'Quick Test Completed',
+      'qt_done_desc':
+          'Profit Factor {pf}, Win Rate {winRate}%. View full results?',
+      'qt_snackbar_summary':
+          'Quick test completed — PF {pf}, WinRate {winRate}%',
+      'qt_run_failed_title': 'Quick test failed',
+      'qt_not_saved_zero_trade': 'Quick test result not saved (0 trade)',
+      'delete_title': 'Delete Result',
+      'cancel_title': 'Cancel',
+      'delete_result_desc': 'Delete this backtest result?',
 
       'metric_tooltip_tests': 'Number of backtests executed for this strategy.',
       'metric_tooltip_avg_pnl':
@@ -214,14 +275,16 @@ class AppLocalizations {
       'menu_export_panel_png': 'Export Panel PNG…',
       // Strategy Builder View
       'sb_exit_confirm_title': 'Exit Strategy Builder?',
-      'sb_exit_confirm_content': 'An autosave draft exists. Are you sure you want to close?',
+      'sb_exit_confirm_content':
+          'An autosave draft exists. Are you sure you want to close?',
       'common_cancel': 'Cancel',
       'sb_discard_and_exit': 'Discard & Exit',
       'common_close': 'Close',
       'sb_enable_autosave_title': 'Enable Autosave',
       'sb_menu_tooltip': 'Menu',
       'sb_import_confirm_title': 'Confirm Import',
-      'sb_import_confirm_content': 'New template will overwrite current builder. Continue?',
+      'sb_import_confirm_content':
+          'New template will overwrite current builder. Continue?',
       'sb_overwrite': 'Overwrite',
       'sb_import_template_json_title': 'Import Template JSON',
       'sb_apply': 'Apply',
@@ -278,6 +341,12 @@ class AppLocalizations {
       'sb_stats_trades': 'Trades',
       'sb_stats_wins': 'Wins',
       'sb_stats_winrate': 'WinRate',
+      // Strategy Builder — buttons and messages
+      'sb_save_strategy_button': 'Save Strategy',
+      'sb_update_strategy_button': 'Update Strategy',
+      'sb_strategy_saved': 'Strategy saved!',
+      'sb_strategy_updated': 'Strategy updated!',
+      'sb_form_reset_ready': 'Form reset. Ready for a new strategy!',
       'menu_export_chart_pdf': 'Export Chart PDF…',
       'menu_export_chart_panel_pdf': 'Export Chart + Panel PDF…',
       'menu_export_panel_pdf': 'Export Panel PDF…',
@@ -318,11 +387,14 @@ class AppLocalizations {
       // Candlestick Pattern Guide sheet (en)
       'cp_guide_title': 'Candlestick Patterns Guide',
       'cp_hammer_title': 'Hammer',
-      'cp_hammer_desc': 'Bullish reversal pattern after a downtrend; long lower shadow.',
+      'cp_hammer_desc':
+          'Bullish reversal pattern after a downtrend; long lower shadow.',
       'cp_shooting_star_title': 'Shooting Star',
-      'cp_shooting_star_desc': 'Bearish reversal pattern after an uptrend; long upper shadow.',
+      'cp_shooting_star_desc':
+          'Bearish reversal pattern after an uptrend; long upper shadow.',
       'cp_doji_title': 'Doji',
-      'cp_doji_desc': 'Indecision in the market; open and close are nearly equal.',
+      'cp_doji_desc':
+          'Indecision in the market; open and close are nearly equal.',
       'cp_marubozu_title': 'Marubozu',
       'cp_marubozu_desc': 'Strong momentum candle with little or no shadows.',
 
@@ -348,8 +420,83 @@ class AppLocalizations {
       'onboarding_step3_title': 'Run Preview',
       'onboarding_step3_desc':
           'Use Quick Preview to see instant summary before saving.',
-
       'more_trades': '+ {count} more trades',
+      // strategy template
+      "template_breakout_basic_name": "Breakout — SMA Range",
+      "template_breakout_basic_desc":
+          "Entry when price breaks above SMA, exit when falling back below.",
+      "template_breakout_hh_range_atr_name":
+          "Breakout — HH/HL Range + ATR Filter",
+      "template_breakout_hh_range_atr_desc":
+          "Entry when Close crossAbove HighestHigh(20) if ATR(14) < threshold (default loose); Exit when Close crossBelow LowestLow(20).",
+      "template_breakout_hh_range_atr_pct_name":
+          "Breakout — HH/HL Range + ATR% Filter",
+      "template_breakout_hh_range_atr_pct_desc":
+          "Entry when Close crossAbove HighestHigh(20) if ATR%(14) < 2%; Exit when Close crossBelow LowestLow(20). ATR% = ATR/Close, consistent across instruments.",
+      "template_mean_reversion_rsi_name": "Mean Reversion — RSI",
+      "template_mean_reversion_rsi_desc":
+          "Entry when RSI < 30 (oversold), exit when RSI > 50.",
+      "template_macd_signal_name": "MACD Signal",
+      "template_macd_signal_desc":
+          "Entry when MACD crossAbove Signal, exit crossBelow.",
+      "template_trend_ema_cross_name": "Trend Follow — EMA(20/50) Cross",
+      "template_trend_ema_cross_desc":
+          "Entry when EMA(20) crossAbove EMA(50), exit crossBelow.",
+      "template_trend_ema_adx_filter_name":
+          "Trend Follow — EMA Cross + ADX Filter",
+      "template_trend_ema_adx_filter_desc":
+          "Entry: EMA(20) crossAbove EMA(50) with ADX(14) > 20; Exit: EMA(20) crossBelow EMA(50).",
+      "template_trend_ema_atr_pct_filter_name":
+          "Trend Follow — EMA Cross + ATR% Filter",
+      "template_trend_ema_atr_pct_filter_desc":
+          "Entry: ATR%(14) < 2.0 and EMA(20) crossAbove EMA(50); Exit: EMA(20) crossBelow EMA(50).",
+      "template_momentum_rsi_macd_name": "Momentum — RSI & MACD",
+      "template_momentum_rsi_macd_desc":
+          "Entry RSI > 55 and MACD crossAbove Signal; exit RSI < 45 or MACD crossBelow Signal.",
+      "template_macd_hist_momentum_name":
+          "MACD Momentum — Signal + Histogram Filter",
+      "template_macd_hist_momentum_desc":
+          "Entry: MACD crossAbove Signal + Histogram > threshold; Exit: MACD crossBelow Signal or Histogram < −threshold.",
+      "template_mean_reversion_bb_rsi_name": "Mean Reversion — BB Lower + RSI",
+      "template_mean_reversion_bb_rsi_desc":
+          "Entry when Close < BB Lower (20) and RSI < 35; exit RSI > 50.",
+      "template_ema_vs_sma_cross_name": "EMA vs SMA — Cross",
+      "template_ema_vs_sma_cross_desc":
+          "Entry when EMA crossAbove SMA(50), exit crossBelow SMA(50).",
+      "template_macd_hist_rising_filter_name":
+          "MACD Momentum — Histogram Rising + Signal + Filter",
+      "template_macd_hist_rising_filter_desc":
+          "Entry: Histogram Rising + MACD crossAbove Signal + Histogram > threshold; Exit: Histogram Falling or MACD crossBelow Signal or Histogram < −threshold.",
+      "template_rsi_rising_50_filter_name": "RSI Momentum — Rising + 50 Filter",
+      "template_rsi_rising_50_filter_desc":
+          "Entry: RSI Rising + RSI > 50; Exit: RSI Falling or RSI < 50.",
+      "template_ema_rising_price_filter_name":
+          "EMA Momentum — EMA Rising + Price Filter",
+      "template_ema_rising_price_filter_desc":
+          "Entry: EMA Rising + Close > EMA(20); Exit: EMA Falling or Close < EMA(20).",
+      "template_ema_ribbon_stack_name":
+          "Trend Follow — EMA Ribbon (8/13/21/34/55)",
+      "template_ema_ribbon_stack_desc":
+          "Entry when EMA(8)>EMA(13)>EMA(21)>EMA(34)>EMA(55) and Close > EMA(21); Exit when Close < EMA(21).",
+      "template_bb_squeeze_breakout_name":
+          "Bollinger Squeeze — Width Rising + Breakout",
+      "template_bb_squeeze_breakout_desc":
+          "Main entry: Bollinger Width(20) rising and Close crossAbove BB Lower(20). Fallback: Close crossAbove SMA(20). Exit when Close < SMA(20). (Looser: without ATR% filter)",
+      "template_rsi_divergence_approx_name":
+          "RSI Divergence (Approx) — Rising RSI, Falling Price",
+      "template_rsi_divergence_approx_desc":
+          "Main entry: RSI rising and Close falling (simple bullish divergence signal). Fallback: RSI crossAbove 50 OR Close crossAbove SMA(20). Exit when RSI > 60.",
+      "template_vwap_pullback_breakout_name":
+          "VWAP Pullback — Close CrossAbove VWAP",
+      "template_vwap_pullback_breakout_desc":
+          "Entry when Close crossAbove VWAP(20) after consolidation; Exit when Close crossBelow VWAP(20).",
+      "template_anchored_vwap_pullback_cross_name":
+          "Anchored VWAP — Pullback Cross",
+      "template_anchored_vwap_pullback_cross_desc":
+          "Entry when Close crossAbove Anchored VWAP (anchor = start of backtest); Exit when Close crossBelow Anchored VWAP.",
+      "template_stoch_kd_cross_adx_name": "Stochastic Cross — K/D + ADX Filter",
+      "template_stoch_kd_cross_adx_desc":
+          "Entry when %K(14) crossAbove %D(3) with ADX(14) > 20; Exit when %K crossBelow %D."
     },
     'id': {
       'appTitle': 'Backtest‑X',
@@ -386,6 +533,7 @@ class AppLocalizations {
       'home_title': 'Backtest‑X',
       'home_tooltip_onboarding': 'Onboarding',
       'home_tooltip_options': 'Opsi',
+      'home_help_options': 'Bantuan',
       'home_action_upload_title': 'Unggah Data',
       'home_action_upload_subtitle': 'Impor data pasar historis',
       'home_action_scanner_title': 'Pendeteksi Pola',
@@ -440,6 +588,30 @@ class AppLocalizations {
       'workspace_pnl': 'P&L',
       'workspace_pf': 'PF',
       'workspace_no_results': 'Belum ada hasil backtest',
+      'workspace_search_hint': 'Cari strategi...',
+      'workspace_search_no_results_tip': 'Coba kata kunci lain',
+      'workspace_quick_test_button': 'Uji Cepat',
+      'workspace_quick_test_result_title': 'Hasil Uji Cepat',
+      'workspace_export_filtered_results_csv': 'Ekspor hasil terfilter (CSV)',
+      'workspace_filter_profit_only': 'Hanya Profit',
+      'workspace_filter_pf_positive': 'PF > 1',
+      'workspace_filter_win_rate_50': 'Win Rate > 50%',
+      'copy_strategy_link': 'Salin Tautan Strategi',
+      'copy_result_link': 'Salin Tautan Hasil',
+      'common_expand': 'Perluas',
+      'common_collapse': 'Ciutkan',
+      'common_all_symbols': 'Semua Simbol',
+      'workspace_compare_exit_tooltip': 'Keluar Banding',
+      'workspace_compare_enter_tooltip': 'Bandingkan Hasil',
+      'workspace_empty_no_strategies': 'Belum ada strategi',
+      'workspace_empty_no_strategies_found': 'Strategi tidak ditemukan',
+      'workspace_empty_create_first_message':
+          'Buat strategi trading pertama Anda',
+      'workspace_run_batch': 'Jalankan Batch',
+      'duplicate_label': 'Duplikat',
+      'workspace_compare_count_label': 'Bandingkan ({count})',
+      'workspace_compare_banner_text': 'Pilih 2–4 hasil untuk dibandingkan',
+      'workspace_compare_banner_selected_suffix': '({selected}/4 terpilih)',
 
       'filter_start_date': 'Tanggal Mulai',
       'filter_end_date': 'Tanggal Selesai',
@@ -453,6 +625,43 @@ class AppLocalizations {
       'export_all_trades_csv': 'Ekspor Semua Transaksi CSV',
       'export_tf_stats_csv': 'Ekspor Statistik TF CSV',
       'export_results_csv': 'Ekspor Hasil CSV',
+
+      // WorkspaceViewModel messages
+      'strategy_results_exported': 'Hasil strategi diekspor ke CSV',
+      'tf_stats_exported': 'Statistik TF diekspor ke CSV',
+      'trades_exported': 'Semua transaksi diekspor ke CSV',
+      'no_results_to_export':
+          'Tidak ada hasil untuk diekspor pada strategi ini',
+      'no_per_tf_stats_found': 'Tidak ada statistik per-timeframe ditemukan',
+      'no_trades_found_or_cache':
+          'Tidak ada transaksi atau data di cache hilang',
+      'trades_csv_copied': 'CSV transaksi disalin ke clipboard',
+      'summary_copied': 'Ringkasan disalin ke clipboard',
+      'copy_failed': 'Gagal menyalin: {error}',
+      'copy_failed_generic': 'Gagal menyalin',
+      'export_failed': 'Ekspor gagal: {error}',
+      'strategy_duplicated': 'Strategi diduplikasi',
+      'strategy_deleted': 'Strategi dihapus',
+      'batch_complete_saved': 'Batch selesai: {completed}/{total} tersimpan',
+      'batch_complete_saved_skipped':
+          'Batch selesai: {completed}/{total} tersimpan (lewati {skipped} tidak valid)',
+      'result_deleted': 'Hasil dihapus',
+      'maximum_compare': 'Maksimal 4 hasil dapat dibandingkan',
+      'error_loading_selected_results': 'Error memuat hasil terpilih',
+      'data_validation_report_title': 'Laporan Validasi Data',
+      // Quick Test summaries
+      'qt_zero_trade_title': 'Quick Test: 0 Trade',
+      'qt_zero_trade_desc':
+          'Tidak ada trade yang dihasilkan untuk strategi dan data ini. Hasil tidak akan disimpan dan tampilan detail tidak tersedia.',
+      'qt_done_title': 'Quick Test Selesai',
+      'qt_done_desc':
+          'Profit Factor {pf}, Win Rate {winRate}%. Lihat hasil lengkap?',
+      'qt_snackbar_summary': 'Quick test selesai — PF {pf}, WinRate {winRate}%',
+      'qt_run_failed_title': 'Quick test gagal',
+      'qt_not_saved_zero_trade': 'Hasil quick test tidak disimpan (0 trade)',
+      'delete_title': 'Hapus Hasil',
+      'cancel_title': 'Batal',
+      'delete_result_desc': 'Hapus hasil backtest ini?',
 
       'metric_tooltip_tests':
           'Jumlah backtest yang dijalankan untuk strategi ini.',
@@ -480,14 +689,16 @@ class AppLocalizations {
       'menu_export_panel_png': 'Ekspor Panel PNG…',
       // Strategy Builder View
       'sb_exit_confirm_title': 'Keluar dari Strategy Builder?',
-      'sb_exit_confirm_content': 'Ada draft di autosave. Yakin ingin menutup layar?',
+      'sb_exit_confirm_content':
+          'Ada draft di autosave. Yakin ingin menutup layar?',
       'common_cancel': 'Batal',
       'sb_discard_and_exit': 'Discard & Keluar',
       'common_close': 'Tutup',
       'sb_enable_autosave_title': 'Aktifkan Autosave',
       'sb_menu_tooltip': 'Menu',
       'sb_import_confirm_title': 'Konfirmasi Impor',
-      'sb_import_confirm_content': 'Template baru akan menimpa builder saat ini. Lanjutkan?',
+      'sb_import_confirm_content':
+          'Template baru akan menimpa builder saat ini. Lanjutkan?',
       'sb_overwrite': 'Timpa',
       'sb_import_template_json_title': 'Impor Template JSON',
       'sb_apply': 'Terapkan',
@@ -544,6 +755,12 @@ class AppLocalizations {
       'sb_stats_trades': 'Transaksi',
       'sb_stats_wins': 'Menang',
       'sb_stats_winrate': 'WinRate',
+      // Strategy Builder — buttons and messages
+      'sb_save_strategy_button': 'Simpan Strategi',
+      'sb_update_strategy_button': 'Perbarui Strategi',
+      'sb_strategy_saved': 'Strategi disimpan!',
+      'sb_strategy_updated': 'Strategi diperbarui!',
+      'sb_form_reset_ready': 'Form direset. Siap untuk strategi baru!',
       'menu_export_chart_pdf': 'Ekspor Chart PDF…',
       'menu_export_chart_panel_pdf': 'Ekspor Chart + Panel PDF…',
       'menu_export_panel_pdf': 'Ekspor Panel PDF…',
@@ -584,13 +801,16 @@ class AppLocalizations {
       // Candlestick Pattern Guide sheet (id)
       'cp_guide_title': 'Panduan Pola Candlestick',
       'cp_hammer_title': 'Hammer',
-      'cp_hammer_desc': 'Pola pembalikan bullish setelah tren turun; ekor bawah panjang.',
+      'cp_hammer_desc':
+          'Pola pembalikan bullish setelah tren turun; ekor bawah panjang.',
       'cp_shooting_star_title': 'Shooting Star',
-      'cp_shooting_star_desc': 'Pola pembalikan bearish setelah tren naik; ekor atas panjang.',
+      'cp_shooting_star_desc':
+          'Pola pembalikan bearish setelah tren naik; ekor atas panjang.',
       'cp_doji_title': 'Doji',
       'cp_doji_desc': 'Kebimbangan pasar; harga buka dan tutup hampir sama.',
       'cp_marubozu_title': 'Marubozu',
-      'cp_marubozu_desc': 'Kandil momentum kuat dengan sedikit atau tanpa ekor.',
+      'cp_marubozu_desc':
+          'Kandil momentum kuat dengan sedikit atau tanpa ekor.',
 
       // Onboarding bottom sheet (id)
       'onboarding_import_data': 'Impor Data',
@@ -684,6 +904,82 @@ class AppLocalizations {
       'ma_quality_valid_data': 'Data Valid',
       'ma_quality_complete_no_gaps': 'Lengkap (Tanpa Celah)',
       'ma_quality_candles': 'Candle',
+      // strategy template
+      "template_breakout_basic_name": "Breakout — SMA Range",
+      "template_breakout_basic_desc":
+          "Entry saat harga menembus di atas SMA, exit saat kembali di bawah.",
+      "template_breakout_hh_range_atr_name":
+          "Breakout — HH/HL Range + ATR Filter",
+      "template_breakout_hh_range_atr_desc":
+          "Entry saat Close crossAbove HighestHigh(20) bila ATR(14) < ambang (default longgar); Exit saat Close crossBelow LowestLow(20).",
+      "template_breakout_hh_range_atr_pct_name":
+          "Breakout — HH/HL Range + ATR% Filter",
+      "template_breakout_hh_range_atr_pct_desc":
+          "Entry saat Close crossAbove HighestHigh(20) bila ATR%(14) < 2%; Exit saat Close crossBelow LowestLow(20). ATR% = ATR/Close, konsisten lintas instrumen.",
+      "template_mean_reversion_rsi_name": "Mean Reversion — RSI",
+      "template_mean_reversion_rsi_desc":
+          "Entry saat RSI < 30 (oversold), exit saat RSI > 50.",
+      "template_macd_signal_name": "MACD Signal",
+      "template_macd_signal_desc":
+          "Entry saat MACD crossAbove Signal, exit crossBelow.",
+      "template_trend_ema_cross_name": "Trend Follow — EMA(20/50) Cross",
+      "template_trend_ema_cross_desc":
+          "Entry saat EMA(20) crossAbove EMA(50), exit saat crossBelow.",
+      "template_trend_ema_adx_filter_name":
+          "Trend Follow — EMA Cross + ADX Filter",
+      "template_trend_ema_adx_filter_desc":
+          "Entry: EMA(20) crossAbove EMA(50) dengan ADX(14) > 20; Exit: EMA(20) crossBelow EMA(50).",
+      "template_trend_ema_atr_pct_filter_name":
+          "Trend Follow — EMA Cross + ATR% Filter",
+      "template_trend_ema_atr_pct_filter_desc":
+          "Entry: ATR%(14) < 2.0 dan EMA(20) crossAbove EMA(50); Exit: EMA(20) crossBelow EMA(50).",
+      "template_momentum_rsi_macd_name": "Momentum — RSI & MACD",
+      "template_momentum_rsi_macd_desc":
+          "Entry RSI > 55 dan MACD crossAbove Signal; exit RSI < 45 atau MACD crossBelow Signal.",
+      "template_macd_hist_momentum_name":
+          "MACD Momentum — Signal + Histogram Filter",
+      "template_macd_hist_momentum_desc":
+          "Entry: MACD crossAbove Signal + Histogram > ambang; Exit: MACD crossBelow Signal atau Histogram < −ambang.",
+      "template_mean_reversion_bb_rsi_name": "Mean Reversion — BB Lower + RSI",
+      "template_mean_reversion_bb_rsi_desc":
+          "Entry saat Close < BB Lower (20) dan RSI < 35; exit RSI > 50.",
+      "template_ema_vs_sma_cross_name": "EMA vs SMA — Cross",
+      "template_ema_vs_sma_cross_desc":
+          "Entry saat EMA crossAbove SMA(50), exit saat crossBelow SMA(50).",
+      "template_macd_hist_rising_filter_name":
+          "MACD Momentum — Histogram Rising + Signal + Filter",
+      "template_macd_hist_rising_filter_desc":
+          "Entry: Histogram Rising + MACD crossAbove Signal + Histogram > ambang; Exit: Histogram Falling atau MACD crossBelow Signal atau Histogram < −ambang.",
+      "template_rsi_rising_50_filter_name": "RSI Momentum — Rising + 50 Filter",
+      "template_rsi_rising_50_filter_desc":
+          "Entry: RSI Rising + RSI > 50; Exit: RSI Falling atau RSI < 50.",
+      "template_ema_rising_price_filter_name":
+          "EMA Momentum — EMA Rising + Price Filter",
+      "template_ema_rising_price_filter_desc":
+          "Entry: EMA Rising + Close > EMA(20); Exit: EMA Falling atau Close < EMA(20).",
+      "template_ema_ribbon_stack_name":
+          "Trend Follow — EMA Ribbon (8/13/21/34/55)",
+      "template_ema_ribbon_stack_desc":
+          "Entry saat EMA(8)>EMA(13)>EMA(21)>EMA(34)>EMA(55) dan Close > EMA(21); Exit saat Close < EMA(21).",
+      "template_bb_squeeze_breakout_name":
+          "Bollinger Squeeze — Width Rising + Breakout",
+      "template_bb_squeeze_breakout_desc":
+          "Entry utama: Bollinger Width(20) rising dan Close crossAbove BB Lower(20). Fallback: Close crossAbove SMA(20). Exit saat Close < SMA(20). (Lebih longgar: tanpa filter ATR%)",
+      "template_rsi_divergence_approx_name":
+          "RSI Divergence (Approx) — Rising RSI, Falling Price",
+      "template_rsi_divergence_approx_desc":
+          "Entry utama: RSI rising dan Close falling (indikasi divergensi bullish sederhana). Fallback: RSI crossAbove 50 ATAU Close crossAbove SMA(20). Exit saat RSI > 60.",
+      "template_vwap_pullback_breakout_name":
+          "VWAP Pullback — Close CrossAbove VWAP",
+      "template_vwap_pullback_breakout_desc":
+          "Entry saat Close crossAbove VWAP(20) setelah konsolidasi; Exit saat Close crossBelow VWAP(20).",
+      "template_anchored_vwap_pullback_cross_name":
+          "Anchored VWAP — Pullback Cross",
+      "template_anchored_vwap_pullback_cross_desc":
+          "Entry saat Close crossAbove Anchored VWAP (anchor = awal backtest); Exit saat Close crossBelow Anchored VWAP.",
+      "template_stoch_kd_cross_adx_name": "Stochastic Cross — K/D + ADX Filter",
+      "template_stoch_kd_cross_adx_desc":
+          "Entry saat %K(14) crossAbove %D(3) dengan ADX(14) > 20; Exit saat %K crossBelow %D."
     },
   };
 
@@ -698,6 +994,7 @@ class AppLocalizations {
   String get homeTitle => _text('home_title');
   String get homeTooltipOnboarding => _text('home_tooltip_onboarding');
   String get homeTooltipOptions => _text('home_tooltip_options');
+  String get homeHelpOptions => _text('home_help_options');
   String get homeActionUploadTitle => _text('home_action_upload_title');
   String get homeActionUploadSubtitle => _text('home_action_upload_subtitle');
   String get homeActionScannerTitle => _text('home_action_scanner_title');
@@ -783,6 +1080,131 @@ class AppLocalizations {
   String get workspacePnlLabel => _text('workspace_pnl');
   String get workspacePfLabel => _text('workspace_pf');
   String get workspaceNoResults => _text('workspace_no_results');
+  String get workspaceSearchHint => _text('workspace_search_hint');
+  String get workspaceSearchNoResultsTip =>
+      _text('workspace_search_no_results_tip');
+  String get workspaceQuickTestButton => _text('workspace_quick_test_button');
+  String get workspaceQuickTestResultTitle =>
+      _text('workspace_quick_test_result_title');
+
+  // Sorting labels (Workspace)
+  String get sortName => _text('sort_name');
+  String get sortDateCreated => _text('sort_date_created');
+  String get sortDateModified => _text('sort_date_modified');
+  String get sortPerformance => _text('sort_performance');
+  String get sortTestsRun => _text('sort_tests_run');
+
+  // Common copy/snackbar messages
+  String get copyStrategyLinkCopied => _text('copy_strategy_link_copied');
+  String get copyResultLinkCopied => _text('copy_result_link_copied');
+  String copyFailed(String error) =>
+      _text('copy_failed').replaceAll('{error}', error);
+
+  // Market data / quick test notices
+  String get mdRequiredTitle => _text('md_required_title');
+  String get mdRequiredDesc => _text('md_required_desc');
+  String get mdUploadButton => _text('md_upload_button');
+  String get commonCancel => _text('common_cancel');
+
+  String get qtSelectDataTitle => _text('qt_select_data_title');
+  String get qtSelectDataDesc => _text('qt_select_data_desc');
+  String get qtUseThisData => _text('qt_use_this_data');
+  String get qtUploadNew => _text('qt_upload_new');
+
+  String get mdEmptyTitle => _text('md_empty_title');
+  String get mdEmptyDesc => _text('md_empty_desc');
+  String get mdGoToUpload => _text('md_go_to_upload');
+  String get commonClose => _text('common_close');
+
+  String get qtZeroTradeTitle => _text('qt_zero_trade_title');
+  String get qtZeroTradeDesc => _text('qt_zero_trade_desc');
+  String get qtDoneTitle => _text('qt_done_title');
+  String qtDoneDesc(String pf, String winRate) => _text('qt_done_desc')
+      .replaceAll('{pf}', pf)
+      .replaceAll('{winRate}', winRate);
+  String qtSnackbarSummary(String pf, String winRate) =>
+      _text('qt_snackbar_summary')
+          .replaceAll('{pf}', pf)
+          .replaceAll('{winRate}', winRate);
+  String get qtRunFailedTitle => _text('qt_run_failed_title');
+  String get qtNotSavedZeroTrade => _text('qt_not_saved_zero_trade');
+  String get qtSavedToDb => _text('qt_saved_to_db');
+  String get qtSaveFailedTitle => _text('qt_save_failed_title');
+
+  // Validation report
+  String get dataValidationReportTitle => _text('data_validation_report_title');
+
+  // Quick run template messages
+  String templateNotFound(String name, String keys, String total) =>
+      _text('template_not_found')
+          .replaceAll('{name}', name)
+          .replaceAll('{keys}', keys)
+          .replaceAll('{total}', total);
+  String quickRunFailed(String name, String error) => _text('quick_run_failed')
+      .replaceAll('{name}', name)
+      .replaceAll('{error}', error);
+
+  // Batch/export messages
+  String get pleaseUploadMarketData => _text('please_upload_market_data');
+  String get batchAlreadyRunning => _text('batch_already_running');
+  String batchCompleteSaved(String completed, String total) =>
+      _text('batch_complete_saved')
+          .replaceAll('{completed}', completed)
+          .replaceAll('{total}', total);
+  String batchCompleteSavedSkipped(
+          String completed, String total, String skipped) =>
+      _text('batch_complete_saved_skipped')
+          .replaceAll('{completed}', completed)
+          .replaceAll('{total}', total)
+          .replaceAll('{skipped}', skipped);
+  String get noResultsToExport => _text('no_results_to_export');
+  String get strategyResultsExported => _text('strategy_results_exported');
+  String exportFailed(String error) =>
+      _text('export_failed').replaceAll('{error}', error);
+  String get tfStatsExported => _text('tf_stats_exported');
+  String get tradesExported => _text('trades_exported');
+  String get tradesCsvCopied => _text('trades_csv_copied');
+  String get summaryCopied => _text('summary_copied');
+  String get copyFailedGeneric => _text('copy_failed_generic');
+  String get noTradesFoundOrCache => _text('no_trades_found_or_cache');
+  String get noPerTfStatsFound => _text('no_per_tf_stats_found');
+
+  // Delete/confirm dialogs
+  String get deleteStrategyTitle => _text('delete_strategy_title');
+  String deleteStrategyDesc(String name, String resultsCount) =>
+      _text('delete_strategy_desc')
+          .replaceAll('{name}', name)
+          .replaceAll('{resultsCount}', resultsCount);
+  String deleteStrategyDescNoResults(String name) =>
+      _text('delete_strategy_desc_no_results').replaceAll('{name}', name);
+  String get deleteTitle => _text('delete_title');
+  String get cancelTitle => _text('cancel_title');
+  String get deleteResultDesc => _text('delete_result_desc');
+  String get strategyDuplicated => _text('strategy_duplicated');
+  String get strategyDeleted => _text('strategy_deleted');
+  String get resultDeleted => _text('result_deleted');
+  String get maximumCompare => _text('maximum_compare');
+  String get errorLoadingSelectedResults =>
+      _text('error_loading_selected_results');
+  String get workspaceExportFilteredResultsCsv =>
+      _text('workspace_export_filtered_results_csv');
+  String get workspaceFilterProfitOnly => _text('workspace_filter_profit_only');
+  String get workspaceFilterPfPositive => _text('workspace_filter_pf_positive');
+  String get workspaceFilterWinRate50 => _text('workspace_filter_win_rate_50');
+  String get workspaceCompareExitTooltip =>
+      _text('workspace_compare_exit_tooltip');
+  String get workspaceCompareEnterTooltip =>
+      _text('workspace_compare_enter_tooltip');
+  String get workspaceEmptyNoStrategies =>
+      _text('workspace_empty_no_strategies');
+  String get workspaceEmptyNoStrategiesFound =>
+      _text('workspace_empty_no_strategies_found');
+  String get workspaceEmptyCreateFirstMessage =>
+      _text('workspace_empty_create_first_message');
+  String get workspaceRunBatch => _text('workspace_run_batch');
+  String get duplicateLabel => _text('duplicate_label');
+  String get workspaceCompareBannerText =>
+      _text('workspace_compare_banner_text');
 
   String get filterStartDate => _text('filter_start_date');
   String get filterEndDate => _text('filter_end_date');
@@ -796,6 +1218,11 @@ class AppLocalizations {
   String get exportAllTradesCsv => _text('export_all_trades_csv');
   String get exportTfStatsCsv => _text('export_tf_stats_csv');
   String get exportResultsCsv => _text('export_results_csv');
+  String get copyStrategyLink => _text('copy_strategy_link');
+  String get copyResultLink => _text('copy_result_link');
+  String get commonExpand => _text('common_expand');
+  String get commonCollapse => _text('common_collapse');
+  String get commonAllSymbols => _text('common_all_symbols');
 
   String get metricTooltipTests => _text('metric_tooltip_tests');
   String get metricTooltipAvgPnl => _text('metric_tooltip_avg_pnl');
@@ -803,6 +1230,12 @@ class AppLocalizations {
   String get metricTooltipPnl => _text('metric_tooltip_pnl');
   String get metricTooltipPf => _text('metric_tooltip_pf');
   String get metricTooltipDefault => _text('metric_tooltip_default');
+
+  String workspaceCompareCountLabel(int count) =>
+      _text('workspace_compare_count_label').replaceAll('{count}', '$count');
+  String workspaceCompareBannerSelectedSuffix(int selected) =>
+      _text('workspace_compare_banner_selected_suffix')
+          .replaceAll('{selected}', '$selected');
 
   String get relativeToday => _text('relative_today');
   String get relativeYesterday => _text('relative_yesterday');
@@ -823,15 +1256,14 @@ class AppLocalizations {
   // Strategy Builder getters
   String get sbExitConfirmTitle => _text('sb_exit_confirm_title');
   String get sbExitConfirmContent => _text('sb_exit_confirm_content');
-  String get commonCancel => _text('common_cancel');
   String get sbDiscardAndExit => _text('sb_discard_and_exit');
-  String get commonClose => _text('common_close');
   String get sbEnableAutosaveTitle => _text('sb_enable_autosave_title');
   String get sbMenuTooltip => _text('sb_menu_tooltip');
   String get sbImportConfirmTitle => _text('sb_import_confirm_title');
   String get sbImportConfirmContent => _text('sb_import_confirm_content');
   String get sbOverwrite => _text('sb_overwrite');
-  String get sbImportTemplateJsonTitle => _text('sb_import_template_json_title');
+  String get sbImportTemplateJsonTitle =>
+      _text('sb_import_template_json_title');
   String get sbApply => _text('sb_apply');
   String get sbBuilderTips => _text('sb_builder_tips');
   String get sbExportJson => _text('sb_export_json');
@@ -890,6 +1322,13 @@ class AppLocalizations {
   String get menuExportChartPanelPdf => _text('menu_export_chart_panel_pdf');
   String get menuExportPanelPdf => _text('menu_export_panel_pdf');
   String get menuExportBacktestPdf => _text('menu_export_backtest_pdf');
+
+  // Strategy Builder — buttons and messages
+  String get sbSaveStrategyButton => _text('sb_save_strategy_button');
+  String get sbUpdateStrategyButton => _text('sb_update_strategy_button');
+  String get sbStrategySaved => _text('sb_strategy_saved');
+  String get sbStrategyUpdated => _text('sb_strategy_updated');
+  String get sbFormResetReady => _text('sb_form_reset_ready');
 
   String get promptExportChartPng => _text('prompt_export_chart_png');
   String get promptExportPanelPng => _text('prompt_export_panel_png');
@@ -984,6 +1423,7 @@ class _AppLocDelegate extends LocalizationsDelegate<AppLocalizations> {
   @override
   bool shouldReload(_AppLocDelegate old) => false;
 }
+
 // Bottom sheets and onboarding getters placed via extension
 extension AppLocalizationsBottomSheets on AppLocalizations {
   // Notice
@@ -1050,4 +1490,86 @@ extension AppLocalizationsBottomSheets on AppLocalizations {
   String get cpDojiDesc => _text('cp_doji_desc');
   String get cpMarubozuTitle => _text('cp_marubozu_title');
   String get cpMarubozuDesc => _text('cp_marubozu_desc');
+
+  // strategy template
+  String get templateBreakoutBasicName => _text('template_breakout_basic_name');
+  String get templateBreakoutBasicDesc => _text('template_breakout_basic_desc');
+  String get templateBreakoutHhRangeAtrName =>
+      _text('template_breakout_hh_range_atr_name');
+  String get templateBreakoutHhRangeAtrDesc =>
+      _text('template_breakout_hh_range_atr_desc');
+  String get templateBreakoutHhRangeAtrPctName =>
+      _text('template_breakout_hh_range_atr_pct_name');
+  String get templateBreakoutHhRangeAtrPctDesc =>
+      _text('template_breakout_hh_range_atr_pct_desc');
+  String get templateMeanReversionRsiName =>
+      _text('template_mean_reversion_rsi_name');
+  String get templateMeanReversionRsiDesc =>
+      _text('template_mean_reversion_rsi_desc');
+  String get templateMacdSignalName => _text('template_macd_signal_name');
+  String get templateMacdSignalDesc => _text('template_macd_signal_desc');
+  String get templateTrendEmaCrossName =>
+      _text('template_trend_ema_cross_name');
+  String get templateTrendEmaCrossDesc =>
+      _text('template_trend_ema_cross_desc');
+  String get templateTrendEmaAdxFilterName =>
+      _text('template_trend_ema_adx_filter_name');
+  String get templateTrendEmaAdxFilterDesc =>
+      _text('template_trend_ema_adx_filter_desc');
+  String get templateTrendEmaAtrPctFilterName =>
+      _text('template_trend_ema_atr_pct_filter_name');
+  String get templateTrendEmaAtrPctFilterDesc =>
+      _text('template_trend_ema_atr_pct_filter_desc');
+  String get templateMomentumRsiMacdName =>
+      _text('template_momentum_rsi_macd_name');
+  String get templateMomentumRsiMacdDesc =>
+      _text('template_momentum_rsi_macd_desc');
+  String get templateMacdHistMomentumName =>
+      _text('template_macd_hist_momentum_name');
+  String get templateMacdHistMomentumDesc =>
+      _text('template_macd_hist_momentum_desc');
+  String get templateMeanReversionBbRsiName =>
+      _text('template_mean_reversion_bb_rsi_name');
+  String get templateMeanReversionBbRsiDesc =>
+      _text('template_mean_reversion_bb_rsi_desc');
+  String get templateEmaVsSmaCrossName =>
+      _text('template_ema_vs_sma_cross_name');
+  String get templateEmaVsSmaCrossDesc =>
+      _text('template_ema_vs_sma_cross_desc');
+  String get templateMacdHistRisingFilterName =>
+      _text('template_macd_hist_rising_filter_name');
+  String get templateMacdHistRisingFilterDesc =>
+      _text('template_macd_hist_rising_filter_desc');
+  String get templateRsiRising50FilterName =>
+      _text('template_rsi_rising_50_filter_name');
+  String get templateRsiRising50FilterDesc =>
+      _text('template_rsi_rising_50_filter_desc');
+  String get templateEmaRisingPriceFilterName =>
+      _text('template_ema_rising_price_filter_name');
+  String get templateEmaRisingPriceFilterDesc =>
+      _text('template_ema_rising_price_filter_desc');
+  String get templateEmaRibbonStackName =>
+      _text('template_ema_ribbon_stack_name');
+  String get templateEmaRibbonStackDesc =>
+      _text('template_ema_ribbon_stack_desc');
+  String get templateBbSqueezeBreakoutName =>
+      _text('template_bb_squeeze_breakout_name');
+  String get templateBbSqueezeBreakoutDesc =>
+      _text('template_bb_squeeze_breakout_desc');
+  String get templateRsiDivergenceApproxName =>
+      _text('template_rsi_divergence_approx_name');
+  String get templateRsiDivergenceApproxDesc =>
+      _text('template_rsi_divergence_approx_desc');
+  String get templateVwapPullbackBreakoutName =>
+      _text('template_vwap_pullback_breakout_name');
+  String get templateVwapPullbackBreakoutDesc =>
+      _text('template_vwap_pullback_breakout_desc');
+  String get templateAnchoredVwapPullbackCrossName =>
+      _text('template_anchored_vwap_pullback_cross_name');
+  String get templateAnchoredVwapPullbackCrossDesc =>
+      _text('template_anchored_vwap_pullback_cross_desc');
+  String get templateStochKdCrossAdxName =>
+      _text('template_stoch_kd_cross_adx_name');
+  String get templateStochKdCrossAdxDesc =>
+      _text('template_stoch_kd_cross_adx_desc');
 }

@@ -942,7 +942,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
       child: Wrap(
         spacing: 8,
@@ -974,7 +974,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.06),
+        color: theme.colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(

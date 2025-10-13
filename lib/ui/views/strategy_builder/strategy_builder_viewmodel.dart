@@ -8,7 +8,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/backtest_engine_service.dart';
-import 'package:backtestx/helpers/timeframe_helper.dart' as tfHelper;
+import 'package:backtestx/helpers/timeframe_helper.dart' as tf_helper;
 import 'dart:async';
 import 'package:backtestx/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -130,6 +130,37 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   DateTime? lastAutosaveAt;
   bool hasAutosaveDraft = false;
 
+  // Saving state (non-blocking UI)
+  bool isSaving = false;
+
+  // Reset builder form to defaults after successful save
+  void resetForm() {
+    nameController.clear();
+    initialCapitalController.text = '10000';
+    riskValueController.text = '2.0';
+    stopLossController.text = '100';
+    takeProfitController.text = '200';
+
+    riskType = RiskType.percentageRisk;
+    entryRules = [];
+    exitRules = [];
+
+    selectedDataId = null;
+    previewResult = null;
+    isRunningPreview = false;
+    previewTfStats = {};
+
+    appliedTemplateName = null;
+    appliedTemplateDescription = null;
+
+    autosaveStatus = '';
+    isAutoSaving = false;
+    lastAutosaveAt = null;
+    hasAutosaveDraft = false;
+
+    notifyListeners();
+  }
+
   // Services
   final _indicatorService = locator<IndicatorService>();
 
@@ -153,8 +184,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     if (rule.timeframe != null && selectedDataId != null) {
       final data = _dataManager.getData(selectedDataId!);
       if (data != null) {
-        final baseMin = tfHelper.parseTimeframeToMinutes(data.timeframe);
-        final ruleMin = tfHelper.parseTimeframeToMinutes(rule.timeframe!);
+        final baseMin = tf_helper.parseTimeframeToMinutes(data.timeframe);
+        final ruleMin = tf_helper.parseTimeframeToMinutes(rule.timeframe!);
         if (ruleMin < baseMin) {
           warnings.add(
               'Timeframe rule lebih kecil dari data dasar; akan dipaksa ke ${data.timeframe}.');
@@ -728,6 +759,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   }
 
   Future<void> saveStrategy(BuildContext context) async {
+    final loc = AppLocalizations.of(context)!;
     final fatalErrors = getAllFatalErrors();
     if (!canSave || fatalErrors.isNotEmpty) {
       _snackbarService.showSnackbar(
@@ -739,7 +771,9 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       return;
     }
 
-    setBusy(true);
+    // Use non-blocking saving state to keep context visible
+    isSaving = true;
+    notifyListeners();
 
     try {
       // Build strategy object
@@ -771,12 +805,20 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       }
 
       _snackbarService.showSnackbar(
-        message: isEditing ? 'Strategy updated!' : 'Strategy saved!',
+        message: isEditing ? loc.sbStrategyUpdated : loc.sbStrategySaved,
         duration: const Duration(seconds: 2),
       );
-      // Navigate back
-      await Future.delayed(const Duration(seconds: 1));
-      _navigationService.back();
+      // After save: if editing, navigate back; if creating, reset form
+      if (isEditing) {
+        await Future.delayed(const Duration(seconds: 1));
+        _navigationService.back();
+      } else {
+        resetForm();
+        _snackbarService.showSnackbar(
+          message: loc.sbFormResetReady,
+          duration: const Duration(seconds: 2),
+        );
+      }
     } catch (e) {
       debugPrint('Error saving strategy: $e');
       showErrorWithRetry(
@@ -785,7 +827,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         onRetry: () => saveStrategy(context),
       );
     } finally {
-      setBusy(false);
+      isSaving = false;
+      notifyListeners();
     }
   }
 

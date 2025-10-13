@@ -12,7 +12,7 @@ This guide standardizes how we use Flutter’s `ThemeData` and `ColorScheme` acr
 ## Common Tokens
 
 - Text primary: `colorScheme.onSurface`
-- Muted text: `onSurface.withOpacity(0.6–0.8)`
+- Muted text: `onSurface.withValues(alpha:0.6–0.8)`
 - Icons: `onSurface` or `primary` when active
 - Cards/sheets: `colorScheme.surface` or `surfaceVariant`
 - Outlines/dividers: `colorScheme.outline`
@@ -28,7 +28,7 @@ Container(
     color: Theme.of(context).colorScheme.surface,
     borderRadius: BorderRadius.circular(16),
     border: Border.all(
-      color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+      color: Theme.of(context).colorScheme.outline.withValues(alpha:0.3),
     ),
   ),
 );
@@ -40,7 +40,7 @@ Container(
 Text(
   description,
   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.8),
+    color: Theme.of(context).colorScheme.onSurface.withValues(alpha:0.8),
   ),
 );
 ```
@@ -58,8 +58,8 @@ Icon(
 
 ```dart
 final cs = Theme.of(context).colorScheme;
-final gridColor = cs.outline.withOpacity(0.2);
-final labelColor = cs.onSurface.withOpacity(0.7);
+final gridColor = cs.outline.withValues(alpha:0.2);
+final labelColor = cs.onSurface.withValues(alpha:0.7);
 ```
 
 ## Do / Don’t
@@ -104,12 +104,12 @@ class AppTokens {
   // Surfaces
   Color get cardBg => cs.surface;
   Color get sheetBg => cs.surfaceVariant;
-  Color get border => cs.outline.withOpacity(0.3);
+  Color get border => cs.outline.withValues(alpha:0.3);
 
   // Text
   Color get text => cs.onSurface;
-  Color get textMuted => cs.onSurface.withOpacity(0.7);
-  Color get textSubtle => cs.onSurface.withOpacity(0.5);
+  Color get textMuted => cs.onSurface.withValues(alpha:0.7);
+  Color get textSubtle => cs.onSurface.withValues(alpha:0.5);
 
   // States
   Color get accent => cs.primary;
@@ -118,9 +118,9 @@ class AppTokens {
   Color get warning => cs.secondary;
 
   // Fills
-  Color get successFill => cs.tertiary.withOpacity(0.12);
-  Color get errorFill => cs.error.withOpacity(0.12);
-  Color get warningFill => cs.secondary.withOpacity(0.12);
+  Color get successFill => cs.tertiary.withValues(alpha:0.12);
+  Color get errorFill => cs.error.withValues(alpha:0.12);
+  Color get warningFill => cs.secondary.withValues(alpha:0.12);
 }
 ```
 
@@ -195,7 +195,7 @@ const darkScheme = ColorScheme(
 - Components:
   - Cards/Sheets: `surface/surfaceVariant` + `outline` border.
   - Banners/Alerts: use fills (`errorFill`, `successFill`) with token text.
-  - Charts: grid `outline.withOpacity(0.2)`, labels `onSurface.withOpacity(0.7)`.
+  - Charts: grid `outline.withValues(alpha:0.2)`, labels `onSurface.withValues(alpha:0.7)`.
 
 ## Component Patterns (Examples)
 
@@ -221,8 +221,8 @@ final cs = Theme.of(context).colorScheme;
 return ListTile(
   tileColor: cs.surface,
   title: Text(name, style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: cs.onSurface)),
-  subtitle: Text(desc, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurface.withOpacity(0.7))),
-  trailing: Icon(Icons.chevron_right, color: cs.onSurface.withOpacity(0.8)),
+  subtitle: Text(desc, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurface.withValues(alpha:0.7))),
+  trailing: Icon(Icons.chevron_right, color: cs.onSurface.withValues(alpha:0.8)),
 );
 ```
 
@@ -253,8 +253,8 @@ banner(t.errorFill, t.error, 'Failed to load data');
 
 ```dart
 final cs = Theme.of(context).colorScheme;
-final gridColor = cs.outline.withOpacity(0.2);
-final labelColor = cs.onSurface.withOpacity(0.7);
+final gridColor = cs.outline.withValues(alpha:0.2);
+final labelColor = cs.onSurface.withValues(alpha:0.7);
 // Configure chart library using gridColor/labelColor consistently.
 ```
 

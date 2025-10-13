@@ -66,8 +66,10 @@ class WorkspaceView extends StatelessWidget {
                   model.isCompareMode ? Icons.close : Icons.compare_arrows,
                 ),
                 onPressed: model.toggleCompareMode,
-                tooltip:
-                    model.isCompareMode ? 'Exit Compare' : 'Compare Results',
+                tooltip: model.isCompareMode
+                    ? AppLocalizations.of(context)!.workspaceCompareExitTooltip
+                    : AppLocalizations.of(context)!
+                        .workspaceCompareEnterTooltip,
               ),
 
             // Sort menu
@@ -143,7 +145,8 @@ class WorkspaceView extends StatelessWidget {
             ? FloatingActionButton.extended(
                 onPressed: model.compareSelected,
                 icon: const Icon(Icons.compare),
-                label: Text('Compare (${model.selectedCount})'),
+                label: Text(AppLocalizations.of(context)!
+                    .workspaceCompareCountLabel(model.selectedCount)),
               )
             : FloatingActionButton(
                 onPressed: model.navigateToCreateStrategy,
@@ -262,7 +265,7 @@ class WorkspaceView extends StatelessWidget {
       child: TextField(
         onChanged: model.searchStrategies,
         decoration: InputDecoration(
-          hintText: 'Search strategies...',
+          hintText: AppLocalizations.of(context)!.workspaceSearchHint,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: model.searchQuery.isNotEmpty
               ? IconButton(
@@ -299,7 +302,8 @@ class WorkspaceView extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Select 2-4 results to compare (${model.selectedCount}/4 selected)',
+              '${AppLocalizations.of(context)!.workspaceCompareBannerText} '
+              '${AppLocalizations.of(context)!.workspaceCompareBannerSelectedSuffix(model.selectedCount)}',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.primary,
                 fontWeight: FontWeight.w500,
@@ -320,11 +324,15 @@ class WorkspaceView extends StatelessWidget {
     final isEmpty = model.strategies.isEmpty;
     return EmptyState(
       icon: isEmpty ? Icons.folder_open : Icons.search_off,
-      title: isEmpty ? 'No strategies yet' : 'No strategies found',
+      title: isEmpty
+          ? AppLocalizations.of(context)!.workspaceEmptyNoStrategies
+          : AppLocalizations.of(context)!.workspaceEmptyNoStrategiesFound,
       message: isEmpty
-          ? 'Create your first trading strategy'
-          : 'Try a different search term',
-      primaryLabel: isEmpty ? 'Create Strategy' : null,
+          ? AppLocalizations.of(context)!.workspaceEmptyCreateFirstMessage
+          : AppLocalizations.of(context)!.workspaceSearchNoResultsTip,
+      primaryLabel: isEmpty
+          ? AppLocalizations.of(context)!.homeActionStrategyTitle
+          : null,
       onPrimary: isEmpty ? model.navigateToCreateStrategy : null,
     );
   }
@@ -437,27 +445,29 @@ class WorkspaceView extends StatelessWidget {
                                 else
                                   const Icon(Icons.playlist_play, size: 20),
                                 const SizedBox(width: 12),
-                                Text('Run Batch'),
+                                Text(AppLocalizations.of(context)!
+                                    .workspaceRunBatch),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'edit',
                             child: Row(
                               children: [
                                 Icon(Icons.edit, size: 20),
                                 SizedBox(width: 12),
-                                Text('Edit'),
+                                Text(AppLocalizations.of(context)!.editLabel),
                               ],
                             ),
                           ),
-                          const PopupMenuItem(
+                          PopupMenuItem(
                             value: 'duplicate',
                             child: Row(
                               children: [
                                 Icon(Icons.content_copy, size: 20),
                                 SizedBox(width: 12),
-                                Text('Duplicate'),
+                                Text(AppLocalizations.of(context)!
+                                    .duplicateLabel),
                               ],
                             ),
                           ),
@@ -529,7 +539,8 @@ class WorkspaceView extends StatelessWidget {
                             child: DropdownButton<String>(
                               isExpanded: true,
                               value: model.selectedDataId,
-                              hint: const Text('Select market data'),
+                              hint: Text(AppLocalizations.of(context)!
+                                  .sbSelectMarketData),
                               onChanged: (value) {
                                 // Disable changing data while quick/batch test is running
                                 final isDisabled = model
@@ -569,7 +580,8 @@ class WorkspaceView extends StatelessWidget {
                                 ),
                               )
                             : const Icon(Icons.flash_on, size: 18),
-                        label: const Text('Quick Test'),
+                        label: Text(AppLocalizations.of(context)!
+                            .workspaceQuickTestButton),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -584,7 +596,8 @@ class WorkspaceView extends StatelessWidget {
                           onPressed: () =>
                               model.copyStrategyLinkToClipboard(strategy),
                           icon: const Icon(Icons.link),
-                          tooltip: 'Copy Strategy Link',
+                          tooltip:
+                              AppLocalizations.of(context)!.copyStrategyLink,
                         ),
                         const SizedBox(width: 4),
                         IconButton(
@@ -592,7 +605,9 @@ class WorkspaceView extends StatelessWidget {
                           icon: Icon(
                             isExpanded ? Icons.expand_less : Icons.expand_more,
                           ),
-                          tooltip: isExpanded ? 'Collapse' : 'Expand',
+                          tooltip: isExpanded
+                              ? AppLocalizations.of(context)!.commonCollapse
+                              : AppLocalizations.of(context)!.commonExpand,
                         ),
                       ],
                     ],
@@ -661,7 +676,7 @@ class WorkspaceView extends StatelessWidget {
   Widget _buildStatItem(BuildContext context, String label, String value,
       IconData icon, Color color) {
     final t = AppLocalizations.of(context)!;
-    String _metricLabelLocalized(String key) {
+    String metricLabelLocalized(String key) {
       switch (key) {
         case 'Tests':
           return t.workspaceTestsLabel;
@@ -680,7 +695,7 @@ class WorkspaceView extends StatelessWidget {
       }
     }
 
-    String _metricTooltipLocalized(String key) {
+    String metricTooltipLocalized(String key) {
       switch (key) {
         case 'Tests':
           return t.metricTooltipTests;
@@ -710,9 +725,9 @@ class WorkspaceView extends StatelessWidget {
           ),
         ),
         Tooltip(
-          message: _metricTooltipLocalized(label),
+          message: metricTooltipLocalized(label),
           child: Text(
-            _metricLabelLocalized(label),
+            metricLabelLocalized(label),
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context)
@@ -744,7 +759,7 @@ class WorkspaceView extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'No backtest results yet',
+            AppLocalizations.of(context)!.workspaceNoResults,
             style: TextStyle(
               color: Theme.of(context)
                   .colorScheme
@@ -793,8 +808,8 @@ class WorkspaceView extends StatelessWidget {
                 color: Colors.amber[700],
               ),
               const SizedBox(width: 6),
-              const Text(
-                'Quick Test Result',
+              Text(
+                AppLocalizations.of(context)!.workspaceQuickTestResultTitle,
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -803,7 +818,7 @@ class WorkspaceView extends StatelessWidget {
               const Spacer(),
               TextButton(
                 onPressed: () => model.viewQuickResult(strategyId),
-                child: const Text('View Full Results'),
+                child: Text(AppLocalizations.of(context)!.sbViewFullResults),
               ),
             ],
           ),
@@ -908,7 +923,8 @@ class WorkspaceView extends StatelessWidget {
                   ),
                 ),
                 Tooltip(
-                  message: 'Export filtered results (CSV)',
+                  message: AppLocalizations.of(context)!
+                      .workspaceExportFilteredResultsCsv,
                   child: IconButton(
                     icon: const Icon(Icons.download),
                     onPressed: results.isEmpty
@@ -930,7 +946,7 @@ class WorkspaceView extends StatelessWidget {
                 FilterChip(
                   selected: model.filterProfitOnly,
                   label: Text(
-                    'Profit Only',
+                    AppLocalizations.of(context)!.workspaceFilterProfitOnly,
                     style: TextStyle(
                       color: model.filterProfitOnly
                           ? Theme.of(context).colorScheme.primary
@@ -948,7 +964,7 @@ class WorkspaceView extends StatelessWidget {
                 FilterChip(
                   selected: model.filterPfPositive,
                   label: Text(
-                    'PF > 1',
+                    AppLocalizations.of(context)!.workspaceFilterPfPositive,
                     style: TextStyle(
                       color: model.filterPfPositive
                           ? Theme.of(context).colorScheme.primary
@@ -966,7 +982,7 @@ class WorkspaceView extends StatelessWidget {
                 FilterChip(
                   selected: model.filterWinRateAbove50,
                   label: Text(
-                    'Win Rate > 50%',
+                    AppLocalizations.of(context)!.workspaceFilterWinRate50,
                     style: TextStyle(
                       color: model.filterWinRateAbove50
                           ? Theme.of(context).colorScheme.primary
@@ -992,11 +1008,13 @@ class WorkspaceView extends StatelessWidget {
                     return DropdownButtonHideUnderline(
                       child: DropdownButton<String?>(
                         value: effectiveValue,
-                        hint: const Text('All Symbols'),
+                        hint: Text(
+                            AppLocalizations.of(context)!.commonAllSymbols),
                         items: [
-                          const DropdownMenuItem<String?>(
+                          DropdownMenuItem<String?>(
                             value: null,
-                            child: Text('All Symbols'),
+                            child: Text(
+                                AppLocalizations.of(context)!.commonAllSymbols),
                           ),
                           ...symbols.map(
                             (s) => DropdownMenuItem<String?>(
@@ -1093,7 +1111,7 @@ class WorkspaceView extends StatelessWidget {
                   TextButton.icon(
                     onPressed: model.clearFilters,
                     icon: const Icon(Icons.clear),
-                    label: const Text('Clear Filters'),
+                    label: Text(AppLocalizations.of(context)!.sbClearFilters),
                   ),
               ],
             ),
@@ -1279,7 +1297,7 @@ class WorkspaceView extends StatelessWidget {
     Color color,
   ) {
     final t = AppLocalizations.of(context)!;
-    String _metricLabelLocalized(String key) {
+    String metricLabelLocalized(String key) {
       switch (key) {
         case 'Tests':
           return t.workspaceTestsLabel;
@@ -1302,9 +1320,9 @@ class WorkspaceView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Tooltip(
-          message: _metricTooltip(label),
+          message: _metricTooltip(context, label),
           child: Text(
-            _metricLabelLocalized(label),
+            metricLabelLocalized(label),
             style: TextStyle(
               fontSize: 11,
               color: Theme.of(context)
@@ -1339,26 +1357,27 @@ class WorkspaceView extends StatelessWidget {
   }
 
   // Kept for compatibility if used elsewhere
-  String _metricTooltip(String label) {
-    return _metricTooltipLocalized(label);
+  String _metricTooltip(BuildContext context, String label) {
+    final t = AppLocalizations.of(context)!;
+    return _metricTooltipLocalized(t, label);
   }
 
-  // Localized tooltip fallback mapping (no BuildContext available here)
-  String _metricTooltipLocalized(String label) {
+  // Localized tooltip mapping
+  String _metricTooltipLocalized(AppLocalizations t, String label) {
     switch (label) {
       case 'P&L':
-        return 'Total profit or loss in currency for this result.';
+        return t.metricTooltipPnl;
       case 'Win Rate':
-        return 'Average percentage of winning trades across results.';
+        return t.metricTooltipWinRate;
       case 'PF':
       case 'Profit Factor':
-        return 'Profit Factor = gross profit divided by gross loss.';
+        return t.metricTooltipPf;
       case 'Tests':
-        return 'Number of backtests executed for this strategy.';
+        return t.metricTooltipTests;
       case 'Avg P&L':
-        return 'Average profit/loss percentage across backtests.';
+        return t.metricTooltipAvgPnl;
       default:
-        return 'Metric description';
+        return t.metricTooltipDefault;
     }
   }
 
@@ -1587,7 +1606,7 @@ class WorkspaceView extends StatelessWidget {
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints.tightFor(width: 36, height: 36),
             onPressed: () => model.copyResultLinkToClipboard(result),
-            tooltip: 'Copy Result Link',
+            tooltip: AppLocalizations.of(context)!.copyResultLink,
           ),
           IconButton(
             icon: const Icon(Icons.table_chart, size: 18),

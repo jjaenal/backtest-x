@@ -1172,7 +1172,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                     border: Border.all(
                       color: isSelected
                           ? theme.colorScheme.primary.withValues(alpha: 0.4)
-                          : theme.dividerColor.withOpacity(0.3),
+                          : theme.dividerColor.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Wrap(
@@ -1221,7 +1221,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
       margin: const EdgeInsets.only(right: 8),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withOpacity(0.06),
+        color: theme.colorScheme.primary.withValues(alpha: 0.06),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(

@@ -104,7 +104,7 @@ void main() {
                 key: boxKey,
                 decoration: BoxDecoration(
                   color: cs.surface,
-                  border: Border.all(color: cs.outline.withOpacity(0.3)),
+                  border: Border.all(color: cs.outline.withValues(alpha: 0.3)),
                   borderRadius: BorderRadius.circular(16),
                 ),
               );
@@ -130,7 +130,7 @@ void main() {
           child: Builder(
             builder: (context) {
               final cs = Theme.of(context).colorScheme;
-              final labelColor = cs.onSurface.withOpacity(0.7);
+              final labelColor = cs.onSurface.withValues(alpha: 0.7);
               return Text(
                 'Label',
                 key: textKey,

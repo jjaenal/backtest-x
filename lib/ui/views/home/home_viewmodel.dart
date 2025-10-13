@@ -70,19 +70,19 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
       setBusy(false);
 
       // Onboarding tutorial dialog (one-time)
-      try {
-        final done = await _prefs.getString('onboarding.completed');
-        if (done != 'true') {
-          final response = await _bottomSheetService.showCustomSheet(
-            variant: BottomSheetType.onboarding,
-            barrierDismissible: true,
-            isScrollControlled: true,
-          );
-          if (response?.confirmed == true) {
-            await _prefs.setString('onboarding.completed', 'true');
-          }
-        }
-      } catch (_) {}
+      // try {
+      //   final done = await _prefs.getString('onboarding.completed');
+      //   if (done != 'true') {
+      //     final response = await _bottomSheetService.showCustomSheet(
+      //       variant: BottomSheetType.onboarding,
+      //       barrierDismissible: true,
+      //       isScrollControlled: true,
+      //     );
+      //     if (response?.confirmed == true) {
+      //       await _prefs.setString('onboarding.completed', 'true');
+      //     }
+      //   }
+      // } catch (_) {}
     });
 
     // Realtime subscriptions: refresh stats on storage changes
@@ -212,9 +212,8 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
       final mem = _dataManager.getMemoryUsageFormatted();
       final disk = await _dataManager.getDiskUsageFormatted();
       final datasets = _dataManager.getAllData().length;
-      final status = isWarmingUp
-          ? 'Warming'
-          : (datasets > 0 ? 'Ready' : 'Empty');
+      final status =
+          isWarmingUp ? 'Warming' : (datasets > 0 ? 'Ready' : 'Empty');
       final desc = StringBuffer()
         ..writeln('Status: $status')
         ..writeln('Datasets: $datasets')

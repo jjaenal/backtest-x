@@ -40,12 +40,12 @@ flutter run
 - **Performance Analytics**: Comprehensive statistics and visualizations
 - **Backtest Result Header**: Shows tested `Symbol · Timeframe • Date Range` at the top of the results view for quick context
 - **RSI Divergence (Approx)**: Template and quick‑run demo available
- - **Anchored VWAP (Pullback/Cross)**:
-   - Template available using anchored VWAP
-   - New: configurable Anchor Mode — `Start` (backtest begin) or `Date`
-   - Anchor by Date resolves to the first candle whose timestamp ≥ selected date
-   - Full MTF support in engine (precalc per timeframe with unique keys)
-   - Strategy Builder UI adds Anchor Mode and Anchor Date controls
+- **Anchored VWAP (Pullback/Cross)**:
+  - Template available using anchored VWAP
+  - New: configurable Anchor Mode — `Start` (backtest begin) or `Date`
+  - Anchor by Date resolves to the first candle whose timestamp ≥ selected date
+  - Full MTF support in engine (precalc per timeframe with unique keys)
+  - Strategy Builder UI adds Anchor Mode and Anchor Date controls
 - **Multi-platform Support**: Works on Web, Android, iOS, and desktop platforms
 - **Data Import/Export**: Import CSV data and export backtest results (CSV, PDF)
   - Export trades to CSV from Backtest Result view
@@ -56,14 +56,16 @@ flutter run
   - Copy backtest summary to clipboard from Workspace results
   - Export trades to CSV from Workspace results list
 - PDF report includes Strategy Details section and improved charts (grid, axis labels, date range)
-  
+
   PDF Export enhancements:
+
   - Multi‑page PDF report (Charts + Indicator Panel)
-  
+
   New:
+
   - **ATR‑Based Position Sizing**: Select `atrBased` risk type to size positions by ATR multiple.
   - **Dynamic ATR% Presets**: Percentile chips (P25/P50/P75/P90) for `ATR%` indicator, computed per rule timeframe and selected dataset.
-  
+
 ### Deep Link (Web/Mobile)
 
 Use `DeepLinkService` to generate shareable links to open results directly:
@@ -76,15 +78,16 @@ final url = deepLinkService.buildBacktestResultLink(resultId: result.id);
 
 On Web, links use the current origin with hash/path routing (e.g. `https://example.com/#/backtest-result-view?id=abc123`).
 On app startup, if a deep link to Backtest Result is detected, the app navigates directly to the view.
- 
- Deep link onboarding ke Strategy Builder:
- - Sertakan parameter `template` dan opsional `dataId` pada URL untuk membuka Strategy Builder dengan template diterapkan dan data contoh terpilih.
- - Contoh: `https://example.com/#/strategy-builder?template=vwap_pullback&dataId=eurusd_1h`.
- - Saat startup, tautan onboarding akan menavigasi ke Strategy Builder dan otomatis menerapkan template serta memilih data.
-  - Pagination/layout optimized for long datasets
-  - Dynamic file naming `
-    <strategy>-<tf>-<date>.pdf` (sanitized)
-  - Unit tests cover naming & PDF generation
+
+Deep link onboarding ke Strategy Builder:
+
+- Sertakan parameter `template` dan opsional `dataId` pada URL untuk membuka Strategy Builder dengan template diterapkan dan data contoh terpilih.
+- Contoh: `https://example.com/#/strategy-builder?template=vwap_pullback&dataId=eurusd_1h`.
+- Saat startup, tautan onboarding akan menavigasi ke Strategy Builder dan otomatis menerapkan template serta memilih data.
+- Pagination/layout optimized for long datasets
+- Dynamic file naming `
+<strategy>-<tf>-<date>.pdf` (sanitized)
+- Unit tests cover naming & PDF generation
 - **Share Results**: Share backtest results with others
 - **Auto-save**: Strategy Builder auto-saves drafts to prevent data loss
 - **Workspace Filters**: Filter results by Profit/PF/Win Rate, Symbol, Timeframe, and Date Range
@@ -271,10 +274,10 @@ dependencies:
 #### 2. IndicatorService
 
 - Technical indicators: SMA, EMA, RSI, ATR, MACD, Bollinger Bands
- - Anchored VWAP enhancements:
-   - Accepts anchor index and computes VWAP from anchor onward
-   - Engine maps Anchor Date to index using first timestamp ≥ date
-   - Null values before anchor; precise rolling accumulations from anchor
+- Anchored VWAP enhancements:
+  - Accepts anchor index and computes VWAP from anchor onward
+  - Engine maps Anchor Date to index using first timestamp ≥ date
+  - Null values before anchor; precise rolling accumulations from anchor
 
 ### Strategy Builder — Anchored VWAP Setup
 
@@ -705,6 +708,7 @@ void main() {
   - Implement lazy loading with paginated "Load more" to handle large result sets
   - Shows current count vs total (e.g., 20/200) for clarity
 - Strategy Builder:
+
   - Dynamic ATR% presets with percentile chips (P25/P50/P75/P90), MTF‑aware
   - Risk Management: ATR‑Based position sizing option added (engine + UI)
 
@@ -735,7 +739,7 @@ void main() {
 ## 💡 Implementation Insights
 
 - Prefer `Theme.of(context).colorScheme` over `Colors.*` to ensure dark/light consistency.
-- Use `withOpacity(...)` or `withValues(alpha: ...)` for subtle emphasis on `onSurface` text.
+- Use `withValues(alpha:...)` or `withValues(alpha: ...)` for subtle emphasis on `onSurface` text.
 - For semantic signals (bullish/bearish/warn), keep color semantics but apply low-opacity backgrounds and outlined borders.
 - Bottom sheets should use `colorScheme.surface` and `colorScheme.outline` for borders/dividers.
 - When a helper widget needs theme, pass `BuildContext` rather than hardcoding colors.
@@ -862,6 +866,7 @@ For issues or questions:
 - Micro-delay pacing between steps handled in `StartupViewModel` for natural rhythm.
 - Branding header retained: logo glow, gradient title, accent divider, and subtle background pattern.
 - Code reference: `lib/ui/views/startup/startup_view.dart`, `lib/ui/views/startup/startup_viewmodel.dart`.
+
 ## 🔗 Sharing
 
 Use the app-wide `ShareService` for consistent cross-platform sharing.
@@ -912,6 +917,7 @@ Routing behavior:
 Startup handling on Web:
 
 - `StartupViewModel` calls `DeepLinkService.maybeHandleInitialLink()` to parse the current URL and navigate to either Backtest Result or Strategy Builder based on path and query string.
+
 ## 🚢 Release & Deployment Guide
 
 ### Versioning & Pre‑Release Checklist
@@ -934,19 +940,19 @@ Startup handling on Web:
 
 ### Android (Play Store)
 
-1) Generate keystore (once):
+1. Generate keystore (once):
    - `keytool -genkeypair -v -keystore ~/android-keystore.jks -alias backtestx -keyalg RSA -keysize 2048 -validity 10000`
-2) Create `android/key.properties`:
+2. Create `android/key.properties`:
    - `storeFile=/Users/<you>/android-keystore.jks`
    - `storePassword=<password>`
    - `keyPassword=<password>`
    - `keyAlias=backtestx`
-3) Configure signing in `android/app/build.gradle.kts` (Kotlin DSL):
+3. Configure signing in `android/app/build.gradle.kts` (Kotlin DSL):
    - Read properties and set `signingConfigs.release` and use it in `buildTypes.release`.
-4) Build:
+4. Build:
    - App Bundle: `flutter build appbundle`
    - APK (optional): `flutter build apk`
-5) Upload `.aab` to Play Console, complete store listing, content, testing tracks, and roll‑out.
+5. Upload `.aab` to Play Console, complete store listing, content, testing tracks, and roll‑out.
 
 ### iOS (App Store)
 
@@ -977,19 +983,23 @@ Startup handling on Web:
 
 - Use GitHub Actions for Web/Android; macOS runners required for iOS/macOS.
 - Cache pub (`~/.pub-cache`) and run `flutter pub get` + build steps per job.
+
 ## Realtime UI & Refresh
 
 Dokumentasi ringkas tentang perilaku realtime dan pola refresh di aplikasi.
 
 - Event bus di `StorageService`:
+
   - Stream: `marketDataEvents`, `strategyEvents`, `backtestResultEvents`.
   - Emit pada operasi: `saveMarketData`, `deleteMarketData`, `clearCache`, `clearAllData`.
 
 - Subscriptions di ViewModel:
+
   - `MarketAnalysisViewModel`, `PatternScannerViewModel`, `DataUploadViewModel` berlangganan event market data dan memanggil `refresh()` otomatis.
   - Ingat untuk membatalkan `StreamSubscription` di `dispose` agar bebas kebocoran.
 
 - Route-based refresh (kembali dari layar lain):
+
   - App memakai `MaterialApp` dengan `StackedService.routeObserver` (lihat `lib/main.dart`).
   - Untuk menangkap navigasi balik (`didPopNext`), terapkan `RouteAware` di View/ViewModel Home dan panggil `refresh()` saat dipanggil.
   - Contoh pola:
@@ -1004,13 +1014,16 @@ Dokumentasi ringkas tentang perilaku realtime dan pola refresh di aplikasi.
     ```
 
 - Pull-to-refresh & tombol refresh:
+
   - `MarketAnalysisView` dan `PatternScannerView` dibungkus `RefreshIndicator` untuk gesture tarik‑turun.
   - Keduanya juga menambahkan tombol refresh di `AppBar` yang memanggil `viewModel.refresh()`.
 
 - Debounce/throttle:
+
   - `HomeViewModel` memakai debounce sederhana untuk mencegah rebuild berlebihan saat banyak event.
 
 - Status cache & banner warm‑up:
+
   - Integrasi dengan `DataManager.warmupNotifier` menampilkan banner “Loading cache…” dan menyinkronkan quick stats saat pemanasan cache background.
 
 - Praktik baik:

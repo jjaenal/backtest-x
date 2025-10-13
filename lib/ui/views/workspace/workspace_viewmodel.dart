@@ -3,7 +3,6 @@ import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/helpers/strategy_stats_helper.dart';
-import 'package:backtestx/helpers/strategy_templates.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
@@ -17,6 +16,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
@@ -96,6 +96,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy a strategy deep link to clipboard
   Future<void> copyStrategyLinkToClipboard(Strategy strategy) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final deepLinks = locator<DeepLinkService>();
       final url = deepLinks.buildStrategyLink(strategyId: strategy.id);
       if (locator.isRegistered<ClipboardService>()) {
@@ -104,12 +106,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: url));
       }
       _snackbarService.showSnackbar(
-        message: 'Strategy link copied to clipboard',
+        message: t?.copyStrategyLinkCopied ?? 'Strategy link copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Failed to copy link: $e',
+        message: t?.copyFailed(e.toString()) ?? 'Failed to copy link: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -118,6 +122,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy a backtest result deep link to clipboard
   Future<void> copyResultLinkToClipboard(BacktestResult result) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final deepLinks = locator<DeepLinkService>();
       final url = deepLinks.buildBacktestResultLink(resultId: result.id);
       if (locator.isRegistered<ClipboardService>()) {
@@ -126,12 +132,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: url));
       }
       _snackbarService.showSnackbar(
-        message: 'Backtest result link copied to clipboard',
+        message: t?.copyResultLinkCopied ?? 'Backtest result link copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Failed to copy link: $e',
+        message: t?.copyFailed(e.toString()) ?? 'Failed to copy link: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -220,14 +228,6 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     _sortStrategies();
     notifyListeners();
   }
-
-  // Future<void> loadAvailableData() async {
-  //   _availableData = _dataManager.getAllData();
-  //   if (_availableData.isNotEmpty && _selectedDataId == null) {
-  //     _selectedDataId = _availableData.first.id;
-  //   }
-  //   notifyListeners();
-  // }
 
   void loadAvailableData() {
     _availableData = _dataManager.getAllData();
@@ -620,28 +620,6 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     );
   }
 
-  Future<void> runBacktest(Strategy strategy) async {
-    // Check if market data exists
-    final marketDataList = await _storageService.getAllMarketDataInfo();
-
-    if (marketDataList.isEmpty) {
-      final response = await _bottomSheetService.showCustomSheet(
-        variant: BottomSheetType.notice,
-        title: 'Market Data Diperlukan',
-        description:
-            'Silakan unggah atau pilih data pasar terlebih dahulu sebelum menjalankan backtest.',
-        mainButtonTitle: 'Upload Data',
-        secondaryButtonTitle: 'Batal',
-        barrierDismissible: true,
-        isScrollControlled: true,
-      );
-      if (response?.confirmed == true) {
-        _navigationService.navigateToDataUploadView();
-      }
-      return;
-    }
-  }
-
   Future<void> quickRunBacktest(Strategy strategy) async {
     // Jika tidak ada data tersedia sama sekali, arahkan untuk upload
     if (_availableData.isEmpty) {
@@ -701,13 +679,15 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final marketData = _dataManager.getData(_selectedDataId!);
 
       if (marketData == null) {
+        final ctx = _navigationService.navigatorKey?.currentContext;
+        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
         await _bottomSheetService.showCustomSheet(
           variant: BottomSheetType.notice,
-          title: 'Data Tidak Ditemukan',
-          description:
+          title: t?.mdEmptyTitle ?? 'Data Tidak Ditemukan',
+          description: t?.mdEmptyDesc ??
               'Data pasar yang dipilih kosong atau tidak tersedia. Coba pilih data lain atau upload baru.',
-          mainButtonTitle: 'Ke Upload Data',
-          secondaryButtonTitle: 'Tutup',
+          mainButtonTitle: t?.mdGoToUpload ?? 'Ke Upload Data',
+          secondaryButtonTitle: t?.commonClose ?? 'Tutup',
           barrierDismissible: true,
           isScrollControlled: true,
         );
@@ -717,10 +697,12 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       // Quick validation before running
       final isValid = _dataValidationService.quickValidate(marketData);
       if (!isValid) {
+        final ctx = _navigationService.navigatorKey?.currentContext;
+        final t = ctx != null ? AppLocalizations.of(ctx) : null;
         final report = _dataValidationService.validateMarketData(marketData);
         await _bottomSheetService.showCustomSheet(
           variant: BottomSheetType.validationReport,
-          title: 'Data Validation Report',
+          title: t?.dataValidationReportTitle ?? 'Data Validation Report',
           description: report.summary,
           data: {
             'errors': report.errors.map((i) => i.message).toList(),
@@ -742,10 +724,15 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
       // Show quick summary snackbar for immediate feedback
       try {
+        final ctx = _navigationService.navigatorKey?.currentContext;
+        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
         final s = result.summary;
+        final pf = s.profitFactor.toStringAsFixed(2);
+        final wr = s.winRate.toStringAsFixed(2);
+        final msg = t?.qtSnackbarSummary(pf, wr) ??
+            'Quick test completed — PF $pf, WinRate $wr%';
         _snackbarService.showSnackbar(
-          message:
-              'Quick test selesai — PF ${s.profitFactor.toStringAsFixed(2)}, WinRate ${s.winRate.toStringAsFixed(2)}% ',
+          message: msg,
           duration: const Duration(seconds: 3),
         );
       } catch (_) {
@@ -756,23 +743,29 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       try {
         final s = result.summary;
         if (s.totalTrades == 0) {
+          final ctx = _navigationService.navigatorKey?.currentContext;
+          final t = ctx != null ? AppLocalizations.of(ctx)! : null;
           await _bottomSheetService.showCustomSheet(
             variant: BottomSheetType.notice,
-            title: 'Quick Test: 0 Trade',
-            description:
-                'Tidak ada trade yang dihasilkan untuk strategi dan data ini. Hasil tidak akan disimpan dan tampilan detail tidak tersedia.',
-            mainButtonTitle: 'Tutup',
+            title: t?.qtZeroTradeTitle ?? 'Quick Test: 0 Trade',
+            description: t?.qtZeroTradeDesc ??
+                'No trades generated for this strategy and data. Result will not be saved and detail view is unavailable.',
+            mainButtonTitle: t?.commonClose ?? 'Close',
             barrierDismissible: true,
             isScrollControlled: true,
           );
         } else {
+          final ctx = _navigationService.navigatorKey?.currentContext;
+          final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+          final pf = s.profitFactor.toStringAsFixed(2);
+          final wr = s.winRate.toStringAsFixed(2);
           final response = await _bottomSheetService.showCustomSheet(
             variant: BottomSheetType.notice,
-            title: 'Quick Test Selesai',
-            description:
-                'Profit Factor ${s.profitFactor.toStringAsFixed(2)}, Win Rate ${s.winRate.toStringAsFixed(2)}%. Lihat hasil lengkap?',
-            mainButtonTitle: 'View Full Results',
-            secondaryButtonTitle: 'Tutup',
+            title: t?.qtDoneTitle ?? 'Quick Test Completed',
+            description: t?.qtDoneDesc(pf, wr) ??
+                'Profit Factor $pf, Win Rate $wr%. View full results?',
+            mainButtonTitle: t?.sbViewFullResults ?? 'View Full Results',
+            secondaryButtonTitle: t?.commonClose ?? 'Close',
             barrierDismissible: true,
             isScrollControlled: true,
           );
@@ -795,8 +788,11 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
           // Skip saving if no trades to avoid downstream chart errors
           if (result.summary.totalTrades == 0) {
+            final ctx = _navigationService.navigatorKey?.currentContext;
+            final t = ctx != null ? AppLocalizations.of(ctx)! : null;
             _snackbarService.showSnackbar(
-              message: 'Hasil quick test tidak disimpan (0 trade)',
+              message: t?.qtNotSavedZeroTrade ??
+                  'Quick test result not saved (0 trade)',
               duration: const Duration(seconds: 2),
             );
             return;
@@ -809,14 +805,16 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
               await _storageService.getBacktestResultsByStrategy(strategy.id);
 
           _snackbarService.showSnackbar(
-            message: 'Quick test saved to database',
+            message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSavedToDb ??
+                'Quick test saved to database'),
             duration: const Duration(seconds: 2),
           );
           notifyListeners();
         } catch (e) {
           debugPrint('Error saving quick test: $e');
           showErrorWithRetry(
-            title: 'Gagal menyimpan quick test',
+            title: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSaveFailedTitle ??
+                'Quick test save failed'),
             message: e.toString(),
             onRetry: () async {
               try {
@@ -826,7 +824,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                 }
                 if (result.summary.totalTrades == 0) {
                   _snackbarService.showSnackbar(
-                    message: 'Hasil quick test tidak disimpan (0 trade)',
+                    message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtNotSavedZeroTrade ??
+                        'Quick test result not saved (0 trade)'),
                     duration: const Duration(seconds: 2),
                   );
                   return;
@@ -835,7 +834,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                 _strategyResults[strategy.id] = await _storageService
                     .getBacktestResultsByStrategy(strategy.id);
                 _snackbarService.showSnackbar(
-                  message: 'Quick test saved to database',
+                  message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSavedToDb ??
+                      'Quick test saved to database'),
                   duration: const Duration(seconds: 2),
                 );
                 notifyListeners();
@@ -847,7 +847,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     } catch (e) {
       debugPrint('Error running quick test: $e');
       showErrorWithRetry(
-        title: 'Quick test gagal',
+        title: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtRunFailedTitle ??
+            'Quick test failed'),
         message: e.toString(),
         onRetry: () => quickRunBacktest(strategy),
       );
@@ -857,267 +858,13 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     }
   }
 
-  /// Quick run EMA Ribbon template directly from Workspace
-  Future<void> quickRunEmaRibbon() async {
-    try {
-      final tpl = StrategyTemplates.all['ema_ribbon_stack'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template EMA Ribbon tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run EMA Ribbon gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run Breakout template directly from Workspace
-  Future<void> quickRunBreakout() async {
-    try {
-      final tpl = StrategyTemplates.all['breakout_basic'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template Breakout tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run Breakout gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run Trend Following template directly from Workspace
-  Future<void> quickRunTrendFollowing() async {
-    try {
-      final tpl = StrategyTemplates.all['trend_ema_cross'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template Trend Following tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run Trend Following gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run VWAP Pullback template directly from Workspace
-  Future<void> quickRunVwapPullback() async {
-    try {
-      final tpl = StrategyTemplates.all['vwap_pullback_breakout'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template VWAP Pullback tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run VWAP gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run Anchored VWAP Pullback/Cross template directly from Workspace
-  Future<void> quickRunAnchoredVwap() async {
-    try {
-      final tpl = StrategyTemplates.all['anchored_vwap_pullback_cross'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template Anchored VWAP tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run Anchored VWAP gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run Stochastic K/D Cross + ADX filter template
-  Future<void> quickRunStochasticKdCross() async {
-    try {
-      final tpl = StrategyTemplates.all['stoch_kd_cross_adx'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template Stochastic K/D tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run Stochastic gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run Bollinger Squeeze template directly from Workspace
-  Future<void> quickRunBollingerSqueeze() async {
-    try {
-      final tpl = StrategyTemplates.all['bb_squeeze_breakout'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template Bollinger Squeeze tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run Bollinger Squeeze gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
-  /// Quick run RSI Divergence Approx template directly from Workspace
-  Future<void> quickRunRsiDivergenceApprox() async {
-    try {
-      final tpl = StrategyTemplates.all['rsi_divergence_approx'];
-      if (tpl == null) {
-        _snackbarService.showSnackbar(
-          message: 'Template RSI Divergence tidak ditemukan. Keys tersedia: '
-              '${StrategyTemplates.all.keys.take(6).join(', ')} (total: ${StrategyTemplates.all.length})',
-          duration: const Duration(seconds: 2),
-        );
-        return;
-      }
-
-      final strategy = Strategy(
-        id: 'quick_${DateTime.now().millisecondsSinceEpoch}',
-        name: tpl.name,
-        initialCapital: tpl.initialCapital,
-        riskManagement: tpl.risk,
-        entryRules: tpl.entryRules,
-        exitRules: tpl.exitRules,
-        createdAt: DateTime.now(),
-      );
-
-      await quickRunBacktest(strategy);
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Quick Run RSI Divergence gagal: $e',
-        duration: const Duration(seconds: 3),
-      );
-    }
-  }
-
   Future<void> quickRunBacktestBatch(Strategy strategy, {int? maxCount}) async {
     // Ensure we have data
     if (_availableData.isEmpty) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Please upload market data first',
+        message: t?.pleaseUploadMarketData ?? 'Please upload market data first',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -1125,8 +872,10 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
     // Prevent parallel runs per strategy
     if (isRunningBatchQuickTest(strategy.id)) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Batch already running for this strategy',
+        message: t?.batchAlreadyRunning ?? 'Batch already running for this strategy',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -1177,9 +926,15 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         }
       }
 
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final msg = skipped > 0
-          ? 'Batch complete: $completed/$total saved (skipped $skipped invalid)'
-          : 'Batch complete: $completed/$total saved';
+          ? (t?.batchCompleteSavedSkipped(
+                completed.toString(), total.toString(), skipped.toString()) ??
+              'Batch complete: $completed/$total saved (skipped $skipped invalid)')
+          : (t?.batchCompleteSaved(
+                completed.toString(), total.toString()) ??
+              'Batch complete: $completed/$total saved');
       _snackbarService.showSnackbar(
         message: msg,
         duration: const Duration(seconds: 3),
@@ -1210,10 +965,12 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export filtered backtest results (summary rows) for a strategy to CSV
   Future<void> exportFilteredStrategyResultsCsv(Strategy strategy) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
-          message: 'No results to export for this strategy',
+          message: t?.noResultsToExport ?? 'No results to export for this strategy',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -1285,12 +1042,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       }
 
       _snackbarService.showSnackbar(
-        message: 'Strategy results exported to CSV',
+        message: t?.strategyResultsExported ?? 'Strategy results exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Export failed: $e',
+        message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1299,10 +1058,12 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export per-timeframe stats for filtered results of a strategy to CSV
   Future<void> exportFilteredStrategyTfStatsCsv(Strategy strategy) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
-          message: 'No results to export for this strategy',
+          message: t?.noResultsToExport ?? 'No results to export for this strategy',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -1353,7 +1114,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
       if (rows.length == 1) {
         _snackbarService.showSnackbar(
-          message: 'No per-timeframe stats found',
+          message: t?.noPerTfStatsFound ?? 'No per-timeframe stats found',
           duration: const Duration(seconds: 3),
         );
         return;
@@ -1384,12 +1145,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       }
 
       _snackbarService.showSnackbar(
-        message: 'TF Stats exported to CSV',
+        message: t?.tfStatsExported ?? 'TF Stats exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Export failed: $e',
+        message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1400,10 +1163,13 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export ALL trades across all results for a strategy to a single CSV
   Future<void> exportStrategyTradesCsv(Strategy strategy) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final results = getResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
-          message: 'No results to export for this strategy',
+          message:
+              t?.noResultsToExport ?? 'No results to export for this strategy',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -1472,7 +1238,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
       if (tradeCount == 0) {
         _snackbarService.showSnackbar(
-          message: 'No trades found or data missing in cache',
+          message: t?.noTradesFoundOrCache ??
+              'No trades found or data missing in cache',
           duration: const Duration(seconds: 3),
         );
         return;
@@ -1508,13 +1275,17 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         );
       }
 
+      final ctx2 = _navigationService.navigatorKey?.currentContext;
+      final t2 = ctx2 != null ? AppLocalizations.of(ctx2)! : null;
       _snackbarService.showSnackbar(
-        message: 'All trades exported to CSV',
+        message: t2?.tradesExported ?? 'All trades exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Export failed: $e',
+        message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1603,13 +1374,19 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         );
       }
 
+      // Show export-complete snackbar
+      final ctx2 = _navigationService.navigatorKey?.currentContext;
+      final t2 = ctx2 != null ? AppLocalizations.of(ctx2)! : null;
       _snackbarService.showSnackbar(
-        message: 'Filtered results exported to CSV',
+        message: t2?.workspaceExportFilteredResultsCsv ??
+            'Filtered results exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Export failed: $e',
+        message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1618,6 +1395,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy single result summary to clipboard
   Future<void> copyResultSummaryToClipboard(BacktestResult result) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final marketData = _dataManager.getData(result.marketDataId);
       String strategyName = 'Strategy ${result.strategyId}';
       try {
@@ -1670,12 +1449,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: text));
       }
       _snackbarService.showSnackbar(
-        message: 'Summary copied to clipboard',
+        message: t?.summaryCopied ?? 'Summary copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Copy failed: $e',
+        message: t?.copyFailed(e.toString()) ?? 'Copy failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1684,6 +1465,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy trades table as CSV to clipboard for a single result
   Future<void> copyTradesCsvToClipboard(BacktestResult result) async {
     try {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final closedTrades =
           result.trades.where((t) => t.status == TradeStatus.closed).toList();
 
@@ -1731,12 +1514,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: csv));
       }
       _snackbarService.showSnackbar(
-        message: 'Trades CSV copied to clipboard',
+        message: t?.tradesCsvCopied ?? 'Trades CSV copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Copy failed: $e',
+        message: t?.copyFailed(e.toString()) ?? 'Copy failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1758,8 +1543,10 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
     await loadData();
 
+    final ctx = _navigationService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
     _snackbarService.showSnackbar(
-      message: 'Strategy duplicated',
+      message: t?.strategyDuplicated ?? 'Strategy duplicated',
       duration: const Duration(seconds: 2),
     );
   }
@@ -1767,13 +1554,17 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   Future<void> deleteStrategy(Strategy strategy) async {
     final resultsCount = getResultsCount(strategy.id);
 
+    final ctx = _navigationService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
     final response = await _dialogService.showConfirmationDialog(
-      title: 'Delete Strategy',
+      title: t?.deleteStrategyTitle ?? 'Delete Strategy',
       description: resultsCount > 0
-          ? 'Delete "${strategy.name}"?\n\nThis will also delete $resultsCount backtest result(s).'
-          : 'Delete "${strategy.name}"?',
-      confirmationTitle: 'Delete',
-      cancelTitle: 'Cancel',
+          ? (t?.deleteStrategyDesc(strategy.name, resultsCount.toString()) ??
+              'Delete "${strategy.name}"?\n\nThis will also delete $resultsCount backtest result(s).')
+          : (t?.deleteStrategyDescNoResults(strategy.name) ??
+              'Delete "${strategy.name}"?'),
+      confirmationTitle: t?.deleteLabel ?? 'Delete',
+      cancelTitle: t?.commonCancel ?? 'Cancel',
     );
 
     if (response?.confirmed != true) return;
@@ -1786,18 +1577,20 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     await loadData();
 
     _snackbarService.showSnackbar(
-      message: 'Strategy deleted',
+      message: t?.strategyDeleted ?? 'Strategy deleted',
       duration: const Duration(seconds: 2),
     );
   }
 
   // Result actions
   Future<void> deleteResult(BacktestResult result) async {
+    final ctx = _navigationService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
     final response = await _dialogService.showConfirmationDialog(
-      title: 'Delete Result',
-      description: 'Delete this backtest result?',
-      confirmationTitle: 'Delete',
-      cancelTitle: 'Cancel',
+      title: t?.deleteTitle ?? 'Delete Result',
+      description: t?.deleteResultDesc ?? 'Delete this backtest result?',
+      confirmationTitle: t?.deleteLabel ?? 'Delete',
+      cancelTitle: t?.commonCancel ?? 'Cancel',
     );
 
     if (response?.confirmed != true) return;
@@ -1810,7 +1603,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     await loadData();
 
     _snackbarService.showSnackbar(
-      message: 'Result deleted',
+      message: t?.resultDeleted ?? 'Result deleted',
       duration: const Duration(seconds: 2),
     );
   }
@@ -1829,8 +1622,10 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       _selectedResultIds.remove(resultId);
     } else {
       if (_selectedResultIds.length >= 4) {
+        final ctx = _navigationService.navigatorKey?.currentContext;
+        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
         _snackbarService.showSnackbar(
-          message: 'Maximum 4 results can be compared',
+          message: t?.maximumCompare ?? 'Maximum 4 results can be compared',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -1850,8 +1645,11 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
   Future<void> compareSelected() async {
     if (!canCompare) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx) : null;
       _snackbarService.showSnackbar(
-        message: 'Select 2-4 results to compare',
+        message:
+            (t?.workspaceCompareBannerText ?? 'Select 2-4 results to compare'),
         duration: const Duration(seconds: 2),
       );
       return;
@@ -1868,8 +1666,11 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     }
 
     if (selectedResults.length < 2) {
+      final ctx = _navigationService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: 'Error loading selected results',
+        message:
+            t?.errorLoadingSelectedResults ?? 'Error loading selected results',
         duration: const Duration(seconds: 2),
       );
       return;

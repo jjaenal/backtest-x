@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
 class TuangkangAnimatedLogo extends StatefulWidget {
-  const TuangkangAnimatedLogo({Key? key}) : super(key: key);
+  final String fontFamily;
+
+  const TuangkangAnimatedLogo({
+    Key? key,
+    this.fontFamily = 'Impact',
+  }) : super(key: key);
 
   @override
   State<TuangkangAnimatedLogo> createState() => _TuangkangAnimatedLogoState();
@@ -35,6 +40,7 @@ class _TuangkangAnimatedLogoState extends State<TuangkangAnimatedLogo>
         return CustomPaint(
           painter: TuangkangPainter(
             animation: _controller.value,
+            fontFamily: widget.fontFamily,
           ),
           size: Size.infinite,
         );
@@ -45,8 +51,12 @@ class _TuangkangAnimatedLogoState extends State<TuangkangAnimatedLogo>
 
 class TuangkangPainter extends CustomPainter {
   final double animation;
+  final String fontFamily;
 
-  TuangkangPainter({required this.animation});
+  TuangkangPainter({
+    required this.animation,
+    required this.fontFamily,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -93,11 +103,11 @@ class TuangkangPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: char,
-        style: const TextStyle(
+        style: TextStyle(
           color: Colors.cyan,
           fontSize: 96,
           fontWeight: FontWeight.w900,
-          fontFamily: 'Impact', // Bold/Graffiti-style font
+          fontFamily: fontFamily,
           letterSpacing: 2,
         ),
       ),
@@ -146,10 +156,10 @@ class TuangkangPainter extends CustomPainter {
       text: TextSpan(
         text: char,
         style: TextStyle(
-          color: Colors.cyan.withOpacity(opacity),
+          color: Colors.cyan.withValues(alpha: opacity),
           fontSize: 96,
           fontWeight: FontWeight.w900,
-          fontFamily: 'Impact',
+          fontFamily: fontFamily,
           letterSpacing: 2,
         ),
       ),
@@ -167,7 +177,7 @@ class TuangkangPainter extends CustomPainter {
           textPainter.height + (i * 2),
         ),
         Paint()
-          ..color = Colors.cyan.withOpacity(0.05 / i)
+          ..color = Colors.cyan.withValues(alpha: 0.05 / i)
           ..maskFilter = MaskFilter.blur(
             BlurStyle.outer,
             i * 2.0,
@@ -181,6 +191,7 @@ class TuangkangPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TuangkangPainter oldDelegate) {
-    return oldDelegate.animation != animation;
+    return oldDelegate.animation != animation ||
+        oldDelegate.fontFamily != fontFamily;
   }
 }

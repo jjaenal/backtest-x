@@ -64,17 +64,18 @@ class StartupView extends StackedView<StartupViewModel> {
                             builder: (context, glow, child) => Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.08),
+                                color: Colors.white.withValues(alpha: 0.08),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                 ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Theme.of(context)
                                         .colorScheme
                                         .primary
-                                        .withOpacity(isDark ? 0.22 : 0.18),
+                                        .withValues(
+                                            alpha: isDark ? 0.22 : 0.18),
                                     blurRadius: glow,
                                     spreadRadius: glow * 0.12,
                                   ),
@@ -83,7 +84,7 @@ class StartupView extends StackedView<StartupViewModel> {
                               child: child,
                             ),
                             child: Image.asset(
-                              'assets/images/png/tuangkang-logo.png',
+                              'assets/images/png/logo.png',
                               width: 120,
                               height: 120,
                             ),
@@ -95,7 +96,8 @@ class StartupView extends StackedView<StartupViewModel> {
                                 Branding.horizontalPrimaryGradientShader(
                                     context, bounds),
                             child: Text(
-                              AppLocalizations.of(context)?.appTitle ?? 'Backtest‑X',
+                              AppLocalizations.of(context)?.appTitle ??
+                                  'Backtest‑X',
                               style: const TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.w600,
@@ -140,7 +142,8 @@ class StartupView extends StackedView<StartupViewModel> {
                             Branding.horizontalPrimaryGradientShader(
                                 context, bounds),
                         child: Text(
-                          AppLocalizations.of(context)?.tagline ?? 'Analyze • Backtest • Optimize',
+                          AppLocalizations.of(context)?.tagline ??
+                              'Analyze • Backtest • Optimize',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white,
@@ -212,7 +215,9 @@ class StartupView extends StackedView<StartupViewModel> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Text(
-                                  AppLocalizations.of(context)?.startupStepsDone ?? 'All steps completed. Preparing app…',
+                                  AppLocalizations.of(context)
+                                          ?.startupStepsDone ??
+                                      'All steps completed. Preparing app…',
                                   style: TextStyle(
                                     fontSize: 14,
                                     color: Colors.white70,
@@ -238,7 +243,8 @@ class StartupView extends StackedView<StartupViewModel> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(isDark ? 0.2 : 0.1),
+                        color:
+                            Colors.black.withValues(alpha: isDark ? 0.2 : 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
@@ -256,14 +262,16 @@ class StartupView extends StackedView<StartupViewModel> {
                           Chip(
                             label: Text(
                               kReleaseMode
-                                  ? (AppLocalizations.of(context)?.envProd ?? 'Prod')
-                                  : (AppLocalizations.of(context)?.envDev ?? 'Dev'),
+                                  ? (AppLocalizations.of(context)?.envProd ??
+                                      'Prod')
+                                  : (AppLocalizations.of(context)?.envDev ??
+                                      'Dev'),
                               style: const TextStyle(fontSize: 11),
                             ),
                             backgroundColor: Theme.of(context)
                                 .colorScheme
                                 .primary
-                                .withOpacity(isDark ? 0.22 : 0.18),
+                                .withValues(alpha: isDark ? 0.22 : 0.18),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 6, vertical: 0),
                             visualDensity: VisualDensity.compact,
@@ -365,7 +373,8 @@ class _BrandPatternPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final baseColor = (isDark ? Colors.white : Colors.black).withOpacity(0.05);
+    final baseColor =
+        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05);
     final paint = Paint()
       ..color = baseColor
       ..strokeWidth = 1;

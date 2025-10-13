@@ -47,8 +47,8 @@ class QuickStartTemplatesSheet
               Icon(Icons.bolt, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(l10n.onboardingQuickStartTemplates,
-                  style:
-                      const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),
@@ -56,8 +56,10 @@ class QuickStartTemplatesSheet
             // Using onboarding descriptors for consistency
             l10n.onboardingStep2Desc,
             style: TextStyle(
-                color:
-                    Theme.of(context).colorScheme.onSurface.withOpacity(0.75)),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.75)),
           ),
           const SizedBox(height: 12),
           ...entries.map((e) {

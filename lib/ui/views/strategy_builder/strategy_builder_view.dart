@@ -2,7 +2,7 @@ import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'strategy_builder_viewmodel.dart';
-import 'package:backtestx/helpers/timeframe_helper.dart' as tfHelper;
+import 'package:backtestx/helpers/timeframe_helper.dart' as tf_helper;
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/helpers/strategy_templates.dart';
 import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
@@ -1038,11 +1038,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     .getAllFatalErrors();
                                                 final shown =
                                                     errs.take(2).join('\n• ');
-                                                return 'Perbaiki error sebelum testing:\n• ' +
-                                                    shown +
-                                                    (errs.length > 2
-                                                        ? '...'
-                                                        : '');
+                                                return 'Perbaiki error sebelum testing:\n• $shown${errs.length > 2 ? '...' : ''}';
                                               }
                                               if (viewModel.isRunningPreview) {
                                                 return 'Preview sedang berjalan';
@@ -1107,7 +1103,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                               decoration: BoxDecoration(
                                                 color: Theme.of(context)
                                                     .colorScheme
-                                                    .surfaceVariant
+                                                    .surfaceContainerHighest
                                                     .withValues(alpha: 0.18),
                                                 borderRadius:
                                                     const BorderRadius.all(
@@ -1138,7 +1134,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                           final md = data.first;
                                           // Dynamic downsampling based on base timeframe
                                           final baseMin =
-                                              tfHelper.parseTimeframeToMinutes(
+                                              tf_helper.parseTimeframeToMinutes(
                                                   md.timeframe);
                                           int recentCount;
                                           if (baseMin <= 5) {
@@ -1360,8 +1356,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                   'Exit TF: ${r.tf}', r.warn));
                                             }
 
-                                            if (chips.isEmpty)
+                                            if (chips.isEmpty) {
                                               return const SizedBox();
+                                            }
                                             return Padding(
                                               padding: const EdgeInsets.only(
                                                   bottom: 8.0),
@@ -1375,7 +1372,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
 
                                           // Per‑timeframe counts (entry vs exit rules per TF)
                                           Builder(builder: (context) {
-                                            String _resolveBaseTf() {
+                                            String resolveBaseTf() {
                                               final baseData = viewModel
                                                   .availableData
                                                   .where((d) =>
@@ -1387,7 +1384,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                   : '';
                                             }
 
-                                            String _resolveRuleTf(
+                                            String resolveRuleTf(
                                                 String? tfRaw, String baseTf) {
                                               return (tfRaw == null ||
                                                       tfRaw.isEmpty)
@@ -1395,7 +1392,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                   : tfRaw;
                                             }
 
-                                            final baseTf = _resolveBaseTf();
+                                            final baseTf = resolveBaseTf();
                                             final entryTfCounts =
                                                 <String, int>{};
                                             final exitTfCounts =
@@ -1403,7 +1400,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
 
                                             for (final r
                                                 in viewModel.entryRules) {
-                                              final tf = _resolveRuleTf(
+                                              final tf = resolveRuleTf(
                                                   r.timeframe, baseTf);
                                               if (tf.isNotEmpty) {
                                                 entryTfCounts[tf] =
@@ -1413,7 +1410,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             }
                                             for (final r
                                                 in viewModel.exitRules) {
-                                              final tf = _resolveRuleTf(
+                                              final tf = resolveRuleTf(
                                                   r.timeframe, baseTf);
                                               if (tf.isNotEmpty) {
                                                 exitTfCounts[tf] =
@@ -1426,13 +1423,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                               return const SizedBox.shrink();
                                             }
 
-                                            Chip _tfChip(String tf, int count) {
+                                            Chip tfChip(String tf, int count) {
                                               bool warn = false;
                                               if (baseTf.isNotEmpty) {
-                                                final baseMin = tfHelper
+                                                final baseMin = tf_helper
                                                     .parseTimeframeToMinutes(
                                                         baseTf);
-                                                final tfMin = tfHelper
+                                                final tfMin = tf_helper
                                                     .parseTimeframeToMinutes(
                                                         tf);
                                                 warn = tfMin < baseMin;
@@ -1454,7 +1451,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                               return Chip(
                                                 backgroundColor: bg,
                                                 label: Text(
-                                                  '$tf • ${count} rule${count > 1 ? 's' : ''}',
+                                                  '$tf • $count rule${count > 1 ? 's' : ''}',
                                                   style: TextStyle(color: fg),
                                                 ),
                                               );
@@ -1484,7 +1481,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     runSpacing: 8,
                                                     children: entryTfCounts
                                                         .entries
-                                                        .map((e) => _tfChip(
+                                                        .map((e) => tfChip(
                                                             e.key, e.value))
                                                         .toList(),
                                                   ),
@@ -1502,7 +1499,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     runSpacing: 8,
                                                     children: exitTfCounts
                                                         .entries
-                                                        .map((e) => _tfChip(
+                                                        .map((e) => tfChip(
                                                             e.key, e.value))
                                                         .toList(),
                                                   ),
@@ -1513,6 +1510,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
 
                                           // Summary stats
                                           Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               _buildStatCard(
                                                 context,
@@ -1586,14 +1585,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                           Builder(builder: (context) {
                                             final stats =
                                                 viewModel.previewTfStats;
-                                            if (stats.isEmpty)
+                                            if (stats.isEmpty) {
                                               return const SizedBox.shrink();
+                                            }
 
-                                            Widget _statChip(
+                                            Widget statChip(
                                                 String tf, Map<String, num> s) {
                                               final bg = Theme.of(context)
                                                   .colorScheme
-                                                  .surfaceVariant;
+                                                  .surfaceContainerHighest;
                                               final fg = Theme.of(context)
                                                   .colorScheme
                                                   .onSurfaceVariant;
@@ -1736,7 +1736,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                   spacing: 8,
                                                   runSpacing: 8,
                                                   children: stats.entries
-                                                      .map((e) => _statChip(
+                                                      .map((e) => statChip(
                                                           e.key, e.value))
                                                       .toList(),
                                                 ),
@@ -1798,21 +1798,19 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               if (viewModel.hasFatalErrors) {
                                 final errs = viewModel.getAllFatalErrors();
                                 final shown = errs.take(2).join('\n• ');
-                                return 'Perbaiki error sebelum menyimpan:\n• ' +
-                                    shown +
-                                    (errs.length > 2 ? '...' : '');
+                                return 'Perbaiki error sebelum menyimpan:\n• $shown${errs.length > 2 ? '...' : ''}';
                               }
                               if (!viewModel.canSave) {
                                 return 'Lengkapi nama, modal awal, dan entry rules';
                               }
-                              if (viewModel.isBusy) {
+                              if (viewModel.isSaving) {
                                 return 'Sedang menyimpan...';
                               }
                               return 'Simpan strategi';
                             })(),
                             child: ElevatedButton(
                               onPressed: (viewModel.canSave &&
-                                      !viewModel.isBusy &&
+                                      !viewModel.isSaving &&
                                       !viewModel.hasFatalErrors)
                                   ? () => viewModel.saveStrategy(context)
                                   : null,
@@ -1823,7 +1821,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 foregroundColor: Colors.white,
                               ),
                               child: (() {
-                                if (viewModel.isBusy) {
+                                if (viewModel.isSaving) {
                                   return const SizedBox(
                                     height: 20,
                                     width: 20,
@@ -1848,8 +1846,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 }
                                 return Text(
                                   viewModel.isEditing
-                                      ? 'Update Strategy'
-                                      : 'Save Strategy',
+                                      ? AppLocalizations.of(context)!
+                                          .sbUpdateStrategyButton
+                                      : AppLocalizations.of(context)!
+                                          .sbSaveStrategyButton,
                                   style: const TextStyle(fontSize: 16),
                                 );
                               })(),
@@ -2591,10 +2591,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
         label,
         style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
       ),
-      backgroundColor: theme.colorScheme.surfaceVariant,
+      backgroundColor: theme.colorScheme.surfaceContainerHighest,
       shape: StadiumBorder(
         side: BorderSide(
-          color: theme.colorScheme.outline.withOpacity(0.5),
+          color: theme.colorScheme.outline.withValues(alpha: 0.5),
         ),
       ),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -2695,15 +2695,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           String categorize(StrategyTemplate t) {
                             final n = t.name.toLowerCase();
                             if (n.contains('breakout')) return 'Breakout';
-                            if (n.contains('mean reversion'))
+                            if (n.contains('mean reversion')) {
                               return 'Mean Reversion';
+                            }
                             if (n.contains('trend')) return 'Trend';
                             if (n.contains('momentum')) return 'Momentum';
                             return 'Other';
                           }
 
                           // Helper: highlight occurrences of query in text
-                          TextSpan _highlightSpan(
+                          TextSpan highlightSpan(
                             String text,
                             String query,
                             TextStyle? normal,
@@ -2778,7 +2779,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     .secondaryContainer,
                                 backgroundColor: Theme.of(context)
                                     .colorScheme
-                                    .surfaceVariant,
+                                    .surfaceContainerHighest,
                                 shape: StadiumBorder(
                                   side: BorderSide(
                                     color: (selectedCats.isEmpty
@@ -2788,8 +2789,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             : Theme.of(context)
                                                 .colorScheme
                                                 .outline)
-                                        .withOpacity(
-                                            selectedCats.isEmpty ? 0.7 : 0.5),
+                                        .withValues(
+                                            alpha: selectedCats.isEmpty
+                                                ? 0.7
+                                                : 0.5),
                                     width: selectedCats.isEmpty ? 1.2 : 1.0,
                                   ),
                                 ),
@@ -2827,7 +2830,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         .secondaryContainer,
                                     backgroundColor: Theme.of(context)
                                         .colorScheme
-                                        .surfaceVariant,
+                                        .surfaceContainerHighest,
                                     shape: StadiumBorder(
                                       side: BorderSide(
                                         color: (selectedCats.contains(cat)
@@ -2837,10 +2840,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                 : Theme.of(context)
                                                     .colorScheme
                                                     .outline)
-                                            .withOpacity(
-                                                selectedCats.contains(cat)
-                                                    ? 0.7
-                                                    : 0.5),
+                                            .withValues(
+                                                alpha:
+                                                    selectedCats.contains(cat)
+                                                        ? 0.7
+                                                        : 0.5),
                                         width: selectedCats.contains(cat)
                                             ? 1.2
                                             : 1.0,
@@ -2899,7 +2903,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 ListTile(
                                   leading: const Icon(Icons.history),
                                   title: RichText(
-                                    text: _highlightSpan(
+                                    text: highlightSpan(
                                       tpl.name,
                                       query,
                                       Theme.of(context)
@@ -2918,7 +2922,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     ),
                                   ),
                                   subtitle: RichText(
-                                    text: _highlightSpan(
+                                    text: highlightSpan(
                                       tpl.description,
                                       query,
                                       Theme.of(context).textTheme.bodySmall,
@@ -2969,7 +2973,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               return [
                                 ListTile(
                                   title: RichText(
-                                    text: _highlightSpan(
+                                    text: highlightSpan(
                                       tpl.name,
                                       query,
                                       Theme.of(context)
@@ -2988,7 +2992,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     ),
                                   ),
                                   subtitle: RichText(
-                                    text: _highlightSpan(
+                                    text: highlightSpan(
                                       tpl.description,
                                       query,
                                       Theme.of(context).textTheme.bodySmall,
@@ -3062,7 +3066,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             color: Theme.of(context)
                                                 .colorScheme
                                                 .error
-                                                .withOpacity(0.6),
+                                                .withValues(alpha: 0.6),
                                           ),
                                         ),
                                         elevation: 1,
@@ -3070,7 +3074,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         shadowColor: Theme.of(context)
                                             .colorScheme
                                             .error
-                                            .withOpacity(0.25),
+                                            .withValues(alpha: 0.25),
                                         materialTapTargetSize:
                                             MaterialTapTargetSize.shrinkWrap,
                                         visualDensity: VisualDensity.compact,

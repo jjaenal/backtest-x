@@ -255,10 +255,10 @@ class GroupedTfBarChart extends StatelessWidget {
       theme.colorScheme.primary.withValues(alpha: 0.85),
       theme.colorScheme.tertiary.withValues(alpha: 0.85),
       theme.colorScheme.secondary.withValues(alpha: 0.85),
-      Colors.teal.withOpacity(0.85),
-      Colors.indigo.withOpacity(0.85),
-      Colors.orange.withOpacity(0.85),
-      Colors.pink.withOpacity(0.85),
+      Colors.teal.withValues(alpha: 0.85),
+      Colors.indigo.withValues(alpha: 0.85),
+      Colors.orange.withValues(alpha: 0.85),
+      Colors.pink.withValues(alpha: 0.85),
     ];
     final colors = <Color>[];
     for (int i = 0; i < count; i++) {

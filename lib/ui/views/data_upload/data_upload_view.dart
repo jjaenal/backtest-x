@@ -30,7 +30,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                   color: Theme.of(context)
                       .colorScheme
                       .primaryContainer
-                      .withOpacity(0.12),
+                      .withValues(alpha: 0.12),
                   child: Padding(
                     padding: const EdgeInsets.all(12.0),
                     child: Row(
@@ -45,8 +45,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                               Text(
                                 AppLocalizations.of(context)!
                                     .coachTimeframeHeader,
-                                style:
-                                    Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 6),
                               Text(
@@ -61,7 +60,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                                   onPressed: viewModel.showTimeframeCoach,
                                   child: Text(AppLocalizations.of(context)!
                                       .coachTimeframeLearn),
-                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -96,8 +95,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          AppLocalizations.of(context)!
-                              .uploadCsvFormatHint,
+                          AppLocalizations.of(context)!.uploadCsvFormatHint,
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -148,10 +146,8 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                   TextField(
                     controller: viewModel.symbolController,
                     decoration: InputDecoration(
-                      labelText:
-                          AppLocalizations.of(context)!.inputSymbolLabel,
-                      hintText:
-                          AppLocalizations.of(context)!.inputSymbolHint,
+                      labelText: AppLocalizations.of(context)!.inputSymbolLabel,
+                      hintText: AppLocalizations.of(context)!.inputSymbolHint,
                       prefixIcon: const Icon(Icons.trending_up),
                     ),
                     textCapitalization: TextCapitalization.characters,
@@ -196,8 +192,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                               ),
                             )
                           : Text(
-                              AppLocalizations.of(context)!
-                                  .uploadActionProcess,
+                              AppLocalizations.of(context)!.uploadActionProcess,
                               style: const TextStyle(fontSize: 16),
                             ),
                     ),
@@ -246,8 +241,8 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                               null) ...[
                             const SizedBox(height: 8),
                             Text(AppLocalizations.of(context)!
-                                .validationTotalCandles(viewModel
-                                    .validationResult!.totalCandles!)),
+                                .validationTotalCandles(
+                                    viewModel.validationResult!.totalCandles!)),
                           ],
                           if (viewModel
                               .validationResult!.errors.isNotEmpty) ...[
@@ -312,7 +307,7 @@ class DataUploadView extends StackedView<DataUploadViewModel> {
                     color: Theme.of(context)
                         .colorScheme
                         .secondaryContainer
-                        .withOpacity(0.12),
+                        .withValues(alpha: 0.12),
                     child: Padding(
                       padding: const EdgeInsets.all(12.0),
                       child: Column(

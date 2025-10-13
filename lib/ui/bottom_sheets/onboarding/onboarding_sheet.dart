@@ -71,7 +71,10 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
             current.desc,
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.75),
             ),
           ),
           const SizedBox(height: 16),
@@ -120,7 +123,7 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
                           color: Theme.of(context)
                               .colorScheme
                               .onSurface
-                              .withOpacity(0.8)),
+                              .withValues(alpha: 0.8)),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -172,8 +175,8 @@ class OnboardingSheet extends StackedView<OnboardingSheetModel> {
           const SizedBox(height: 8),
           Center(
             child: Chip(
-              label: Text(
-                  l10n.onboardingStepProgress(viewModel.step + 1, steps.length)),
+              label: Text(l10n.onboardingStepProgress(
+                  viewModel.step + 1, steps.length)),
             ),
           ),
           const SizedBox(height: 8),
