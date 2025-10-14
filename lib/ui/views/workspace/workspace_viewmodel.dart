@@ -55,6 +55,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   String? get selectedDataId => _selectedDataId;
 
   Map<String, BacktestResult?> _quickResults = {};
+  // Progress percentage per strategy for quick/backtest runs
+  final Map<String, double> _quickProgress = {};
+  double? getQuickProgress(String strategyId) => _quickProgress[strategyId];
 
   // Result filters
   bool _filterProfitOnly = false;
@@ -213,6 +216,12 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       loadAvailableData();
       notifyListeners();
     });
+    // Progress subscription for long-running backtests
+    _progressSub = _storageService.backtestProgress.listen((event) {
+      // Track percentage per-strategy and refresh UI
+      _quickProgress[event.strategyId] = event.progress;
+      notifyListeners();
+    });
   }
 
   Future<void> loadData() async {
@@ -258,12 +267,14 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   StreamSubscription? _strategySub;
   StreamSubscription? _backtestSub;
   StreamSubscription? _marketDataSub;
+  StreamSubscription? _progressSub;
 
   @override
   void dispose() {
     _strategySub?.cancel();
     _backtestSub?.cancel();
     _marketDataSub?.cancel();
+    _progressSub?.cancel();
     super.dispose();
   }
 
@@ -672,6 +683,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     }
 
     _isRunningQuickTest[strategy.id] = true;
+    _quickProgress[strategy.id] = 0.0;
     notifyListeners();
 
     try {
@@ -854,6 +866,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       );
     } finally {
       _isRunningQuickTest[strategy.id] = false;
+      _quickProgress.remove(strategy.id);
       notifyListeners();
     }
   }

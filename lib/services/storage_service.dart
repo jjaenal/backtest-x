@@ -26,10 +26,20 @@ class StorageService {
       StreamController<StrategyEvent>.broadcast();
   final StreamController<BacktestResultEvent> _resultController =
       StreamController<BacktestResultEvent>.broadcast();
+  final StreamController<BacktestProgressEvent> _progressController =
+      StreamController<BacktestProgressEvent>.broadcast();
 
   Stream<MarketDataEvent> get marketDataEvents => _marketDataController.stream;
   Stream<StrategyEvent> get strategyEvents => _strategyController.stream;
   Stream<BacktestResultEvent> get backtestEvents => _resultController.stream;
+  Stream<BacktestProgressEvent> get backtestProgress => _progressController.stream;
+
+  // Public API to emit progress events to UI subscribers
+  void emitBacktestProgress(BacktestProgressEvent event) {
+    try {
+      _progressController.add(event);
+    } catch (_) {}
+  }
 
   Future<Database> get database async {
     if (_database != null) return _database!;
@@ -709,6 +719,7 @@ class StorageService {
     _marketDataController.close();
     _strategyController.close();
     _resultController.close();
+    _progressController.close();
   }
 
   // ============ STRATEGY DRAFTS (AUTOSAVE) ============
@@ -825,5 +836,19 @@ class BacktestResultEvent {
     this.id,
     this.strategyId,
     this.marketDataId,
+  });
+}
+
+/// Progress events for long-running backtests
+class BacktestProgressEvent {
+  final String strategyId;
+  final String? marketDataId;
+  final double progress; // 0.0 - 1.0
+  final Map<String, Map<String, num>>? tfStats; // optional per‑TF preview metrics
+  const BacktestProgressEvent({
+    required this.strategyId,
+    this.marketDataId,
+    required this.progress,
+    this.tfStats,
   });
 }

@@ -2,15 +2,15 @@
 
 ## Focused Checklist — Refactor & Optimasi
 
-- [ ] Parallel indicator calculation
+- [x] Parallel indicator calculation
       Bisa pakai compute() di Flutter buat thread terpisah kalau data candle banyak (supaya nggak freeze UI).
-- [ ] Modularize Strategy Rules
+- [x] Modularize Strategy Rules
       Pisahkan evaluasi condition jadi class kecil (misal ConditionEvaluator) biar mudah testing & reusability.
-- [ ] Use stream or isolate for long backtests
+- [x] Use stream atau isolate untuk long backtests
       Biar UI tetap responsif saat running ribuan candle.
-- [ ] Add intermediate progress callback
+- [x] Add intermediate progress callback
       Supaya UI bisa tampilkan progress bar (% backtest selesai).
-- [ ] Cache indikator antar run
+- [x] Cache indikator antar run
       Kalau user pakai strategi sama dan data sama, nggak perlu hitung ulang semua indikator.
 
 ## Focused Checklist — Realtime UI & Refresh

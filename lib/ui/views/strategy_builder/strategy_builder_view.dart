@@ -2616,6 +2616,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
       showDragHandle: true,
       builder: (ctx) {
         final entries = StrategyTemplates.all.entries.toList();
+        final localized = StrategyTemplates.localized(l10n);
         var query = viewModel.selectedTemplateQuery;
         var selectedCats = viewModel.selectedTemplateCategories.toSet();
         var searchController = TextEditingController(text: query);
@@ -2626,8 +2627,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
             final filtered = query.isEmpty
                 ? entries
                 : entries.where((e) {
-                    final name = e.value.name.toLowerCase();
-                    final desc = e.value.description.toLowerCase();
+                    final tpl = localized[e.key] ?? e.value;
+                    final name = tpl.name.toLowerCase();
+                    final desc = tpl.description.toLowerCase();
                     final q = query.toLowerCase();
                     return name.contains(q) || desc.contains(q);
                   }).toList();
@@ -2692,7 +2694,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       Expanded(
                         child: Builder(builder: (_) {
                           // Kategorikan berdasarkan nama template
-                          String categorize(StrategyTemplate t) {
+                          String categorize(String key, StrategyTemplate t) {
+                            // Gunakan key untuk kategori agar tidak tergantung bahasa lokal
+                            if (key.startsWith('breakout_')) return 'Breakout';
+                            if (key.startsWith('trend_')) return 'Trend';
+                            if (key.startsWith('mean_reversion_')) {
+                              return 'Mean Reversion';
+                            }
+                            if (key.startsWith('momentum_')) return 'Momentum';
+                            // Fallback: cek nama jika key tidak match
                             final n = t.name.toLowerCase();
                             if (n.contains('breakout')) return 'Breakout';
                             if (n.contains('mean reversion')) {
@@ -2742,7 +2752,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   List<MapEntry<String, StrategyTemplate>>>
                               groups = {};
                           for (final e in filtered) {
-                            final cat = categorize(e.value);
+                            final cat = categorize(e.key, e.value);
                             groups.putIfAbsent(cat, () => []).add(e);
                           }
                           final order = [
@@ -2904,7 +2914,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   leading: const Icon(Icons.history),
                                   title: RichText(
                                     text: highlightSpan(
-                                      tpl.name,
+                                      (localized[e.key] ?? tpl).name,
                                       query,
                                       Theme.of(context)
                                           .textTheme
@@ -2923,7 +2933,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   ),
                                   subtitle: RichText(
                                     text: highlightSpan(
-                                      tpl.description,
+                                      (localized[e.key] ?? tpl).description,
                                       query,
                                       Theme.of(context).textTheme.bodySmall,
                                       Theme.of(context)
@@ -2974,7 +2984,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 ListTile(
                                   title: RichText(
                                     text: highlightSpan(
-                                      tpl.name,
+                                      (localized[e.key] ?? tpl).name,
                                       query,
                                       Theme.of(context)
                                           .textTheme
@@ -2993,7 +3003,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   ),
                                   subtitle: RichText(
                                     text: highlightSpan(
-                                      tpl.description,
+                                      (localized[e.key] ?? tpl).description,
                                       query,
                                       Theme.of(context).textTheme.bodySmall,
                                       Theme.of(context)

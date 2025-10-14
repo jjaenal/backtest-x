@@ -55,6 +55,7 @@ flutter run
   - Copy trades CSV to clipboard from Workspace results
   - Copy backtest summary to clipboard from Workspace results
   - Export trades to CSV from Workspace results list
+- **Realtime Progress Events**: Engine emits progress (%) and per‑TF stats during backtests; UI shows spinner and a live percent label on Quick Test/Run Batch.
 - PDF report includes Strategy Details section and improved charts (grid, axis labels, date range)
 
   PDF Export enhancements:
@@ -128,7 +129,7 @@ Gunakan aksi cepat di kartu strategi untuk menjalankan backtest tanpa meninggalk
 - Pilih `market data` dari dropdown di area Quick Actions.
 - Klik `Quick Test` untuk menjalankan satu backtest pada data terpilih.
 - Klik `Run Batch` untuk menjalankan backtest berturut pada semua data yang tersedia. Setiap hasil disimpan otomatis ke database dan muncul di daftar hasil.
-- Selama proses berjalan, tombol akan nonaktif dan menampilkan indikator progres (spinner) untuk mencegah aksi ganda.
+- Selama proses berjalan, tombol akan nonaktif dan menampilkan indikator progres (spinner) serta label progres live, mis. `Quick Test (37%)`, untuk mencegah aksi ganda.
 
 ## 🔧 Usage - Home Cache Warm-up
 

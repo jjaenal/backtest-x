@@ -1,4 +1,5 @@
 import 'package:backtestx/models/strategy.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 /// Predefined strategy templates to speed up strategy creation.
 class StrategyTemplates {
@@ -897,6 +898,124 @@ class StrategyTemplates {
       ],
     ),
   };
+
+  /// Localized variants of templates: returns copies of [all] with
+  /// `name` and `description` resolved via AppLocalizations for current locale.
+  static Map<String, StrategyTemplate> localized(AppLocalizations l10n) {
+    StrategyTemplate _copyWithLocalized(
+      String key,
+      StrategyTemplate t,
+    ) {
+      final name = _localizedName(l10n, key, t.name);
+      final desc = _localizedDesc(l10n, key, t.description);
+      return StrategyTemplate(
+        name: name,
+        description: desc,
+        initialCapital: t.initialCapital,
+        risk: t.risk,
+        entryRules: t.entryRules,
+        exitRules: t.exitRules,
+      );
+    }
+
+    final map = <String, StrategyTemplate>{};
+    all.forEach((key, value) {
+      map[key] = _copyWithLocalized(key, value);
+    });
+    return map;
+  }
+
+  static String _localizedName(
+      AppLocalizations l10n, String key, String fallback) {
+    switch (key) {
+      case 'breakout_basic':
+        return l10n.templateBreakoutBasicName;
+      case 'breakout_hh_range_atr':
+        return l10n.templateBreakoutHhRangeAtrName;
+      case 'breakout_hh_range_atr_pct':
+        return l10n.templateBreakoutHhRangeAtrPctName;
+      case 'mean_reversion_rsi':
+        return l10n.templateMeanReversionRsiName;
+      case 'macd_signal':
+        return l10n.templateMacdSignalName;
+      case 'trend_ema_cross':
+        return l10n.templateTrendEmaCrossName;
+      case 'trend_ema_adx_filter':
+        return l10n.templateTrendEmaAdxFilterName;
+      case 'trend_ema_atr_pct_filter':
+        return l10n.templateTrendEmaAtrPctFilterName;
+      case 'momentum_rsi_macd':
+        return l10n.templateMomentumRsiMacdName;
+      case 'macd_hist_momentum':
+        return l10n.templateMacdHistMomentumName;
+      case 'mean_reversion_bb_rsi':
+        return l10n.templateMeanReversionBbRsiName;
+      case 'ema_vs_sma_cross':
+        return l10n.templateEmaVsSmaCrossName;
+      case 'macd_hist_rising_filter':
+        return l10n.templateMacdHistRisingFilterName;
+      case 'rsi_rising_50_filter':
+        return l10n.templateRsiRising50FilterName;
+      case 'ema_rising_price_filter':
+        return l10n.templateEmaRisingPriceFilterName;
+      case 'ema_ribbon_stack':
+        return l10n.templateEmaRibbonStackName;
+      case 'vwap_pullback_breakout':
+        return l10n.templateVwapPullbackBreakoutName;
+      case 'anchored_vwap_pullback_cross':
+        return l10n.templateAnchoredVwapPullbackCrossName;
+      case 'stoch_kd_cross_adx':
+        return l10n.templateStochKdCrossAdxName;
+      default:
+        return fallback;
+    }
+  }
+
+  static String _localizedDesc(
+      AppLocalizations l10n, String key, String fallback) {
+    switch (key) {
+      case 'breakout_basic':
+        return l10n.templateBreakoutBasicDesc;
+      case 'breakout_hh_range_atr':
+        return l10n.templateBreakoutHhRangeAtrDesc;
+      case 'breakout_hh_range_atr_pct':
+        return l10n.templateBreakoutHhRangeAtrPctDesc;
+      case 'mean_reversion_rsi':
+        return l10n.templateMeanReversionRsiDesc;
+      case 'macd_signal':
+        return l10n.templateMacdSignalDesc;
+      case 'trend_ema_cross':
+        return l10n.templateTrendEmaCrossDesc;
+      case 'trend_ema_adx_filter':
+        return l10n.templateTrendEmaAdxFilterDesc;
+      case 'trend_ema_atr_pct_filter':
+        return l10n.templateTrendEmaAtrPctFilterDesc;
+      case 'momentum_rsi_macd':
+        return l10n.templateMomentumRsiMacdDesc;
+      case 'macd_hist_momentum':
+        return l10n.templateMacdHistMomentumDesc;
+      case 'mean_reversion_bb_rsi':
+        return l10n.templateMeanReversionBbRsiDesc;
+      case 'ema_vs_sma_cross':
+        return l10n.templateEmaVsSmaCrossDesc;
+      case 'macd_hist_rising_filter':
+        return l10n.templateMacdHistRisingFilterDesc;
+      case 'rsi_rising_50_filter':
+        return l10n.templateRsiRising50FilterDesc;
+      case 'ema_rising_price_filter':
+        return l10n.templateEmaRisingPriceFilterDesc;
+      case 'ema_ribbon_stack':
+        return l10n.templateEmaRibbonStackDesc;
+      case 'vwap_pullback_breakout':
+        return l10n.templateVwapPullbackBreakoutDesc;
+      case 'anchored_vwap_pullback_cross':
+        return l10n.templateAnchoredVwapPullbackCrossDesc;
+      case 'stoch_kd_cross_adx':
+        return l10n.templateStochKdCrossAdxDesc;
+      default:
+        return fallback;
+    }
+  }
 }
 
 class StrategyTemplate {

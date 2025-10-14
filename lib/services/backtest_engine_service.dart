@@ -5,6 +5,7 @@ import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:backtestx/services/indicator_service.dart';
 import 'package:backtestx/helpers/mtf_helper.dart';
+import 'package:backtestx/helpers/condition_evaluator.dart';
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 
@@ -83,6 +84,7 @@ class BacktestEngineService {
     DateTime? startDate, // Optional: limit by start date
     DateTime? endDate, // Optional: limit by end date
     bool debug = false, // Add debug flag
+    void Function(double progress)? onProgress, // Intermediate progress callback 0..1
   }) async {
     // Reset last-run per‑TF stats
     _lastTfSignals = {};
@@ -147,13 +149,28 @@ class BacktestEngineService {
       ruleTimeframes,
     );
 
-    // Pre-calculate indicators per timeframe
+    // Pre-calculate indicators per timeframe (parallelized where possible)
     final tfIndicators = <String, Map<String, List<double?>>>{};
+    // Base timeframe first
+    final baseCandles = tfCandles[baseTimeframe]!;
     tfIndicators[baseTimeframe] =
-        _precalculateIndicators(tfCandles[baseTimeframe]!, strategy);
-    for (final tf in ruleTimeframes) {
-      tfIndicators[tf] = _precalculateIndicators(tfCandles[tf]!, strategy);
+        _precalculateIndicators(baseCandles, strategy, '${marketData.id}|$baseTimeframe');
+    // Notify small initial progress
+    onProgress?.call(0.05);
+    // Other timeframes in parallel
+    if (ruleTimeframes.isNotEmpty) {
+      final futures = <Future<void>>[];
+      for (final tf in ruleTimeframes) {
+        final candlesTf = tfCandles[tf]!;
+        futures.add(Future(() async {
+          final ind = _precalculateIndicators(
+              candlesTf, strategy, '${marketData.id}|$tf');
+          tfIndicators[tf] = ind;
+        }));
+      }
+      await Future.wait(futures);
     }
+    onProgress?.call(0.15);
 
     // Map base index to index in each timeframe
     final tfIndexMap = buildTfIndexMap(
@@ -251,7 +268,7 @@ class BacktestEngineService {
                 ? baseTimeframe
                 : rule.timeframe!;
             // Re-evaluate rule to determine contribution
-            final ok = _evaluateRuleMTF(
+            final ok = ConditionEvaluator.evaluateRuleMTF(
               rule,
               tfIndicators,
               tfIndexMap,
@@ -307,6 +324,14 @@ class BacktestEngineService {
         equity: currentEquity,
         drawdown: drawdown,
       ));
+
+      // Progress update roughly each 5% to avoid flooding
+      if (onProgress != null && i % (max(1, candles.length ~/ 20)) == 0) {
+        final p = i / candles.length;
+        try {
+          onProgress(p.clamp(0.0, 0.95));
+        } catch (_) {}
+      }
     }
 
     if (debug) {
@@ -380,9 +405,13 @@ class BacktestEngineService {
   }
 
   /// Precalculate all indicators needed
+  // Simple in-memory cache across engine lifetime (per indicator/timeframe)
+  final Map<String, List<double?>> _indicatorCache = {};
+
   Map<String, List<double?>> _precalculateIndicators(
     List<Candle> candles,
     Strategy strategy,
+    String cachePrefix,
   ) {
     final indicators = <String, List<double?>>{};
 
@@ -399,9 +428,16 @@ class BacktestEngineService {
       // Calculate the main indicator using rule.period or default
       final mainPeriod = rule.period ?? _getDefaultPeriod(rule.indicator);
       final mainKey = _getIndicatorKeyForType(rule.indicator, mainPeriod);
+      final cacheKeyMain = '$cachePrefix|$mainKey';
       if (!indicators.containsKey(mainKey)) {
-        indicators[mainKey] =
-            _calculateIndicatorByType(candles, rule.indicator, mainPeriod);
+        if (_indicatorCache.containsKey(cacheKeyMain)) {
+          indicators[mainKey] = _indicatorCache[cacheKeyMain]!;
+        } else {
+          final series =
+              _calculateIndicatorByType(candles, rule.indicator, mainPeriod);
+          indicators[mainKey] = series;
+          _indicatorCache[cacheKeyMain] = series;
+        }
       }
 
       // Calculate comparison indicator if it's an indicator comparison
@@ -422,16 +458,30 @@ class BacktestEngineService {
               compareKey = _avwapKeyStart();
               anchorIndex = 0;
             }
+            final cacheKey = '$cachePrefix|$compareKey|anchor:$anchorIndex';
             if (!indicators.containsKey(compareKey)) {
-              indicators[compareKey] =
-                  _indicatorService.calculateAnchoredVWAP(candles, anchorIndex);
+              if (_indicatorCache.containsKey(cacheKey)) {
+                indicators[compareKey] = _indicatorCache[cacheKey]!;
+              } else {
+                final series = _indicatorService
+                    .calculateAnchoredVWAP(candles, anchorIndex);
+                indicators[compareKey] = series;
+                _indicatorCache[cacheKey] = series;
+              }
             }
           } else {
             final compareKey = _getIndicatorKeyForType(
                 type, period ?? _getDefaultPeriod(type));
+            final cacheKey = '$cachePrefix|$compareKey';
             if (!indicators.containsKey(compareKey)) {
-              indicators[compareKey] = _calculateIndicatorByType(
-                  candles, type, period ?? _getDefaultPeriod(type));
+              if (_indicatorCache.containsKey(cacheKey)) {
+                indicators[compareKey] = _indicatorCache[cacheKey]!;
+              } else {
+                final series = _calculateIndicatorByType(
+                    candles, type, period ?? _getDefaultPeriod(type));
+                indicators[compareKey] = series;
+                _indicatorCache[cacheKey] = series;
+              }
             }
           }
         },
@@ -611,7 +661,7 @@ class BacktestEngineService {
     if (strategy.entryRules.isEmpty) return false;
 
     // Start with first rule result
-    bool result = _evaluateRuleMTF(
+    bool result = ConditionEvaluator.evaluateRuleMTF(
       strategy.entryRules[0],
       tfIndicators,
       tfIndexMap,
@@ -622,7 +672,7 @@ class BacktestEngineService {
     // Apply subsequent rules with their logical operators
     for (var i = 1; i < strategy.entryRules.length; i++) {
       final rule = strategy.entryRules[i];
-      final ruleResult = _evaluateRuleMTF(
+      final ruleResult = ConditionEvaluator.evaluateRuleMTF(
         rule,
         tfIndicators,
         tfIndexMap,
@@ -644,162 +694,6 @@ class BacktestEngineService {
     }
 
     return result;
-  }
-
-  /// Evaluate single rule
-  bool _evaluateRuleMTF(
-    StrategyRule rule,
-    Map<String, Map<String, List<double?>>> tfIndicators,
-    Map<String, List<int?>> tfIndexMap,
-    int baseIndex,
-    String baseTimeframe,
-  ) {
-    // Use rule timeframe if provided, otherwise fall back to base timeframe
-    final tf = (rule.timeframe == null || rule.timeframe!.isEmpty)
-        ? baseTimeframe
-        : rule.timeframe!;
-
-    // Get main indicator key using rule.period or default
-    final mainPeriod = rule.period ?? _getDefaultPeriod(rule.indicator);
-    final mainKey = _getIndicatorKeyForType(rule.indicator, mainPeriod);
-    final indicators = tfIndicators[tf];
-    if (indicators == null) return false;
-    final indicatorValues = indicators[mainKey];
-
-    final tfIndex =
-        tf == baseTimeframe ? baseIndex : (tfIndexMap[tf]?[baseIndex] ?? -1);
-    if (tfIndex < 0) return false;
-
-    if (indicatorValues == null ||
-        tfIndex >= indicatorValues.length ||
-        indicatorValues[tfIndex] == null) {
-      return false;
-    }
-
-    final currentValue = indicatorValues[tfIndex]!;
-
-    // Check if we're comparing against an indicator or a number
-    bool isIndicatorComparison = false;
-    rule.value.when(
-      number: (_) => isIndicatorComparison = false,
-      indicator: (_, __, ___, ____) => isIndicatorComparison = true,
-    );
-
-    // Get comparison value
-    final compareValue = rule.value.when(
-      number: (number) => number,
-      indicator: (type, period, anchorMode, anchorDate) {
-        String compareKey;
-        if (type == IndicatorType.anchoredVwap) {
-          if (anchorMode == AnchorMode.byDate && anchorDate != null) {
-            compareKey = _avwapKeyByDate(anchorDate);
-          } else {
-            compareKey = _avwapKeyStart();
-          }
-        } else {
-          compareKey =
-              _getIndicatorKeyForType(type, period ?? _getDefaultPeriod(type));
-        }
-        final compareIndicator = indicators[compareKey];
-        if (compareIndicator == null ||
-            tfIndex >= compareIndicator.length ||
-            compareIndicator[tfIndex] == null) {
-          return double.nan;
-        }
-        return compareIndicator[tfIndex]!;
-      },
-    );
-
-    // Skip if comparison value is invalid
-    if (compareValue.isNaN || compareValue.isInfinite) {
-      return false;
-    }
-
-    switch (rule.operator) {
-      case ComparisonOperator.greaterThan:
-        return currentValue > compareValue;
-      case ComparisonOperator.lessThan:
-        return currentValue < compareValue;
-      case ComparisonOperator.greaterThanOrEqual:
-        return currentValue >= compareValue;
-      case ComparisonOperator.lessThanOrEqual:
-        return currentValue <= compareValue;
-      case ComparisonOperator.equals:
-        return (currentValue - compareValue).abs() < 0.0001;
-      case ComparisonOperator.crossAbove:
-        if (tfIndex == 0) return false;
-        final prevValue = indicatorValues[tfIndex - 1];
-        if (prevValue == null) return false;
-
-        // For crossAbove with indicator comparison
-        if (isIndicatorComparison) {
-          final compareKey = rule.value.when(
-            number: (_) => '',
-            indicator: (type, period, anchorMode, anchorDate) {
-              if (type == IndicatorType.anchoredVwap) {
-                if (anchorMode == AnchorMode.byDate && anchorDate != null) {
-                  return _avwapKeyByDate(anchorDate);
-                }
-                return _avwapKeyStart();
-              }
-              return _getIndicatorKeyForType(
-                  type, period ?? _getDefaultPeriod(type));
-            },
-          );
-          final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || tfIndex >= compareIndicator.length) {
-            return false;
-          }
-          final prevCompare = compareIndicator[tfIndex - 1];
-          final currCompare = compareIndicator[tfIndex];
-          if (prevCompare == null || currCompare == null) return false;
-          return prevValue <= prevCompare && currentValue > currCompare;
-        }
-
-        return prevValue <= compareValue && currentValue > compareValue;
-
-      case ComparisonOperator.crossBelow:
-        if (tfIndex == 0) return false;
-        final prevValue = indicatorValues[tfIndex - 1];
-        if (prevValue == null) return false;
-
-        // For crossBelow with indicator comparison
-        if (isIndicatorComparison) {
-          final compareKey = rule.value.when(
-            number: (_) => '',
-            indicator: (type, period, anchorMode, anchorDate) {
-              if (type == IndicatorType.anchoredVwap) {
-                if (anchorMode == AnchorMode.byDate && anchorDate != null) {
-                  return _avwapKeyByDate(anchorDate);
-                }
-                return _avwapKeyStart();
-              }
-              return _getIndicatorKeyForType(
-                  type, period ?? _getDefaultPeriod(type));
-            },
-          );
-          final compareIndicator = indicators[compareKey];
-          if (compareIndicator == null || tfIndex >= compareIndicator.length) {
-            return false;
-          }
-          final prevCompare = compareIndicator[tfIndex - 1];
-          final currCompare = compareIndicator[tfIndex];
-          if (prevCompare == null || currCompare == null) return false;
-          return prevValue >= prevCompare && currentValue < currCompare;
-        }
-
-        return prevValue >= compareValue && currentValue < compareValue;
-      case ComparisonOperator.rising:
-        if (tfIndex == 0) return false;
-        final prevValueR = indicatorValues[tfIndex - 1];
-        if (prevValueR == null) return false;
-        return currentValue > prevValueR;
-      case ComparisonOperator.falling:
-        if (tfIndex == 0) return false;
-        final prevValueF = indicatorValues[tfIndex - 1];
-        if (prevValueF == null) return false;
-        return currentValue < prevValueF;
-    }
   }
 
   /// Check exit conditions
@@ -867,7 +761,7 @@ class BacktestEngineService {
       LogicalOperator? prevOperator;
 
       for (final rule in strategy.exitRules) {
-        final conditionMet = _evaluateRuleMTF(
+        final conditionMet = ConditionEvaluator.evaluateRuleMTF(
           rule,
           tfIndicators,
           tfIndexMap,

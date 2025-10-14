@@ -580,8 +580,17 @@ class WorkspaceView extends StatelessWidget {
                                 ),
                               )
                             : const Icon(Icons.flash_on, size: 18),
-                        label: Text(AppLocalizations.of(context)!
-                            .workspaceQuickTestButton),
+                        label: () {
+                          final baseLabel =
+                              AppLocalizations.of(context)!
+                                  .workspaceQuickTestButton;
+                          final p = model.getQuickProgress(strategy.id);
+                          if (p == null) {
+                            return Text(baseLabel);
+                          }
+                          final pct = (p * 100).clamp(0, 100).toStringAsFixed(0);
+                          return Text('$baseLabel ($pct%)');
+                        }(),
                         style: ElevatedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
