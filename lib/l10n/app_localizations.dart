@@ -274,13 +274,25 @@ class AppLocalizations {
       'menu_export_chart_png': 'Export Chart PNG…',
       'menu_export_panel_png': 'Export Panel PNG…',
       // Strategy Builder View
+      'sb_edit_strategy_title': 'Edit Strategy',
+      'sb_create_strategy_title': 'Create Strategy',
+      'sb_strategy_details_header': 'Strategy Details',
+      'sb_entry_rules_header': 'Entry Rules',
+      'sb_exit_rules_header': 'Exit Rules',
+      'sb_no_entry_rules_yet': 'No entry rules yet',
+      'sb_no_exit_rules_yet': 'No exit rules yet',
+      'sb_tap_to_add_rule': 'Tap + to add a rule',
+      'sb_quick_backtest_preview_header': 'Quick Backtest Preview',
       'sb_exit_confirm_title': 'Exit Strategy Builder?',
       'sb_exit_confirm_content':
           'An autosave draft exists. Are you sure you want to close?',
       'common_cancel': 'Cancel',
       'sb_discard_and_exit': 'Discard & Exit',
       'common_close': 'Close',
+      'sb_autosave_settings_header': 'Autosave Settings',
       'sb_enable_autosave_title': 'Enable Autosave',
+      'sb_autosave_description':
+          'Automatically save draft when changes are made',
       'sb_menu_tooltip': 'Menu',
       'sb_import_confirm_title': 'Confirm Import',
       'sb_import_confirm_content':
@@ -320,6 +332,25 @@ class AppLocalizations {
       'sb_number_label': 'Number',
       'sb_value_label': 'Value',
       'sb_value_hint': 'e.g. 30, 70, 50',
+      'sb_operator_tooltip_rising':
+          'Rising: current indicator > previous. No comparison needed.',
+      'sb_operator_tooltip_falling':
+          'Falling: current indicator < previous. No comparison needed.',
+      'sb_operator_tooltip_cross_above':
+          'Cross Above: indicator crosses above comparator (indicator/threshold).',
+      'sb_operator_tooltip_cross_below':
+          'Cross Below: indicator crosses below comparator (indicator/threshold).',
+      'sb_operator_tooltip_default':
+          'Standard comparison against a number or indicator.',
+      'sb_operator_name_greater_than': 'Greater Than (>)',
+      'sb_operator_name_less_than': 'Less Than (<)',
+      'sb_operator_name_greater_or_equal': 'Greater or Equal (>=)',
+      'sb_operator_name_less_or_equal': 'Less or Equal (<=)',
+      'sb_operator_name_equals': 'Equals (=)',
+      'sb_operator_name_cross_above': 'Cross Above',
+      'sb_operator_name_cross_below': 'Cross Below',
+      'sb_operator_name_rising': 'Rising',
+      'sb_operator_name_falling': 'Falling',
       'sb_compare_with_label': 'Compare With',
       'sb_period_label': 'Period',
       'sb_anchor_mode_label': 'Anchor Mode',
@@ -327,16 +358,43 @@ class AppLocalizations {
       'sb_anchor_by_date': 'Anchor by Date',
       'sb_anchor_date_label': 'Anchor Date (ISO)',
       'sb_anchor_date_hint': 'YYYY-MM-DD or ISO',
+      'sb_optional_timeframe_tooltip':
+          'Optional: use timeframe >= base data to avoid auto-resampling.',
+      'sb_cross_operator_help':
+          'For cross: choose Indicator for indicator vs indicator; Number for threshold (e.g., zero-line).',
+      'sb_error_gt_zero': 'Must be > 0',
+      // Strategy Builder — rule warnings/errors
+      'sb_warning_tf_greater_than_base':
+          'Timeframe rule must be greater than base timeframe; will be adjusted to {base_tf}.',
+      'sb_warning_rsi_between_20_80':
+          'RSI threshold value should be between 20 and 80.',
+      'sb_warning_operator_equals_not_supported':
+          'Operator equals is not supported for price/indicator comparison.',
+      'sb_warning_bbands_specify_band':
+          'Comparison with Bollinger Bands must specify upper or lower band.',
+      'sb_period_must_be_set_gt0': 'Period must be set (>0 recommended).',
+      'sb_error_value_must_be_set': 'Value must be set.',
+      'sb_error_rsi_between_0_100': 'Value RSI must be between 0 and 100.',
+      'sb_error_adx_between_0_100': 'Value ADX must be between 0 and 100.',
+      'sb_error_pick_comparison_indicator': 'Pick comparison indicator.',
+      'sb_required_field': 'Required',
+      'sb_required_selection': 'Selection required',
+      'sb_invalid_date_format': 'Invalid date format',
+      'sb_rule_title': 'Rule {index}',
+      'sb_dynamic_atr_presets': 'Dynamic ATR% Presets',
       'sb_then_logic_label': 'Then (Logic)',
       'common_none': 'None',
       'sb_search_template_hint': 'Search templates...',
       'sb_show_all_categories': 'Show all categories',
       'sb_filter_prefix': 'Filter: ',
+      'sb_items_available': '{count} available',
+      'sb_results_count_label': '{count} results',
       'common_clear': 'Clear',
       'sb_apply_filters': 'Apply',
       'sb_clear_filters': 'Clear filters',
       'sb_pick_template_tooltip': 'Pick Template',
       'sb_run_preview_tooltip': 'Run Preview',
+      'sb_test_strategy_button_tooltip': 'Run quick backtest',
       'sb_stats_signals': 'Signals',
       'sb_stats_trades': 'Trades',
       'sb_stats_wins': 'Wins',
@@ -346,7 +404,9 @@ class AppLocalizations {
       'sb_update_strategy_button': 'Update Strategy',
       'sb_strategy_saved': 'Strategy saved!',
       'sb_strategy_updated': 'Strategy updated!',
+      'sb_error_summary_header': 'Fixes required before save/preview',
       'sb_form_reset_ready': 'Form reset. Ready for a new strategy!',
+      'sb_dialog_paste_json': 'Paste JSON here then tap',
       'menu_export_chart_pdf': 'Export Chart PDF…',
       'menu_export_chart_panel_pdf': 'Export Chart + Panel PDF…',
       'menu_export_panel_pdf': 'Export Panel PDF…',
@@ -688,13 +748,25 @@ class AppLocalizations {
       'menu_export_chart_png': 'Ekspor Chart PNG…',
       'menu_export_panel_png': 'Ekspor Panel PNG…',
       // Strategy Builder View
+      'sb_edit_strategy_title': 'Edit Strategi',
+      'sb_create_strategy_title': 'Buat Strategi',
+      'sb_strategy_details_header': 'Detail Strategi',
+      'sb_entry_rules_header': 'Aturan Masuk',
+      'sb_exit_rules_header': 'Aturan Keluar',
+      'sb_no_entry_rules_yet': 'Belum ada aturan masuk',
+      'sb_no_exit_rules_yet': 'Belum ada aturan keluar',
+      'sb_tap_to_add_rule': 'Ketuk + untuk menambah aturan',
+      'sb_quick_backtest_preview_header': 'Pratinjau Cepat Backtest',
       'sb_exit_confirm_title': 'Keluar dari Strategy Builder?',
       'sb_exit_confirm_content':
           'Ada draft di autosave. Yakin ingin menutup layar?',
       'common_cancel': 'Batal',
       'sb_discard_and_exit': 'Discard & Keluar',
       'common_close': 'Tutup',
+      'sb_autosave_settings_header': 'Pengaturan Autosave',
       'sb_enable_autosave_title': 'Aktifkan Autosave',
+      'sb_autosave_description':
+          'Secara otomatis simpan draft ketika perubahan dilakukan',
       'sb_menu_tooltip': 'Menu',
       'sb_import_confirm_title': 'Konfirmasi Impor',
       'sb_import_confirm_content':
@@ -734,6 +806,25 @@ class AppLocalizations {
       'sb_number_label': 'Angka',
       'sb_value_label': 'Nilai',
       'sb_value_hint': 'mis. 30, 70, 50',
+      'sb_operator_tooltip_rising':
+          'Rising: nilai indikator sekarang > nilai sebelumnya. Tidak butuh pembanding.',
+      'sb_operator_tooltip_falling':
+          'Falling: nilai indikator sekarang < nilai sebelumnya. Tidak butuh pembanding.',
+      'sb_operator_tooltip_cross_above':
+          'Cross Above: indikator menembus ke atas pembanding (indikator/ambang).',
+      'sb_operator_tooltip_cross_below':
+          'Cross Below: indikator menembus ke bawah pembanding (indikator/ambang).',
+      'sb_operator_tooltip_default':
+          'Perbandingan standar terhadap angka atau indikator.',
+      'sb_operator_name_greater_than': 'Lebih Besar (>)',
+      'sb_operator_name_less_than': 'Lebih Kecil (<)',
+      'sb_operator_name_greater_or_equal': 'Lebih Besar atau Sama (>=)',
+      'sb_operator_name_less_or_equal': 'Lebih Kecil atau Sama (<=)',
+      'sb_operator_name_equals': 'Sama Dengan (=)',
+      'sb_operator_name_cross_above': 'Menembus Ke Atas',
+      'sb_operator_name_cross_below': 'Menembus Ke Bawah',
+      'sb_operator_name_rising': 'Naik',
+      'sb_operator_name_falling': 'Turun',
       'sb_compare_with_label': 'Bandingkan Dengan',
       'sb_period_label': 'Periode',
       'sb_anchor_mode_label': 'Mode Anchor',
@@ -741,16 +832,44 @@ class AppLocalizations {
       'sb_anchor_by_date': 'Anchor berdasarkan Tanggal',
       'sb_anchor_date_label': 'Tanggal Anchor (ISO)',
       'sb_anchor_date_hint': 'YYYY-MM-DD atau ISO',
+      'sb_optional_timeframe_tooltip':
+          'Opsional: gunakan timeframe >= data dasar untuk menghindari resampling otomatis.',
+      'sb_cross_operator_help':
+          'Untuk operator cross: pilih Indicator untuk cross antar indikator, atau Number untuk ambang (mis. zero-line).',
+      'sb_error_gt_zero': 'Harus > 0',
+      // Strategy Builder — rule warnings/errors (ID)
+      'sb_warning_tf_greater_than_base':
+          'Timeframe rule harus lebih besar dari timeframe dasar; akan disesuaikan menjadi {base_tf}.',
+      'sb_warning_rsi_between_20_80':
+          'Nilai ambang RSI sebaiknya antara 20 dan 80.',
+      'sb_warning_operator_equals_not_supported':
+          'Operator equals tidak didukung untuk perbandingan harga/indikator.',
+      'sb_warning_bbands_specify_band':
+          'Perbandingan dengan Bollinger Bands harus memilih upper atau lower band.',
+      'sb_period_must_be_set_gt0': 'Periode harus diisi (disarankan > 0).',
+      'sb_error_value_must_be_set': 'Nilai harus diisi.',
+      'sb_error_rsi_between_0_100': 'Nilai RSI harus antara 0 dan 100.',
+      'sb_error_adx_between_0_100': 'Nilai ADX harus antara 0 dan 100.',
+      'sb_error_pick_comparison_indicator': 'Pilih indikator pembanding.',
+      'sb_required_field': 'Wajib diisi',
+      'sb_required_selection': 'Wajib pilih',
+      'sb_invalid_date_format': 'Format tanggal tidak valid',
+      'sb_rule_title': 'Aturan {index}',
+      'sb_dynamic_atr_presets': 'Dynamic ATR% Presets',
       'sb_then_logic_label': 'Lalu (Logika)',
       'common_none': 'Tidak ada',
       'sb_search_template_hint': 'Cari template...',
       'sb_show_all_categories': 'Tampilkan semua kategori',
       'sb_filter_prefix': 'Filter: ',
+      'sb_items_available': '{count} tersedia',
+      'sb_results_count_label': '{count} hasil',
       'common_clear': 'Bersihkan',
       'sb_apply_filters': 'Terapkan',
       'sb_clear_filters': 'Bersihkan filter',
       'sb_pick_template_tooltip': 'Pilih Template',
       'sb_run_preview_tooltip': 'Jalankan Preview',
+      'sb_test_strategy_button_tooltip': 'Jalankan backtest cepat',
+      'sb_test_strategy_button_isrunning_tooltip': 'Preview sedang berjalan',
       'sb_stats_signals': 'Sinyal',
       'sb_stats_trades': 'Transaksi',
       'sb_stats_wins': 'Menang',
@@ -760,7 +879,9 @@ class AppLocalizations {
       'sb_update_strategy_button': 'Perbarui Strategi',
       'sb_strategy_saved': 'Strategi disimpan!',
       'sb_strategy_updated': 'Strategi diperbarui!',
+      'sb_error_summary_header': 'Perbaiki diperlukan sebelum simpan/preview',
       'sb_form_reset_ready': 'Form direset. Siap untuk strategi baru!',
+      'sb_dialog_paste_json': 'Tempel JSON di sini lalu tekan',
       'menu_export_chart_pdf': 'Ekspor Chart PDF…',
       'menu_export_chart_panel_pdf': 'Ekspor Chart + Panel PDF…',
       'menu_export_panel_pdf': 'Ekspor Panel PDF…',
@@ -1254,10 +1375,22 @@ class AppLocalizations {
   String get menuExportChartPng => _text('menu_export_chart_png');
   String get menuExportPanelPng => _text('menu_export_panel_png');
   // Strategy Builder getters
+  String get sbEditStrategyTitle => _text('sb_edit_strategy_title');
+  String get sbCreateStrategyTitle => _text('sb_create_strategy_title');
+  String get sbStrategyDetailsHeader => _text('sb_strategy_details_header');
+  String get sbEntryRulesHeader => _text('sb_entry_rules_header');
+  String get sbExitRulesHeader => _text('sb_exit_rules_header');
+  String get sbNoEntryRulesYet => _text('sb_no_entry_rules_yet');
+  String get sbNoExitRulesYet => _text('sb_no_exit_rules_yet');
+  String get sbTapToAddRule => _text('sb_tap_to_add_rule');
+  String get sbQuickBacktestPreviewHeader =>
+      _text('sb_quick_backtest_preview_header');
   String get sbExitConfirmTitle => _text('sb_exit_confirm_title');
   String get sbExitConfirmContent => _text('sb_exit_confirm_content');
   String get sbDiscardAndExit => _text('sb_discard_and_exit');
+  String get sbAutosaveSettingsHeader => _text('sb_autosave_settings_header');
   String get sbEnableAutosaveTitle => _text('sb_enable_autosave_title');
+  String get sbAutosaveDescription => _text('sb_autosave_description');
   String get sbMenuTooltip => _text('sb_menu_tooltip');
   String get sbImportConfirmTitle => _text('sb_import_confirm_title');
   String get sbImportConfirmContent => _text('sb_import_confirm_content');
@@ -1297,6 +1430,26 @@ class AppLocalizations {
   String get sbNumberLabel => _text('sb_number_label');
   String get sbValueLabel => _text('sb_value_label');
   String get sbValueHint => _text('sb_value_hint');
+  String get sbOperatorTooltipRising => _text('sb_operator_tooltip_rising');
+  String get sbOperatorTooltipFalling => _text('sb_operator_tooltip_falling');
+  String get sbOperatorTooltipCrossAbove =>
+      _text('sb_operator_tooltip_cross_above');
+  String get sbOperatorTooltipCrossBelow =>
+      _text('sb_operator_tooltip_cross_below');
+  String get sbOperatorTooltipDefault => _text('sb_operator_tooltip_default');
+  // Strategy Builder — operator names
+  String get sbOperatorNameGreaterThan =>
+      _text('sb_operator_name_greater_than');
+  String get sbOperatorNameLessThan => _text('sb_operator_name_less_than');
+  String get sbOperatorNameGreaterOrEqual =>
+      _text('sb_operator_name_greater_or_equal');
+  String get sbOperatorNameLessOrEqual =>
+      _text('sb_operator_name_less_or_equal');
+  String get sbOperatorNameEquals => _text('sb_operator_name_equals');
+  String get sbOperatorNameCrossAbove => _text('sb_operator_name_cross_above');
+  String get sbOperatorNameCrossBelow => _text('sb_operator_name_cross_below');
+  String get sbOperatorNameRising => _text('sb_operator_name_rising');
+  String get sbOperatorNameFalling => _text('sb_operator_name_falling');
   String get sbCompareWithLabel => _text('sb_compare_with_label');
   String get sbPeriodLabel => _text('sb_period_label');
   String get sbAnchorModeLabel => _text('sb_anchor_mode_label');
@@ -1304,16 +1457,49 @@ class AppLocalizations {
   String get sbAnchorByDate => _text('sb_anchor_by_date');
   String get sbAnchorDateLabel => _text('sb_anchor_date_label');
   String get sbAnchorDateHint => _text('sb_anchor_date_hint');
+  String get sbOptionalTimeframeTooltip =>
+      _text('sb_optional_timeframe_tooltip');
+  String get sbCrossOperatorHelp => _text('sb_cross_operator_help');
+  String get sbErrorMustBeGreaterThanZero => _text('sb_error_gt_zero');
+  String get sbRequiredField => _text('sb_required_field');
+  String get sbRequiredSelection => _text('sb_required_selection');
+  String get sbInvalidDateFormat => _text('sb_invalid_date_format');
+  // Strategy Builder — rule warnings/errors
+  String sbWarningTfGreaterThanBase(String baseTf) =>
+      _text('sb_warning_tf_greater_than_base').replaceAll('{base_tf}', baseTf);
+  String get sbWarningRsiBetween20And80 =>
+      _text('sb_warning_rsi_between_20_80');
+  String get sbWarningOperatorEqualsNotSupported =>
+      _text('sb_warning_operator_equals_not_supported');
+  String get sbWarningBbandsSpecifyBand =>
+      _text('sb_warning_bbands_specify_band');
+  String get sbPeriodMustBeSetGtZero => _text('sb_period_must_be_set_gt0');
+  String get sbErrorValueMustBeSet => _text('sb_error_value_must_be_set');
+  String get sbErrorRsiBetween0And100 => _text('sb_error_rsi_between_0_100');
+  String get sbErrorAdxBetween0And100 => _text('sb_error_adx_between_0_100');
+  String get sbErrorPickComparisonIndicator =>
+      _text('sb_error_pick_comparison_indicator');
+  String sbRuleTitle(int index) =>
+      _text('sb_rule_title').replaceAll('{index}', '$index');
+  String get sbDynamicAtrPresets => _text('sb_dynamic_atr_presets');
   String get sbThenLogicLabel => _text('sb_then_logic_label');
   String get commonNone => _text('common_none');
   String get sbSearchTemplateHint => _text('sb_search_template_hint');
   String get sbShowAllCategories => _text('sb_show_all_categories');
   String get sbFilterPrefix => _text('sb_filter_prefix');
+  String sbItemsAvailable(int count) =>
+      _text('sb_items_available').replaceAll('{count}', '$count');
+  String sbResultsCountLabel(int count) =>
+      _text('sb_results_count_label').replaceAll('{count}', '$count');
   String get commonClear => _text('common_clear');
   String get sbApplyFilters => _text('sb_apply_filters');
   String get sbClearFilters => _text('sb_clear_filters');
   String get sbPickTemplateTooltip => _text('sb_pick_template_tooltip');
   String get sbRunPreviewTooltip => _text('sb_run_preview_tooltip');
+  String get sbTestStrategyButtonTooltip =>
+      _text('sb_test_strategy_button_tooltip');
+  String get sbTestStrategyButtonIsRunningTooltip =>
+      _text('sb_test_strategy_button_isrunning_tooltip');
   String get sbStatsSignals => _text('sb_stats_signals');
   String get sbStatsTrades => _text('sb_stats_trades');
   String get sbStatsWins => _text('sb_stats_wins');
@@ -1328,7 +1514,9 @@ class AppLocalizations {
   String get sbUpdateStrategyButton => _text('sb_update_strategy_button');
   String get sbStrategySaved => _text('sb_strategy_saved');
   String get sbStrategyUpdated => _text('sb_strategy_updated');
+  String get sbErrorSummaryHeader => _text('sb_error_summary_header');
   String get sbFormResetReady => _text('sb_form_reset_ready');
+  String get sbDialogPasteJson => _text('sb_dialog_paste_json');
 
   String get promptExportChartPng => _text('prompt_export_chart_png');
   String get promptExportPanelPng => _text('prompt_export_panel_png');

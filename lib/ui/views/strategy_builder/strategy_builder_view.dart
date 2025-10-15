@@ -1,15 +1,19 @@
-import 'package:backtestx/models/candle.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 import 'strategy_builder_viewmodel.dart';
-import 'package:backtestx/helpers/timeframe_helper.dart' as tf_helper;
-import 'package:backtestx/models/strategy.dart';
-import 'package:backtestx/helpers/strategy_templates.dart';
-import 'package:backtestx/ui/widgets/common/candlestick_chart/candlestick_chart.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:file_picker/file_picker.dart';
 import 'dart:convert';
 import 'package:backtestx/l10n/app_localizations.dart';
+import 'rule_card_builder.dart';
+import 'dialog_builder.dart' as sb_dialog;
+import 'risk_management_card.dart';
+import 'entry_rules_card.dart';
+import 'quick_preview_card.dart';
+import 'package:stacked_services/stacked_services.dart' hide DialogBuilder;
+import 'package:backtestx/app/app.locator.dart';
+import 'package:backtestx/app/app.bottomsheets.dart';
+import 'strategy_builder_constants.dart';
 
 class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
   final String? strategyId;
@@ -26,38 +30,12 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     return WillPopScope(
       onWillPop: () async {
         if (viewModel.hasAutosaveDraft) {
-          final confirm = await showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: Text(l10n.sbExitConfirmTitle),
-              content: Text(l10n.sbExitConfirmContent),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: Text(l10n.commonCancel),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    // Buang draft lalu keluar
-                    await viewModel.discardDraft();
-                    Navigator.of(ctx).pop(true);
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.error,
-                  ),
-                  child: Text(l10n.sbDiscardAndExit),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  child: Text(l10n.commonClose),
-                ),
-              ],
-            ),
-          );
-          if (confirm == true) {
+          final confirm =
+              await sb_dialog.DialogBuilder.showExitConfirmation(context) ?? false;
+          if (confirm) {
             await viewModel.resetTemplateFilters();
           }
-          return confirm ?? false;
+          return confirm;
         }
         await viewModel.resetTemplateFilters();
         return true;
@@ -115,7 +93,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       return StatefulBuilder(
                         builder: (ctx, setState) {
                           return Padding(
-                            padding: const EdgeInsets.all(16.0),
+                            padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -123,9 +101,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 Row(
                                   children: [
                                     const Icon(Icons.settings, size: 20),
-                                    const SizedBox(width: 8),
+                                    const SizedBox(width: StrategyBuilderConstants.smallSpacing),
                                     Text(
-                                      'Autosave Settings',
+                                      l10n.sbAutosaveSettingsHeader,
                                       style:
                                           Theme.of(ctx).textTheme.titleMedium,
                                     ),
@@ -141,8 +119,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     viewModel.toggleAutosave(v);
                                   },
                                   title: Text(l10n.sbEnableAutosaveTitle),
-                                  subtitle: const Text(
-                                    'Simpan draft otomatis saat ada perubahan',
+                                  subtitle: Text(
+                                    l10n.sbAutosaveDescription,
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -249,27 +227,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           if (content != null && content.isNotEmpty) {
                             var proceed = true;
                             if (viewModel.hasUnsavedBuilder) {
-                              proceed = await showDialog<bool>(
-                                    context: context,
-                                    builder: (c2) => AlertDialog(
-                                      title: Text(l10n.sbImportConfirmTitle),
-                                      content:
-                                          Text(l10n.sbImportConfirmContent),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(c2).pop(false),
-                                          child: Text(l10n.commonCancel),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.of(c2).pop(true),
-                                          child: Text(l10n.sbOverwrite),
-                                        ),
-                                      ],
-                                    ),
-                                  ) ??
-                                  false;
+                              proceed =
+                                  await sb_dialog.DialogBuilder.showConfirmationDialog(
+                                        context,
+                                        title: l10n.sbImportConfirmTitle,
+                                        content: l10n.sbImportConfirmContent,
+                                        confirmLabel: l10n.sbOverwrite,
+                                      ) ??
+                                      false;
                             }
                             if (proceed) {
                               await viewModel.importStrategyJson(content);
@@ -292,7 +257,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               maxLines: 12,
                               decoration: InputDecoration(
                                 hintText:
-                                    'Tempel JSON template di sini lalu tekan ${l10n.sbApply}',
+                                    '${l10n.sbDialogPasteJson} ${l10n.sbApply}',
                                 border: const OutlineInputBorder(),
                               ),
                             ),
@@ -308,26 +273,12 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 if (text.isNotEmpty) {
                                   var proceed = true;
                                   if (viewModel.hasUnsavedBuilder) {
-                                    proceed = await showDialog<bool>(
-                                          context: context,
-                                          builder: (c2) => AlertDialog(
-                                            title:
-                                                Text(l10n.sbImportConfirmTitle),
-                                            content: Text(
-                                                l10n.sbImportConfirmContent),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(c2).pop(false),
-                                                child: Text(l10n.commonCancel),
-                                              ),
-                                              ElevatedButton(
-                                                onPressed: () =>
-                                                    Navigator.of(c2).pop(true),
-                                                child: Text(l10n.sbOverwrite),
-                                              ),
-                                            ],
-                                          ),
+                                    proceed = await sb_dialog.DialogBuilder
+                                            .showConfirmationDialog(
+                                          context,
+                                          title: l10n.sbImportConfirmTitle,
+                                          content: l10n.sbImportConfirmContent,
+                                          confirmLabel: l10n.sbOverwrite,
                                         ) ??
                                         false;
                                   }
@@ -424,14 +375,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Padding(
-                      padding: const EdgeInsets.all(16.0),
+                      padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
                             viewModel.isEditing
-                                ? 'Edit Strategy'
-                                : 'Create Strategy',
+                                ? l10n.sbEditStrategyTitle
+                                : l10n.sbCreateStrategyTitle,
                             style: const TextStyle(
                                 fontSize: 24, fontWeight: FontWeight.bold),
                           ),
@@ -446,7 +397,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 // Status (animated)
                                 if (viewModel.autosaveEnabled)
                                   AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 180),
+                                    duration: StrategyBuilderConstants.animationDuration,
                                     child: (() {
                                       if (viewModel.isAutoSaving) {
                                         return Row(
@@ -492,13 +443,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                           final d =
                                               DateTime.now().difference(ts);
                                           if (d.inSeconds < 60) {
-                                            return '${d.inSeconds}s lalu';
+                                            return '${d.inSeconds}s ago';
                                           } else if (d.inMinutes < 60) {
-                                            return '${d.inMinutes}m lalu';
+                                            return '${d.inMinutes}m ago';
                                           } else if (d.inHours < 24) {
-                                            return '${d.inHours}h lalu';
+                                            return '${d.inHours}h ago';
                                           } else {
-                                            return '${d.inDays}d lalu';
+                                            return '${d.inDays}d ago';
                                           }
                                         })();
                                         final ts = viewModel.lastAutosaveAt;
@@ -520,7 +471,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             const SizedBox(width: 6),
                                             Text(
                                               relative.isNotEmpty
-                                                  ? 'Terakhir: $relative'
+                                                  ? 'Last: $relative'
                                                   : status,
                                               style: TextStyle(
                                                 fontSize: 12,
@@ -558,36 +509,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     message: l10n.sbDiscardAutosaveTooltip,
                                     child: TextButton(
                                       onPressed: () async {
-                                        final confirmed = await showDialog<
-                                                bool>(
-                                              context: context,
-                                              builder: (ctx) => AlertDialog(
-                                                title: const Text(
-                                                    'Discard Draft?'),
-                                                content: const Text(
-                                                    'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.'),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.of(ctx)
-                                                            .pop(false),
-                                                    child:
-                                                        Text(l10n.commonCancel),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.of(ctx)
-                                                            .pop(true),
-                                                    style: TextButton.styleFrom(
-                                                      foregroundColor:
-                                                          Theme.of(context)
-                                                              .colorScheme
-                                                              .error,
-                                                    ),
-                                                    child: Text(l10n.sbDiscard),
-                                                  ),
-                                                ],
-                                              ),
+                                        final confirmed = await sb_dialog.DialogBuilder
+                                                .showConfirmationDialog(
+                                              context,
+                                              title: 'Discard Draft?',
+                                              content:
+                                                  'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.',
+                                              confirmLabel: l10n.sbDiscard,
+                                              isDangerous: true,
                                             ) ??
                                             false;
                                         if (confirmed) {
@@ -607,12 +536,12 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           // Strategy Name
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Strategy Details',
+                                    l10n.sbStrategyDetailsHeader,
                                     style:
                                         Theme.of(context).textTheme.titleLarge,
                                   ),
@@ -625,7 +554,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       prefixIcon: const Icon(Icons.label),
                                     ),
                                   ),
-                                  const SizedBox(height: 16),
+                                  const SizedBox(height: StrategyBuilderConstants.itemSpacing),
                                   TextField(
                                     controller:
                                         viewModel.initialCapitalController,
@@ -642,259 +571,17 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             ),
                           ),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
 
                           // Risk Management
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.sbRiskManagementTitle,
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                  const SizedBox(height: 16),
+                          RiskManagementCard(viewModel: viewModel),
 
-                                  // Risk Type
-                                  DropdownButtonFormField<RiskType>(
-                                    value: viewModel.riskType,
-                                    decoration: InputDecoration(
-                                      labelText: l10n.sbRiskTypeLabel,
-                                      prefixIcon: const Icon(Icons.trending_up),
-                                    ),
-                                    items: RiskType.values.map((type) {
-                                      return DropdownMenuItem(
-                                        value: type,
-                                        child: Text(_formatRiskType(type)),
-                                      );
-                                    }).toList(),
-                                    onChanged: viewModel.setRiskType,
-                                  ),
-
-                                  const SizedBox(height: 16),
-
-                                  TextField(
-                                    controller: viewModel.riskValueController,
-                                    decoration: InputDecoration(
-                                      labelText: viewModel.riskType ==
-                                              RiskType.fixedLot
-                                          ? l10n.sbLotSizeLabel
-                                          : (viewModel.riskType ==
-                                                  RiskType.atrBased
-                                              ? l10n.sbAtrMultipleLabel
-                                              : l10n.sbRiskPercentageLabel),
-                                      hintText: viewModel.riskType ==
-                                              RiskType.fixedLot
-                                          ? '0.1'
-                                          : (viewModel.riskType ==
-                                                  RiskType.atrBased
-                                              ? '2.0'
-                                              : '2.0'),
-                                      prefixIcon: const Icon(Icons.percent),
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                  ),
-
-                                  const SizedBox(height: 16),
-
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller:
-                                              viewModel.stopLossController,
-                                          decoration: InputDecoration(
-                                            labelText: viewModel.riskType ==
-                                                    RiskType.atrBased
-                                                ? 'ATR Multiple'
-                                                : 'Stop Loss (points)',
-                                            hintText: viewModel.riskType ==
-                                                    RiskType.atrBased
-                                                ? '2.0'
-                                                : '100',
-                                            prefixIcon: const Icon(
-                                                Icons.arrow_downward),
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16),
-                                      Expanded(
-                                        child: TextField(
-                                          controller:
-                                              viewModel.takeProfitController,
-                                          decoration: InputDecoration(
-                                            labelText: l10n.sbTakeProfitPoints,
-                                            hintText: '200',
-                                            prefixIcon:
-                                                const Icon(Icons.arrow_upward),
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 16),
+                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
 
                           // Entry Rules
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Entry Rules',
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .titleLarge,
-                                      ),
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.add_circle),
-                                            onPressed: viewModel.addEntryRule,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 8),
-                                  if (viewModel.appliedTemplateDescription !=
-                                      null)
-                                    Container(
-                                      margin: const EdgeInsets.only(bottom: 8),
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .secondaryContainer,
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.info_outline,
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSecondaryContainer,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                if (viewModel
-                                                        .appliedTemplateName !=
-                                                    null)
-                                                  Text(
-                                                    viewModel
-                                                        .appliedTemplateName!,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color: Theme.of(
-                                                                  context)
-                                                              .colorScheme
-                                                              .onSecondaryContainer,
-                                                        ),
-                                                  ),
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  viewModel
-                                                      .appliedTemplateDescription!,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .onSecondaryContainer
-                                                            .withValues(
-                                                                alpha: 0.9),
-                                                      ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  if (viewModel.entryRules.isEmpty)
-                                    Center(
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(32.0),
-                                        child: Column(
-                                          children: [
-                                            Icon(Icons.add_box,
-                                                size: 48,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .onSurface
-                                                    .withValues(alpha: 0.4)),
-                                            const SizedBox(height: 8),
-                                            Text(
-                                              'No entry rules yet',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface
-                                                      .withValues(alpha: 0.6)),
-                                            ),
-                                            const SizedBox(height: 4),
-                                            Text(
-                                              'Tap + to add a rule',
-                                              style: TextStyle(
-                                                  color: Theme.of(context)
-                                                      .colorScheme
-                                                      .onSurface
-                                                      .withValues(alpha: 0.5),
-                                                  fontSize: 12),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    ...viewModel.entryRules
-                                        .asMap()
-                                        .entries
-                                        .map((entry) {
-                                      return _buildRuleCard(
-                                        context,
-                                        viewModel,
-                                        entry.key,
-                                        entry.value,
-                                        true,
-                                      );
-                                    }).toList(),
-                                ],
-                              ),
-                            ),
-                          ),
+                          EntryRulesCard(viewModel: viewModel),
 
-                          const SizedBox(height: 16),
+                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
 
                           // Exit Rules
                           Card(
@@ -908,7 +595,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        'Exit Rules',
+                                        l10n.sbExitRulesHeader,
                                         style: Theme.of(context)
                                             .textTheme
                                             .titleLarge,
@@ -922,7 +609,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 8),
+                                  const SizedBox(height: StrategyBuilderConstants.smallSpacing),
                                   if (viewModel.exitRules.isEmpty)
                                     Center(
                                       child: Padding(
@@ -935,9 +622,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     .colorScheme
                                                     .onSurface
                                                     .withValues(alpha: 0.4)),
-                                            const SizedBox(height: 8),
+                                            const SizedBox(height: StrategyBuilderConstants.smallSpacing),
                                             Text(
-                                              'No exit rules yet',
+                                              l10n.sbNoExitRulesYet,
                                               style: TextStyle(
                                                   color: Theme.of(context)
                                                       .colorScheme
@@ -946,7 +633,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              'Tap + to add a rule',
+                                              l10n.sbTapToAddRule,
                                               style: TextStyle(
                                                   color: Theme.of(context)
                                                       .colorScheme
@@ -963,7 +650,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         .asMap()
                                         .entries
                                         .map((entry) {
-                                      return _buildRuleCard(
+                                      return RuleCardBuilder.build(
                                         context,
                                         viewModel,
                                         entry.key,
@@ -976,821 +663,16 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             ),
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: StrategyBuilderConstants.sectionSpacing),
 
                           // Quick Backtest Preview Card
-                          Card(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Quick Backtest Preview',
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
-                                  ),
-                                  const SizedBox(height: 16),
-
-                                  // Load available data on first build
-                                  Builder(builder: (context) {
-                                    if (viewModel.availableData.isEmpty) {
-                                      viewModel.loadAvailableData();
-                                    }
-
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // Data selection dropdown
-                                        DropdownButtonFormField<String>(
-                                          value: viewModel.availableData.any(
-                                                  (d) =>
-                                                      d.id ==
-                                                      viewModel.selectedDataId)
-                                              ? viewModel.selectedDataId
-                                              : null,
-                                          decoration: InputDecoration(
-                                            labelText: l10n.sbSelectMarketData,
-                                            prefixIcon:
-                                                const Icon(Icons.bar_chart),
-                                          ),
-                                          items: viewModel.availableData
-                                              .map((data) {
-                                            return DropdownMenuItem(
-                                              value: data.id,
-                                              child: Text(
-                                                  '${data.symbol} ${data.timeframe} (${data.candles.length} candles)'),
-                                            );
-                                          }).toList(),
-                                          onChanged: viewModel.setSelectedData,
-                                        ),
-
-                                        const SizedBox(height: 16),
-
-                                        // Test button
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: Tooltip(
-                                            message: (() {
-                                              if (viewModel.hasFatalErrors) {
-                                                final errs = viewModel
-                                                    .getAllFatalErrors();
-                                                final shown =
-                                                    errs.take(2).join('\n• ');
-                                                return 'Perbaiki error sebelum testing:\n• $shown${errs.length > 2 ? '...' : ''}';
-                                              }
-                                              if (viewModel.isRunningPreview) {
-                                                return 'Preview sedang berjalan';
-                                              }
-                                              return 'Jalankan quick test';
-                                            })(),
-                                            child: ElevatedButton.icon(
-                                              onPressed: (viewModel
-                                                          .isRunningPreview ||
-                                                      viewModel.hasFatalErrors)
-                                                  ? null
-                                                  : viewModel
-                                                      .quickPreviewBacktest,
-                                              icon: viewModel.isRunningPreview
-                                                  ? const SizedBox(
-                                                      width: 20,
-                                                      height: 20,
-                                                      child:
-                                                          CircularProgressIndicator(
-                                                        strokeWidth: 2,
-                                                      ),
-                                                    )
-                                                  : const Icon(
-                                                      Icons.play_arrow),
-                                              label: Text(
-                                                  viewModel.isRunningPreview
-                                                      ? 'Running...'
-                                                      : (() {
-                                                          final errs = viewModel
-                                                              .getAllFatalErrors();
-                                                          if (errs.isNotEmpty) {
-                                                            return 'Perbaiki ${errs.length} error';
-                                                          }
-                                                          return 'Test Strategy';
-                                                        })()),
-                                              style: ElevatedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 12),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-
-                                        // Lightweight data preview (recent candles)
-                                        Builder(builder: (context) {
-                                          if (viewModel.selectedDataId ==
-                                              null) {
-                                            return const SizedBox(height: 0);
-                                          }
-                                          final data = viewModel.availableData
-                                              .where((d) =>
-                                                  d.id ==
-                                                  viewModel.selectedDataId)
-                                              .toList();
-                                          if (data.isEmpty ||
-                                              data.first.candles.isEmpty) {
-                                            return Container(
-                                              margin: const EdgeInsets.only(
-                                                  top: 12),
-                                              padding: const EdgeInsets.all(12),
-                                              decoration: BoxDecoration(
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .surfaceContainerHighest
-                                                    .withValues(alpha: 0.18),
-                                                borderRadius:
-                                                    const BorderRadius.all(
-                                                        Radius.circular(12)),
-                                              ),
-                                              child: Row(
-                                                children: [
-                                                  Icon(Icons.info_outline,
-                                                      size: 18,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withValues(
-                                                              alpha: 0.8)),
-                                                  const SizedBox(width: 8),
-                                                  Expanded(
-                                                    child: Text(
-                                                      'Data terpilih belum memiliki candles untuk pratinjau.',
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodySmall,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          }
-                                          final md = data.first;
-                                          // Dynamic downsampling based on base timeframe
-                                          final baseMin =
-                                              tf_helper.parseTimeframeToMinutes(
-                                                  md.timeframe);
-                                          int recentCount;
-                                          if (baseMin <= 5) {
-                                            recentCount =
-                                                360; // ~30 hours of M5
-                                          } else if (baseMin <= 15) {
-                                            recentCount =
-                                                240; // ~2.5 days of M15
-                                          } else if (baseMin <= 60) {
-                                            recentCount = 180; // ~1 week of H1
-                                          } else {
-                                            recentCount =
-                                                120; // reduce for higher TFs
-                                          }
-                                          final recent =
-                                              md.getRecentCandles(recentCount);
-                                          return Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              const SizedBox(height: 12),
-                                              Row(
-                                                children: [
-                                                  Icon(Icons.timeline,
-                                                      size: 16,
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .onSurface
-                                                          .withValues(
-                                                              alpha: 0.8)),
-                                                  const SizedBox(width: 6),
-                                                  Text(
-                                                    'Preview Harga (${md.timeframe}) — ${md.dateRangeLabel}',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .labelMedium,
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              SizedBox(
-                                                height: 200,
-                                                child: CandlestickChart(
-                                                  candles: recent,
-                                                  showVolume: false,
-                                                  highQuality: baseMin > 60,
-                                                  maxDrawCandles: 600,
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Wrap(
-                                                spacing: 12,
-                                                runSpacing: 8,
-                                                children: [
-                                                  _buildStatChip(
-                                                    context,
-                                                    'Candles',
-                                                    '${md.candlesCount}',
-                                                  ),
-                                                  _buildStatChip(
-                                                    context,
-                                                    'Close (last)',
-                                                    md.candles.isNotEmpty
-                                                        ? md.candles.last.close
-                                                            .toStringAsFixed(2)
-                                                        : '-',
-                                                  ),
-                                                  _buildStatChip(
-                                                    context,
-                                                    'Change %',
-                                                    md.totalPriceChangePercent
-                                                        .toStringAsFixed(2),
-                                                  ),
-                                                ],
-                                              ),
-                                            ],
-                                          );
-                                        }),
-
-                                        // Preview results
-                                        if (viewModel.previewResult !=
-                                            null) ...[
-                                          const SizedBox(height: 16),
-                                          const Divider(),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            'Preview Results',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          // Quick performance badges (Win Rate & Profit Factor)
-                                          Builder(builder: (context) {
-                                            final summary = viewModel
-                                                .previewResult!.summary;
-                                            final winRate =
-                                                summary.winRate.isNaN
-                                                    ? 0
-                                                    : summary.winRate;
-                                            final pf =
-                                                summary.profitFactor.isNaN
-                                                    ? 0
-                                                    : summary.profitFactor;
-                                            final wrColor = winRate >= 50
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .tertiary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .error;
-                                            final pfColor = pf >= 1.0
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .tertiary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .error;
-                                            return Wrap(
-                                              spacing: 12,
-                                              runSpacing: 8,
-                                              children: [
-                                                _buildStatChip(
-                                                  context,
-                                                  'Win Rate',
-                                                  '${winRate.toStringAsFixed(1)}%',
-                                                  color: wrColor,
-                                                  icon: Icons.percent,
-                                                ),
-                                                _buildStatChip(
-                                                  context,
-                                                  'Profit Factor',
-                                                  pf.toStringAsFixed(2),
-                                                  color: pfColor,
-                                                  icon: Icons.trending_up,
-                                                ),
-                                              ],
-                                            );
-                                          }),
-                                          const SizedBox(height: 8),
-                                          // Actions: open full results & reset preview
-                                          Row(
-                                            children: [
-                                              TextButton.icon(
-                                                onPressed:
-                                                    viewModel.viewFullResults,
-                                                icon: const Icon(
-                                                    Icons.open_in_new),
-                                                label: Text(
-                                                    l10n.sbViewFullResults),
-                                              ),
-                                              const SizedBox(width: 12),
-                                              TextButton.icon(
-                                                onPressed:
-                                                    viewModel.resetPreview,
-                                                icon: const Icon(Icons.refresh),
-                                                label:
-                                                    Text(l10n.sbResetPreview),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-
-                                          // Base TF vs Rule TF badges
-                                          Builder(builder: (context) {
-                                            final baseData = viewModel
-                                                .availableData
-                                                .where((d) =>
-                                                    d.id ==
-                                                    viewModel.selectedDataId)
-                                                .toList();
-                                            final String? baseTf =
-                                                baseData.isNotEmpty
-                                                    ? baseData.first.timeframe
-                                                    : null;
-
-                                            final entryRuleTfs = viewModel
-                                                .entryRules
-                                                .asMap()
-                                                .entries
-                                                .where((e) =>
-                                                    e.value.timeframe != null)
-                                                .map((e) => (
-                                                      tf: e.value.timeframe!,
-                                                      warn: viewModel
-                                                          .getRuleWarningsFor(
-                                                              e.key, true)
-                                                          .any((w) => w.contains(
-                                                              'Timeframe rule lebih kecil')),
-                                                    ))
-                                                .toList();
-                                            final exitRuleTfs = viewModel
-                                                .exitRules
-                                                .asMap()
-                                                .entries
-                                                .where((e) =>
-                                                    e.value.timeframe != null)
-                                                .map((e) => (
-                                                      tf: e.value.timeframe!,
-                                                      warn: viewModel
-                                                          .getRuleWarningsFor(
-                                                              e.key, false)
-                                                          .any((w) => w.contains(
-                                                              'Timeframe rule lebih kecil')),
-                                                    ))
-                                                .toList();
-
-                                            final chips = <Widget>[];
-                                            if (baseTf != null) {
-                                              chips.add(_buildTfChip(context,
-                                                  'Base: $baseTf', false));
-                                            }
-                                            for (final r in entryRuleTfs) {
-                                              chips.add(_buildTfChip(context,
-                                                  'Entry TF: ${r.tf}', r.warn));
-                                            }
-                                            for (final r in exitRuleTfs) {
-                                              chips.add(_buildTfChip(context,
-                                                  'Exit TF: ${r.tf}', r.warn));
-                                            }
-
-                                            if (chips.isEmpty) {
-                                              return const SizedBox();
-                                            }
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 8.0),
-                                              child: Wrap(
-                                                spacing: 8,
-                                                runSpacing: 8,
-                                                children: chips,
-                                              ),
-                                            );
-                                          }),
-
-                                          // Per‑timeframe counts (entry vs exit rules per TF)
-                                          Builder(builder: (context) {
-                                            String resolveBaseTf() {
-                                              final baseData = viewModel
-                                                  .availableData
-                                                  .where((d) =>
-                                                      d.id ==
-                                                      viewModel.selectedDataId)
-                                                  .toList();
-                                              return baseData.isNotEmpty
-                                                  ? baseData.first.timeframe
-                                                  : '';
-                                            }
-
-                                            String resolveRuleTf(
-                                                String? tfRaw, String baseTf) {
-                                              return (tfRaw == null ||
-                                                      tfRaw.isEmpty)
-                                                  ? baseTf
-                                                  : tfRaw;
-                                            }
-
-                                            final baseTf = resolveBaseTf();
-                                            final entryTfCounts =
-                                                <String, int>{};
-                                            final exitTfCounts =
-                                                <String, int>{};
-
-                                            for (final r
-                                                in viewModel.entryRules) {
-                                              final tf = resolveRuleTf(
-                                                  r.timeframe, baseTf);
-                                              if (tf.isNotEmpty) {
-                                                entryTfCounts[tf] =
-                                                    (entryTfCounts[tf] ?? 0) +
-                                                        1;
-                                              }
-                                            }
-                                            for (final r
-                                                in viewModel.exitRules) {
-                                              final tf = resolveRuleTf(
-                                                  r.timeframe, baseTf);
-                                              if (tf.isNotEmpty) {
-                                                exitTfCounts[tf] =
-                                                    (exitTfCounts[tf] ?? 0) + 1;
-                                              }
-                                            }
-
-                                            if (entryTfCounts.isEmpty &&
-                                                exitTfCounts.isEmpty) {
-                                              return const SizedBox.shrink();
-                                            }
-
-                                            Chip tfChip(String tf, int count) {
-                                              bool warn = false;
-                                              if (baseTf.isNotEmpty) {
-                                                final baseMin = tf_helper
-                                                    .parseTimeframeToMinutes(
-                                                        baseTf);
-                                                final tfMin = tf_helper
-                                                    .parseTimeframeToMinutes(
-                                                        tf);
-                                                warn = tfMin < baseMin;
-                                              }
-                                              final bg = warn
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .errorContainer
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .secondaryContainer;
-                                              final fg = warn
-                                                  ? Theme.of(context)
-                                                      .colorScheme
-                                                      .onErrorContainer
-                                                  : Theme.of(context)
-                                                      .colorScheme
-                                                      .onSecondaryContainer;
-                                              return Chip(
-                                                backgroundColor: bg,
-                                                label: Text(
-                                                  '$tf • $count rule${count > 1 ? 's' : ''}',
-                                                  style: TextStyle(color: fg),
-                                                ),
-                                              );
-                                            }
-
-                                            return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const SizedBox(height: 8),
-                                                Text(
-                                                  'Per‑Timeframe Rule Counts',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium,
-                                                ),
-                                                const SizedBox(height: 6),
-                                                if (entryTfCounts
-                                                    .isNotEmpty) ...[
-                                                  Text('Entry Rules',
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodySmall),
-                                                  const SizedBox(height: 4),
-                                                  Wrap(
-                                                    spacing: 8,
-                                                    runSpacing: 8,
-                                                    children: entryTfCounts
-                                                        .entries
-                                                        .map((e) => tfChip(
-                                                            e.key, e.value))
-                                                        .toList(),
-                                                  ),
-                                                ],
-                                                if (exitTfCounts
-                                                    .isNotEmpty) ...[
-                                                  const SizedBox(height: 8),
-                                                  Text('Exit Rules',
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodySmall),
-                                                  const SizedBox(height: 4),
-                                                  Wrap(
-                                                    spacing: 8,
-                                                    runSpacing: 8,
-                                                    children: exitTfCounts
-                                                        .entries
-                                                        .map((e) => tfChip(
-                                                            e.key, e.value))
-                                                        .toList(),
-                                                  ),
-                                                ],
-                                              ],
-                                            );
-                                          }),
-
-                                          // Summary stats
-                                          Row(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              _buildStatCard(
-                                                context,
-                                                'Win Rate',
-                                                '${viewModel.previewResult!.summary.winRate.toStringAsFixed(1)}%',
-                                                viewModel.previewResult!.summary.winRate >=
-                                                        50
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .error,
-                                              ),
-                                              _buildStatCard(
-                                                context,
-                                                'PnL',
-                                                '\$${viewModel.previewResult!.summary.totalPnl.toStringAsFixed(2)}',
-                                                viewModel.previewResult!.summary
-                                                            .totalPnl >=
-                                                        0
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .error,
-                                              ),
-                                              _buildStatCard(
-                                                context,
-                                                'Max DD',
-                                                '${viewModel.previewResult!.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
-                                                viewModel.previewResult!.summary
-                                                            .maxDrawdownPercentage <=
-                                                        20
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .error,
-                                              ),
-                                              _buildStatCard(
-                                                context,
-                                                'Trades',
-                                                '${viewModel.previewResult!.summary.totalTrades}',
-                                                Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                              ),
-                                              _buildStatCard(
-                                                context,
-                                                'PF',
-                                                viewModel.previewResult!.summary
-                                                    .profitFactor
-                                                    .toStringAsFixed(2),
-                                                viewModel.previewResult!.summary
-                                                            .profitFactor >
-                                                        1
-                                                    ? Theme.of(context)
-                                                        .colorScheme
-                                                        .primary
-                                                    : Theme.of(context)
-                                                        .colorScheme
-                                                        .error,
-                                              ),
-                                            ],
-                                          ),
-
-                                          // Per‑TF signals & performance (from preview)
-                                          Builder(builder: (context) {
-                                            final stats =
-                                                viewModel.previewTfStats;
-                                            if (stats.isEmpty) {
-                                              return const SizedBox.shrink();
-                                            }
-
-                                            Widget statChip(
-                                                String tf, Map<String, num> s) {
-                                              final bg = Theme.of(context)
-                                                  .colorScheme
-                                                  .surfaceContainerHighest;
-                                              final fg = Theme.of(context)
-                                                  .colorScheme
-                                                  .onSurfaceVariant;
-                                              final winRate =
-                                                  (s['winRate'] ?? 0)
-                                                      .toDouble();
-                                              final pf =
-                                                  (s['profitFactor'] ?? 0)
-                                                      .toDouble();
-                                              final ex = (s['expectancy'] ?? 0)
-                                                  .toDouble();
-                                              return Card(
-                                                color: bg,
-                                                child: Padding(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      vertical: 8,
-                                                      horizontal: 12),
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(tf,
-                                                          style: Theme.of(
-                                                                  context)
-                                                              .textTheme
-                                                              .bodyMedium!
-                                                              .copyWith(
-                                                                  color: fg,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600)),
-                                                      const SizedBox(height: 4),
-                                                      Wrap(
-                                                        spacing: 8,
-                                                        runSpacing: 6,
-                                                        crossAxisAlignment:
-                                                            WrapCrossAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                              'Signals: ${s['signals'] ?? 0}',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                              'Trades: ${s['trades'] ?? 0}',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                              'Wins: ${s['wins'] ?? 0}',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                              'WinRate: ${winRate.toStringAsFixed(1)}%',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall!
-                                                                  .copyWith(
-                                                                    color: winRate >=
-                                                                            50
-                                                                        ? Theme.of(context)
-                                                                            .colorScheme
-                                                                            .primary
-                                                                        : Theme.of(context)
-                                                                            .colorScheme
-                                                                            .error,
-                                                                  )),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                              'PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall!
-                                                                  .copyWith(
-                                                                    color: pf >
-                                                                            1
-                                                                        ? Theme.of(context)
-                                                                            .colorScheme
-                                                                            .primary
-                                                                        : Theme.of(context)
-                                                                            .colorScheme
-                                                                            .error,
-                                                                  )),
-                                                          const SizedBox(
-                                                              width: 12),
-                                                          Text(
-                                                              'Expectancy: ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}',
-                                                              style: Theme.of(
-                                                                      context)
-                                                                  .textTheme
-                                                                  .bodySmall!
-                                                                  .copyWith(
-                                                                    color: ex >
-                                                                            0
-                                                                        ? Theme.of(context)
-                                                                            .colorScheme
-                                                                            .primary
-                                                                        : Theme.of(context)
-                                                                            .colorScheme
-                                                                            .error,
-                                                                  )),
-                                                        ],
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              );
-                                            }
-
-                                            return Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                const SizedBox(height: 12),
-                                                Text(
-                                                    'Per‑Timeframe Signals & Performance',
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium),
-                                                const SizedBox(height: 6),
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: stats.entries
-                                                      .map((e) => statChip(
-                                                          e.key, e.value))
-                                                      .toList(),
-                                                ),
-                                              ],
-                                            );
-                                          }),
-
-                                          const SizedBox(height: 16),
-
-                                          // Save as Template (exports/copies JSON)
-                                          SizedBox(
-                                            width: double.infinity,
-                                            child: OutlinedButton.icon(
-                                              onPressed:
-                                                  viewModel.exportStrategyJson,
-                                              icon: const Icon(Icons.save_alt),
-                                              label: const Text(
-                                                  'Simpan sebagai Template'),
-                                              style: OutlinedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 12),
-                                              ),
-                                            ),
-                                          ),
-
-                                          const SizedBox(height: 8),
-
-                                          // View full results button
-                                          SizedBox(
-                                            width: double.infinity,
-                                            child: OutlinedButton.icon(
-                                              onPressed:
-                                                  viewModel.viewFullResults,
-                                              icon: const Icon(Icons.analytics),
-                                              label: const Text(
-                                                  'View Full Results'),
-                                              style: OutlinedButton.styleFrom(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                        vertical: 12),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ),
+                          QuickPreviewCard(
+                            viewModel: viewModel,
+                            onPickTemplate: () =>
+                                _showTemplateSheet(context, viewModel),
                           ),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(height: StrategyBuilderConstants.sectionSpacing),
 
                           // Save Button
                           Tooltip(
@@ -1798,15 +680,15 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                               if (viewModel.hasFatalErrors) {
                                 final errs = viewModel.getAllFatalErrors();
                                 final shown = errs.take(2).join('\n• ');
-                                return 'Perbaiki error sebelum menyimpan:\n• $shown${errs.length > 2 ? '...' : ''}';
+                                return 'Fix errors before saving:\n• $shown${errs.length > 2 ? '...' : ''}';
                               }
                               if (!viewModel.canSave) {
-                                return 'Lengkapi nama, modal awal, dan entry rules';
+                                return 'Leave fields empty to use defaults';
                               }
                               if (viewModel.isSaving) {
-                                return 'Sedang menyimpan...';
+                                return 'Saving...';
                               }
-                              return 'Simpan strategi';
+                              return 'Save strategy';
                             })(),
                             child: ElevatedButton(
                               onPressed: (viewModel.canSave &&
@@ -1816,7 +698,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   : null,
                               style: ElevatedButton.styleFrom(
                                 padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
+                                    const EdgeInsets.symmetric(vertical: StrategyBuilderConstants.itemSpacing),
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
                               ),
@@ -1834,13 +716,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 final errs = viewModel.getAllFatalErrors();
                                 if (errs.isNotEmpty) {
                                   return Text(
-                                    'Perbaiki ${errs.length} error',
+                                    'Fix ${errs.length} error',
                                     style: const TextStyle(fontSize: 16),
                                   );
                                 }
                                 if (!viewModel.canSave) {
                                   return const Text(
-                                    'Lengkapi data dulu',
+                                    'Fill in required fields',
                                     style: TextStyle(fontSize: 16),
                                   );
                                 }
@@ -1879,9 +761,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       children: [
                                         Icon(Icons.error_outline,
                                             size: 18, color: scheme.error),
-                                        const SizedBox(width: 8),
+                                        const SizedBox(width: StrategyBuilderConstants.smallSpacing),
                                         Text(
-                                          'Perbaikan diperlukan sebelum simpan/preview',
+                                          AppLocalizations.of(context)!
+                                              .sbErrorSummaryHeader,
                                           style: Theme.of(context)
                                               .textTheme
                                               .labelLarge
@@ -1889,7 +772,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: StrategyBuilderConstants.smallSpacing),
                                     ...errs.map((e) => Padding(
                                           padding: const EdgeInsets.only(
                                               bottom: 6.0),
@@ -1923,1338 +806,17 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     );
   }
 
-  Widget _buildRuleCard(
-    BuildContext context,
-    StrategyBuilderViewModel viewModel,
-    int index,
-    RuleBuilder rule,
-    bool isEntry,
-  ) {
-    final l10n = AppLocalizations.of(context)!;
-    final hasRuleErrors = viewModel.getRuleErrorsFor(index, isEntry).isNotEmpty;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: Theme.of(context).colorScheme.surface,
-      shape: hasRuleErrors
-          ? RoundedRectangleBorder(
-              side: BorderSide(
-                color:
-                    Theme.of(context).colorScheme.error.withValues(alpha: 0.25),
-              ),
-              borderRadius: BorderRadius.circular(8),
-            )
-          : null,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Rule ${index + 1}',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 20),
-                  onPressed: () {
-                    if (isEntry) {
-                      viewModel.removeEntryRule(index);
-                    } else {
-                      viewModel.removeExitRule(index);
-                    }
-                  },
-                  color: Theme.of(context).colorScheme.error,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            // Indicator dropdown
-            DropdownButtonFormField<IndicatorType>(
-              value: rule.indicator,
-              decoration: InputDecoration(
-                labelText: l10n.sbIndicatorLabel,
-                isDense: false,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-              ),
-              items: IndicatorType.values.map((indicator) {
-                return DropdownMenuItem(
-                  value: indicator,
-                  child: Text(_formatIndicator(indicator)),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) {
-                  viewModel.updateRuleIndicator(index, value, isEntry);
-                }
-              },
-            ),
-
-            const SizedBox(height: 12),
-
-            // Main indicator period (optional for types that use period)
-            Builder(builder: (context) {
-              final needsMainPeriod = {
-                IndicatorType.rsi,
-                IndicatorType.sma,
-                IndicatorType.ema,
-                IndicatorType.atr,
-                IndicatorType.atrPct,
-                IndicatorType.adx,
-                IndicatorType.bollingerBands,
-                IndicatorType.bollingerWidth,
-                IndicatorType.vwap,
-                IndicatorType.stochasticK,
-                IndicatorType.stochasticD,
-              }.contains(rule.indicator);
-              if (!needsMainPeriod) return const SizedBox.shrink();
-              return TextField(
-                controller: rule.mainPeriodController,
-                decoration: InputDecoration(
-                  labelText: l10n.sbMainPeriodLabel,
-                  hintText: l10n.sbMainPeriodHint,
-                  isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                  errorText:
-                      (rule.mainPeriod != null && (rule.mainPeriod ?? 0) <= 0)
-                          ? 'Harus > 0'
-                          : null,
-                ),
-                keyboardType: TextInputType.number,
-                onChanged: (value) =>
-                    viewModel.updateRuleMainPeriod(index, value, isEntry),
-              );
-            }),
-
-            const SizedBox(height: 12),
-
-            // Timeframe (optional)
-            Builder(builder: (context) {
-              final warnings = viewModel.getRuleWarningsFor(index, isEntry);
-              final tfWarning = warnings.firstWhere(
-                (w) => w.contains('Timeframe rule lebih kecil'),
-                orElse: () => '',
-              );
-              return Tooltip(
-                message: tfWarning.isNotEmpty
-                    ? tfWarning
-                    : 'Opsional: gunakan timeframe >= data dasar untuk menghindari resampling otomatis.',
-                child: DropdownButtonFormField<String?>(
-                  value: rule.timeframe,
-                  decoration: InputDecoration(
-                    labelText: l10n.sbTimeframeOptionalLabel,
-                    isDense: false,
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 12),
-                  ),
-                  items: [
-                    DropdownMenuItem<String?>(
-                      value: null,
-                      child: Text(l10n.sbUseBaseTimeframe),
-                    ),
-                    ...['M1', 'M5', 'M15', 'M30', 'H1', 'H4', 'D1']
-                        .map((tf) => DropdownMenuItem<String?>(
-                              value: tf,
-                              child: Text(tf),
-                            ))
-                        .toList(),
-                  ],
-                  onChanged: (value) {
-                    viewModel.updateRuleTimeframe(index, value, isEntry);
-                  },
-                ),
-              );
-            }),
-
-            const SizedBox(height: 12),
-
-            // Operator dropdown (with tooltip for Rising/Falling)
-            Tooltip(
-              message: _operatorTooltip(rule.operator),
-              child: DropdownButtonFormField<ComparisonOperator>(
-                value: rule.operator,
-                decoration: InputDecoration(
-                  labelText: l10n.sbOperatorLabel,
-                  isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                ),
-                items: ComparisonOperator.values.map((op) {
-                  return DropdownMenuItem(
-                    value: op,
-                    child: Text(_formatOperator(op)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    viewModel.updateRuleOperator(index, value, isEntry);
-                  }
-                },
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            // Value type toggle (hidden for Rising/Falling)
-            if (rule.operator != ComparisonOperator.rising &&
-                rule.operator != ComparisonOperator.falling)
-              Row(
-                children: [
-                  Expanded(
-                    child: SegmentedButton<bool>(
-                      segments: [
-                        ButtonSegment(
-                          value: true,
-                          label: Text(l10n.sbNumberLabel),
-                        ),
-                        ButtonSegment(
-                          value: false,
-                          label: Text(l10n.sbIndicatorLabel),
-                        ),
-                      ],
-                      selected: {rule.isNumberValue},
-                      onSelectionChanged: (Set<bool> selection) {
-                        viewModel.updateRuleValueType(
-                            index, selection.first, isEntry);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            if (rule.operator == ComparisonOperator.crossAbove ||
-                rule.operator == ComparisonOperator.crossBelow) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Untuk operator cross: pilih Indicator untuk cross antar indikator, atau Number untuk ambang (mis. zero-line).',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.6),
-                    ),
-              ),
-            ],
-
-            const SizedBox(height: 12),
-
-            // Value input (hidden for Rising/Falling)
-            if (rule.operator != ComparisonOperator.rising &&
-                rule.operator != ComparisonOperator.falling)
-              if (rule.isNumberValue)
-                TextField(
-                  controller: rule.numberController,
-                  decoration: InputDecoration(
-                    labelText: l10n.sbValueLabel,
-                    hintText: l10n.sbValueHint,
-                    isDense: false,
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 12),
-                    errorText: rule.numberValue == null ? 'Wajib diisi' : null,
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) =>
-                      viewModel.updateRuleNumberValue(index, value, isEntry),
-                ),
-            if (rule.isNumberValue &&
-                rule.indicator == IndicatorType.macdHistogram) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _presetChip(context, '0', () {
-                    rule.numberController.text = '0';
-                    viewModel.updateRuleNumberValue(index, '0', isEntry);
-                  }),
-                  _presetChip(context, '0.0003', () {
-                    rule.numberController.text = '0.0003';
-                    viewModel.updateRuleNumberValue(index, '0.0003', isEntry);
-                  }),
-                  _presetChip(context, '0.0005', () {
-                    rule.numberController.text = '0.0005';
-                    viewModel.updateRuleNumberValue(index, '0.0005', isEntry);
-                  }),
-                  _presetChip(context, '0.001', () {
-                    rule.numberController.text = '0.001';
-                    viewModel.updateRuleNumberValue(index, '0.001', isEntry);
-                  }),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            // Preset thresholds for ATR% convenience
-            if (rule.isNumberValue &&
-                rule.indicator == IndicatorType.atrPct) ...[
-              const SizedBox(height: 8),
-              // Dynamic ATR% presets based on selected data + timeframe
-              Builder(builder: (context) {
-                final period = rule.mainPeriod ?? 14;
-                final tf = rule.timeframe;
-                if (viewModel.selectedDataId == null) {
-                  return const SizedBox();
-                }
-                return FutureBuilder<List<double>>(
-                  future: viewModel.getAtrPctPercentiles(period, tf),
-                  builder: (context, snap) {
-                    final vals = snap.data ?? const [];
-                    if (vals.isEmpty) return const SizedBox();
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dynamic ATR% Presets',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            _presetChip(
-                                context, '${vals[0].toStringAsFixed(1)}% (P25)',
-                                () {
-                              final v = vals[0].toStringAsFixed(1);
-                              rule.numberController.text = v;
-                              viewModel.updateRuleNumberValue(
-                                  index, v, isEntry);
-                            }),
-                            _presetChip(
-                                context, '${vals[1].toStringAsFixed(1)}% (P50)',
-                                () {
-                              final v = vals[1].toStringAsFixed(1);
-                              rule.numberController.text = v;
-                              viewModel.updateRuleNumberValue(
-                                  index, v, isEntry);
-                            }),
-                            _presetChip(
-                                context, '${vals[2].toStringAsFixed(1)}% (P75)',
-                                () {
-                              final v = vals[2].toStringAsFixed(1);
-                              rule.numberController.text = v;
-                              viewModel.updateRuleNumberValue(
-                                  index, v, isEntry);
-                            }),
-                            _presetChip(
-                                context, '${vals[3].toStringAsFixed(1)}% (P90)',
-                                () {
-                              final v = vals[3].toStringAsFixed(1);
-                              rule.numberController.text = v;
-                              viewModel.updateRuleNumberValue(
-                                  index, v, isEntry);
-                            }),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                );
-              }),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _presetChip(context, '1.0%', () {
-                    rule.numberController.text = '1.0';
-                    viewModel.updateRuleNumberValue(index, '1.0', isEntry);
-                  }),
-                  _presetChip(context, '1.5%', () {
-                    rule.numberController.text = '1.5';
-                    viewModel.updateRuleNumberValue(index, '1.5', isEntry);
-                  }),
-                  _presetChip(context, '2.0%', () {
-                    rule.numberController.text = '2.0';
-                    viewModel.updateRuleNumberValue(index, '2.0', isEntry);
-                  }),
-                  _presetChip(context, '3.0%', () {
-                    rule.numberController.text = '3.0';
-                    viewModel.updateRuleNumberValue(index, '3.0', isEntry);
-                  }),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (rule.operator != ComparisonOperator.rising &&
-                rule.operator != ComparisonOperator.falling &&
-                !rule.isNumberValue) ...[
-              // const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: DropdownButtonFormField<IndicatorType>(
-                      value: rule.compareIndicator,
-                      decoration: InputDecoration(
-                        labelText: l10n.sbCompareWithLabel,
-                        isDense: false,
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 12),
-                        errorText: rule.compareIndicator == null
-                            ? 'Wajib pilih'
-                            : null,
-                      ),
-                      items: IndicatorType.values.map((indicator) {
-                        return DropdownMenuItem(
-                          value: indicator,
-                          child: Text(_formatIndicator(indicator)),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        if (value != null) {
-                          viewModel.updateRuleCompareIndicator(
-                              index, value, isEntry);
-                        }
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextField(
-                      controller: rule.periodController,
-                      decoration: InputDecoration(
-                        labelText: l10n.sbPeriodLabel,
-                        hintText: '14',
-                        isDense: false,
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 12),
-                        errorText: (rule.compareIndicator != null &&
-                                (rule.period == null ||
-                                    (rule.period ?? 0) <= 0))
-                            ? 'Harus > 0'
-                            : null,
-                      ),
-                      keyboardType: TextInputType.number,
-                      onChanged: (value) =>
-                          viewModel.updateRulePeriod(index, value, isEntry),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (rule.compareIndicator == IndicatorType.anchoredVwap) ...[
-                DropdownButtonFormField<AnchorMode?>(
-                  value: rule.anchorMode,
-                  decoration: InputDecoration(
-                    labelText: l10n.sbAnchorModeLabel,
-                    isDense: false,
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 12),
-                  ),
-                  items: [
-                    DropdownMenuItem(
-                      value: AnchorMode.startOfBacktest,
-                      child: Text(l10n.sbStartOfBacktest),
-                    ),
-                    DropdownMenuItem(
-                      value: AnchorMode.byDate,
-                      child: Text(l10n.sbAnchorByDate),
-                    ),
-                  ],
-                  onChanged: (mode) {
-                    viewModel.updateRuleAnchorMode(index, mode, isEntry);
-                  },
-                ),
-                const SizedBox(height: 12),
-                if (rule.anchorMode == AnchorMode.byDate)
-                  TextField(
-                    controller: rule.anchorDateController,
-                    decoration: InputDecoration(
-                      labelText: l10n.sbAnchorDateLabel,
-                      hintText: l10n.sbAnchorDateHint,
-                      isDense: false,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 12),
-                      errorText: rule.anchorDateController.text.isNotEmpty &&
-                              DateTime.tryParse(
-                                      rule.anchorDateController.text.trim()) ==
-                                  null
-                          ? 'Format tanggal tidak valid'
-                          : null,
-                    ),
-                    keyboardType: TextInputType.datetime,
-                    onChanged: (value) =>
-                        viewModel.updateRuleAnchorDate(index, value, isEntry),
-                  ),
-              ],
-            ],
-            // Preset thresholds for ADX convenience
-            if (rule.isNumberValue && rule.indicator == IndicatorType.adx) ...[
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _presetChip(context, '20', () {
-                    rule.numberController.text = '20';
-                    viewModel.updateRuleNumberValue(index, '20', isEntry);
-                  }),
-                  _presetChip(context, '25', () {
-                    rule.numberController.text = '25';
-                    viewModel.updateRuleNumberValue(index, '25', isEntry);
-                  }),
-                  _presetChip(context, '30', () {
-                    rule.numberController.text = '30';
-                    viewModel.updateRuleNumberValue(index, '30', isEntry);
-                  }),
-                  _presetChip(context, '40', () {
-                    rule.numberController.text = '40';
-                    viewModel.updateRuleNumberValue(index, '40', isEntry);
-                  }),
-                ],
-              ),
-              const SizedBox(height: 8),
-            ],
-
-            const SizedBox(height: 12),
-            // Logical operator (for chaining rules)
-            if (isEntry && index < viewModel.entryRules.length - 1 ||
-                !isEntry && index < viewModel.exitRules.length - 1) ...[
-              const SizedBox(height: 12),
-              DropdownButtonFormField<LogicalOperator?>(
-                value: rule.logicalOperator,
-                decoration: InputDecoration(
-                  labelText: l10n.sbThenLogicLabel,
-                  isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-                ),
-                items: [
-                  DropdownMenuItem(value: null, child: Text(l10n.commonNone)),
-                  ...LogicalOperator.values.map((op) {
-                    return DropdownMenuItem(
-                      value: op,
-                      child: Text(op.name.toUpperCase()),
-                    );
-                  }).toList(),
-                ],
-                onChanged: (value) {
-                  viewModel.updateRuleLogicalOperator(index, value, isEntry);
-                },
-              ),
-            ],
-
-            // Validation messages
-            Builder(builder: (context) {
-              final warnings = viewModel.getRuleWarningsFor(index, isEntry);
-              final errors = viewModel.getRuleErrorsFor(index, isEntry);
-              if (warnings.isEmpty && errors.isEmpty) return const SizedBox();
-              return Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (warnings.isNotEmpty) ...[
-                      Text(
-                        'Peringatan:',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium!
-                            .copyWith(
-                                color: Theme.of(context).colorScheme.tertiary),
-                      ),
-                      const SizedBox(height: 6),
-                      ...warnings.map((w) => Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.info_outline,
-                                  size: 16,
-                                  color:
-                                      Theme.of(context).colorScheme.tertiary),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  w,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )),
-                    ],
-                    if (errors.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      Text(
-                        'Error:',
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelMedium!
-                            .copyWith(
-                                color: Theme.of(context).colorScheme.error),
-                      ),
-                      const SizedBox(height: 6),
-                      ...errors.map((e) => Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Icon(Icons.error_outline,
-                                  size: 16,
-                                  color: Theme.of(context).colorScheme.error),
-                              const SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  e,
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Theme.of(context).colorScheme.error,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          )),
-                    ]
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatRiskType(RiskType type) {
-    switch (type) {
-      case RiskType.fixedLot:
-        return 'Fixed Lot Size';
-      case RiskType.percentageRisk:
-        return 'Percentage Risk';
-      case RiskType.atrBased:
-        return 'ATR-Based Sizing';
-    }
-  }
-
-  String _formatIndicator(IndicatorType indicator) {
-    final map = {
-      IndicatorType.close: 'Close',
-      IndicatorType.open: 'Open',
-      IndicatorType.high: 'High',
-      IndicatorType.low: 'Low',
-      IndicatorType.rsi: 'RSI',
-      IndicatorType.sma: 'SMA',
-      IndicatorType.ema: 'EMA',
-      IndicatorType.macd: 'MACD',
-      IndicatorType.macdSignal: 'MACD Signal',
-      IndicatorType.macdHistogram: 'MACD Histogram',
-      IndicatorType.atr: 'ATR',
-      IndicatorType.atrPct: 'ATR%',
-      IndicatorType.adx: 'ADX',
-      IndicatorType.bollingerBands: 'Bollinger Bands',
-      IndicatorType.bollingerWidth: 'Bollinger Width',
-      IndicatorType.vwap: 'VWAP',
-      IndicatorType.anchoredVwap: 'Anchored VWAP',
-      IndicatorType.stochasticK: 'Stochastic %K',
-      IndicatorType.stochasticD: 'Stochastic %D',
-    };
-    return map[indicator] ?? indicator.name;
-  }
-
-  String _formatOperator(ComparisonOperator op) {
-    final map = {
-      ComparisonOperator.greaterThan: 'Greater Than (>)',
-      ComparisonOperator.lessThan: 'Less Than (<)',
-      ComparisonOperator.greaterThanOrEqual: 'Greater or Equal (>=)',
-      ComparisonOperator.lessThanOrEqual: 'Less or Equal (<=)',
-      ComparisonOperator.equals: 'Equals (=)',
-      ComparisonOperator.crossAbove: 'Cross Above',
-      ComparisonOperator.crossBelow: 'Cross Below',
-      ComparisonOperator.rising: 'Rising',
-      ComparisonOperator.falling: 'Falling',
-    };
-    return map[op] ?? op.name;
-  }
-
-  String _operatorTooltip(ComparisonOperator op) {
-    switch (op) {
-      case ComparisonOperator.rising:
-        return 'Rising: nilai indikator sekarang > nilai sebelumnya. Tidak butuh nilai pembanding.';
-      case ComparisonOperator.falling:
-        return 'Falling: nilai indikator sekarang < nilai sebelumnya. Tidak butuh nilai pembanding.';
-      case ComparisonOperator.crossAbove:
-        return 'Cross Above: indikator menembus ke atas pembanding (indikator/ambang).';
-      case ComparisonOperator.crossBelow:
-        return 'Cross Below: indikator menembus ke bawah pembanding (indikator/ambang).';
-      default:
-        return 'Operator perbandingan standar terhadap angka atau indikator.';
-    }
-  }
-
-  // Helper: preset chip for quick threshold selection
-  Widget _presetChip(BuildContext context, String label, VoidCallback onTap) {
-    final theme = Theme.of(context);
-    return ActionChip(
-      label: Text(
-        label,
-        style: TextStyle(color: theme.colorScheme.onSurfaceVariant),
-      ),
-      backgroundColor: theme.colorScheme.surfaceContainerHighest,
-      shape: StadiumBorder(
-        side: BorderSide(
-          color: theme.colorScheme.outline.withValues(alpha: 0.5),
-        ),
-      ),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
-      onPressed: onTap,
-    );
-  }
-
   // Bottom sheet untuk memilih dan menerapkan template
   void _showTemplateSheet(
     BuildContext context,
     StrategyBuilderViewModel viewModel,
   ) {
-    final l10n = AppLocalizations.of(context)!;
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
+    locator<BottomSheetService>().showCustomSheet(
+      variant: BottomSheetType.templatePicker,
+      barrierDismissible: true,
       isScrollControlled: true,
-      showDragHandle: true,
-      builder: (ctx) {
-        final entries = StrategyTemplates.all.entries.toList();
-        final localized = StrategyTemplates.localized(l10n);
-        var query = viewModel.selectedTemplateQuery;
-        var selectedCats = viewModel.selectedTemplateCategories.toSet();
-        var searchController = TextEditingController(text: query);
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            // Stabilize sheet height to avoid jumpy resize during search
-            final sheetHeight = MediaQuery.of(ctx).size.height * 0.85;
-            final filtered = query.isEmpty
-                ? entries
-                : entries.where((e) {
-                    final tpl = localized[e.key] ?? e.value;
-                    final name = tpl.name.toLowerCase();
-                    final desc = tpl.description.toLowerCase();
-                    final q = query.toLowerCase();
-                    return name.contains(q) || desc.contains(q);
-                  }).toList();
-            return SafeArea(
-              bottom: false,
-              child: SizedBox(
-                height: sheetHeight,
-                child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.auto_awesome),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Pilih Template Strategi',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const Spacer(),
-                          Text(
-                            '${entries.length} tersedia',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(width: 8),
-                          Tooltip(
-                            message: l10n.commonClose,
-                            child: IconButton(
-                              icon: const Icon(Icons.close),
-                              onPressed: () => Navigator.of(ctx).pop(),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Top MVP quick picks telah dipindahkan ke AppBar.
-                      TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          labelText: l10n.sbSearchTemplateHint,
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: query.isEmpty
-                              ? null
-                              : IconButton(
-                                  icon: const Icon(Icons.clear),
-                                  onPressed: () {
-                                    setState(() => query = '');
-                                    searchController.clear();
-                                    viewModel.setTemplateSearchQuery('');
-                                  },
-                                ),
-                        ),
-                        onChanged: (val) {
-                          setState(() => query = val);
-                          viewModel.setTemplateSearchQuery(val);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: Builder(builder: (_) {
-                          // Kategorikan berdasarkan nama template
-                          String categorize(String key, StrategyTemplate t) {
-                            // Gunakan key untuk kategori agar tidak tergantung bahasa lokal
-                            if (key.startsWith('breakout_')) return 'Breakout';
-                            if (key.startsWith('trend_')) return 'Trend';
-                            if (key.startsWith('mean_reversion_')) {
-                              return 'Mean Reversion';
-                            }
-                            if (key.startsWith('momentum_')) return 'Momentum';
-                            // Fallback: cek nama jika key tidak match
-                            final n = t.name.toLowerCase();
-                            if (n.contains('breakout')) return 'Breakout';
-                            if (n.contains('mean reversion')) {
-                              return 'Mean Reversion';
-                            }
-                            if (n.contains('trend')) return 'Trend';
-                            if (n.contains('momentum')) return 'Momentum';
-                            return 'Other';
-                          }
-
-                          // Helper: highlight occurrences of query in text
-                          TextSpan highlightSpan(
-                            String text,
-                            String query,
-                            TextStyle? normal,
-                            TextStyle? highlight,
-                          ) {
-                            if (query.isEmpty) {
-                              return TextSpan(text: text, style: normal);
-                            }
-                            final lower = text.toLowerCase();
-                            final q = query.toLowerCase();
-                            int start = 0;
-                            final spans = <TextSpan>[];
-                            while (true) {
-                              final idx = lower.indexOf(q, start);
-                              if (idx < 0) {
-                                spans.add(TextSpan(
-                                    text: text.substring(start),
-                                    style: normal));
-                                break;
-                              }
-                              if (idx > start) {
-                                spans.add(TextSpan(
-                                    text: text.substring(start, idx),
-                                    style: normal));
-                              }
-                              spans.add(TextSpan(
-                                  text: text.substring(idx, idx + q.length),
-                                  style: highlight));
-                              start = idx + q.length;
-                            }
-                            return TextSpan(children: spans);
-                          }
-
-                          final Map<String,
-                                  List<MapEntry<String, StrategyTemplate>>>
-                              groups = {};
-                          for (final e in filtered) {
-                            final cat = categorize(e.key, e.value);
-                            groups.putIfAbsent(cat, () => []).add(e);
-                          }
-                          final order = [
-                            'Breakout',
-                            'Trend',
-                            // Mean Reversion dan Momentum ditampilkan setelah kategori prioritas
-                            'Mean Reversion',
-                            'Momentum',
-                            'Other'
-                          ].where((c) => groups.containsKey(c)).toList();
-                          // Filter chips per kategori (dengan badge jumlah)
-                          final chips = <Widget>[
-                            Tooltip(
-                              message: l10n.sbShowAllCategories,
-                              child: ChoiceChip(
-                                avatar: selectedCats.isEmpty
-                                    ? const Icon(Icons.check, size: 16)
-                                    : null,
-                                label: Text(
-                                  'All',
-                                  style: TextStyle(
-                                    color: selectedCats.isEmpty
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .onSecondaryContainer
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .onSurfaceVariant,
-                                  ),
-                                ),
-                                selected: selectedCats.isEmpty,
-                                selectedColor: Theme.of(context)
-                                    .colorScheme
-                                    .secondaryContainer,
-                                backgroundColor: Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
-                                shape: StadiumBorder(
-                                  side: BorderSide(
-                                    color: (selectedCats.isEmpty
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .secondary
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .outline)
-                                        .withValues(
-                                            alpha: selectedCats.isEmpty
-                                                ? 0.7
-                                                : 0.5),
-                                    width: selectedCats.isEmpty ? 1.2 : 1.0,
-                                  ),
-                                ),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                visualDensity: VisualDensity.compact,
-                                onSelected: (_) {
-                                  setState(() => selectedCats.clear());
-                                  viewModel.setSelectedTemplateCategories(
-                                      selectedCats.toList());
-                                },
-                              ),
-                            ),
-                            ...order.map((cat) => Tooltip(
-                                  message: l10n.sbFilterPrefix + cat,
-                                  child: ChoiceChip(
-                                    avatar: selectedCats.contains(cat)
-                                        ? const Icon(Icons.check, size: 16)
-                                        : null,
-                                    label: Text(
-                                      '$cat (${groups[cat]!.length})',
-                                      style: TextStyle(
-                                        color: selectedCats.contains(cat)
-                                            ? Theme.of(context)
-                                                .colorScheme
-                                                .onSecondaryContainer
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                      ),
-                                    ),
-                                    selected: selectedCats.contains(cat),
-                                    selectedColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondaryContainer,
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceContainerHighest,
-                                    shape: StadiumBorder(
-                                      side: BorderSide(
-                                        color: (selectedCats.contains(cat)
-                                                ? Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary
-                                                : Theme.of(context)
-                                                    .colorScheme
-                                                    .outline)
-                                            .withValues(
-                                                alpha:
-                                                    selectedCats.contains(cat)
-                                                        ? 0.7
-                                                        : 0.5),
-                                        width: selectedCats.contains(cat)
-                                            ? 1.2
-                                            : 1.0,
-                                      ),
-                                    ),
-                                    materialTapTargetSize:
-                                        MaterialTapTargetSize.shrinkWrap,
-                                    visualDensity: VisualDensity.compact,
-                                    onSelected: (sel) {
-                                      setState(() {
-                                        if (sel) {
-                                          selectedCats.add(cat);
-                                        } else {
-                                          selectedCats.remove(cat);
-                                        }
-                                      });
-                                      viewModel.setSelectedTemplateCategories(
-                                          selectedCats.toList());
-                                    },
-                                  ),
-                                )),
-                          ];
-
-                          final widgets = <Widget>[];
-                          // Recently Applied section
-                          final recentKeys = viewModel.recentTemplateKeys;
-                          final recentEntries = recentKeys
-                              .map((k) => StrategyTemplates.all[k] != null
-                                  ? MapEntry(k, StrategyTemplates.all[k]!)
-                                  : null)
-                              .whereType<MapEntry<String, StrategyTemplate>>()
-                              .toList();
-                          if (recentEntries.isNotEmpty) {
-                            widgets.add(Row(
-                              children: [
-                                Text(
-                                  'Recently Applied',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleSmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                                const Spacer(),
-                                TextButton(
-                                  onPressed: () {
-                                    viewModel.clearRecentTemplates();
-                                    setState(() {});
-                                  },
-                                  child: Text(l10n.commonClear),
-                                ),
-                              ],
-                            ));
-                            widgets.addAll(recentEntries.expand((e) {
-                              final tpl = e.value;
-                              return [
-                                ListTile(
-                                  leading: const Icon(Icons.history),
-                                  title: RichText(
-                                    text: highlightSpan(
-                                      (localized[e.key] ?? tpl).name,
-                                      query,
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w600),
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary),
-                                    ),
-                                  ),
-                                  subtitle: RichText(
-                                    text: highlightSpan(
-                                      (localized[e.key] ?? tpl).description,
-                                      query,
-                                      Theme.of(context).textTheme.bodySmall,
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary),
-                                    ),
-                                  ),
-                                  trailing: TextButton(
-                                    onPressed: () {
-                                      Navigator.of(ctx).pop();
-                                      viewModel.applyTemplate(e.key);
-                                    },
-                                    child: Text(l10n.sbApply),
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(ctx).pop();
-                                    viewModel.applyTemplate(e.key);
-                                  },
-                                ),
-                                const Divider(height: 1),
-                              ];
-                            }));
-                            widgets.add(const SizedBox(height: 8));
-                          }
-                          for (final cat in order) {
-                            if (selectedCats.isNotEmpty &&
-                                !selectedCats.contains(cat)) {
-                              continue;
-                            }
-                            widgets.add(Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8),
-                              child: Text(
-                                '$cat (${groups[cat]!.length})',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                            ));
-                            widgets.addAll(groups[cat]!.expand((e) {
-                              final tpl = e.value;
-                              return [
-                                ListTile(
-                                  title: RichText(
-                                    text: highlightSpan(
-                                      (localized[e.key] ?? tpl).name,
-                                      query,
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w600),
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary),
-                                    ),
-                                  ),
-                                  subtitle: RichText(
-                                    text: highlightSpan(
-                                      (localized[e.key] ?? tpl).description,
-                                      query,
-                                      Theme.of(context).textTheme.bodySmall,
-                                      Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(
-                                              fontWeight: FontWeight.w700,
-                                              color: Theme.of(context)
-                                                  .colorScheme
-                                                  .primary),
-                                    ),
-                                  ),
-                                  trailing: TextButton(
-                                    onPressed: () {
-                                      Navigator.of(ctx).pop();
-                                      viewModel.applyTemplate(e.key);
-                                    },
-                                    child: Text(l10n.sbApply),
-                                  ),
-                                  onTap: () {
-                                    Navigator.of(ctx).pop();
-                                    viewModel.applyTemplate(e.key);
-                                  },
-                                ),
-                                const Divider(height: 1),
-                              ];
-                            }));
-                          }
-                          // Hitung jumlah item yang terlihat sesuai filter
-                          final int visibleCount = selectedCats.isEmpty
-                              ? filtered.length
-                              : order
-                                  .where((c) => selectedCats.contains(c))
-                                  .map((c) => groups[c]!.length)
-                                  .fold(0, (a, b) => a + b);
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                crossAxisAlignment: WrapCrossAlignment.center,
-                                children: [
-                                  if (query.isNotEmpty ||
-                                      selectedCats.isNotEmpty)
-                                    Tooltip(
-                                      message: l10n.sbClearFilters,
-                                      child: ActionChip(
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .errorContainer,
-                                        avatar: Icon(
-                                          Icons.filter_alt_off,
-                                          size: 16,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onErrorContainer,
-                                        ),
-                                        label: Text(
-                                          'Reset Filter',
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onErrorContainer,
-                                          ),
-                                        ),
-                                        shape: StadiumBorder(
-                                          side: BorderSide(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .error
-                                                .withValues(alpha: 0.6),
-                                          ),
-                                        ),
-                                        elevation: 1,
-                                        pressElevation: 3,
-                                        shadowColor: Theme.of(context)
-                                            .colorScheme
-                                            .error
-                                            .withValues(alpha: 0.25),
-                                        materialTapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                        visualDensity: VisualDensity.compact,
-                                        onPressed: () {
-                                          setState(() {
-                                            selectedCats.clear();
-                                            query = '';
-                                          });
-                                          searchController.clear();
-                                          viewModel
-                                              .setSelectedTemplateCategories(
-                                                  []);
-                                          viewModel.setTemplateSearchQuery('');
-                                        },
-                                      ),
-                                    ),
-                                  ...chips,
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '$visibleCount hasil',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                              const SizedBox(height: 8),
-                              Expanded(
-                                child: (() {
-                                  if (filtered.isEmpty || widgets.isEmpty) {
-                                    return Center(
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Icon(Icons.info_outline,
-                                              size: 18),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            'Tidak ada template yang cocok dengan kata kunci.',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall,
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }
-                                  return ListView(
-                                    children: widgets,
-                                  );
-                                })(),
-                              ),
-                            ],
-                          );
-                        }),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // Helper method to build stat cards for preview results
-  Widget _buildStatCard(
-    BuildContext context,
-    String label,
-    String value,
-    Color valueColor,
-  ) {
-    return Expanded(
-      child: Card(
-        elevation: 2,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          child: Column(
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(color: valueColor, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Helper: compact stat chip used in Quick Preview card
-  Widget _buildStatChip(
-    BuildContext context,
-    String label,
-    String value, {
-    Color? color,
-    IconData? icon,
-  }) {
-    final bg = (color ?? Theme.of(context).colorScheme.secondary)
-        .withValues(alpha: 0.10);
-    final textColor = color ?? Theme.of(context).colorScheme.onSurface;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: textColor.withValues(alpha: 0.25)),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null)
-            Icon(icon, size: 14, color: textColor.withValues(alpha: 0.9)),
-          if (icon != null) const SizedBox(width: 6),
-          Text(
-            '$label: $value',
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: textColor),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Helper: timeframe chip used in preview badges
-  Widget _buildTfChip(BuildContext context, String label, bool isWarn) {
-    final bg = isWarn
-        ? Theme.of(context).colorScheme.error.withValues(alpha: 0.12)
-        : Theme.of(context)
-            .colorScheme
-            .secondaryContainer
-            .withValues(alpha: 0.18);
-    final border = isWarn
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.outline;
-    final textColor = isWarn
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.onSurface;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(isWarn ? Icons.warning_amber : Icons.schedule,
-              size: 14, color: textColor.withValues(alpha: 0.9)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: textColor),
-          ),
-        ],
-      ),
+      // Pass the current StrategyBuilderViewModel to the sheet via request.data
+      data: viewModel,
     );
   }
 

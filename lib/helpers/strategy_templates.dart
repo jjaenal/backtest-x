@@ -902,7 +902,7 @@ class StrategyTemplates {
   /// Localized variants of templates: returns copies of [all] with
   /// `name` and `description` resolved via AppLocalizations for current locale.
   static Map<String, StrategyTemplate> localized(AppLocalizations l10n) {
-    StrategyTemplate _copyWithLocalized(
+    StrategyTemplate copyWithLocalized(
       String key,
       StrategyTemplate t,
     ) {
@@ -920,7 +920,7 @@ class StrategyTemplates {
 
     final map = <String, StrategyTemplate>{};
     all.forEach((key, value) {
-      map[key] = _copyWithLocalized(key, value);
+      map[key] = copyWithLocalized(key, value);
     });
     return map;
   }
@@ -966,6 +966,10 @@ class StrategyTemplates {
         return l10n.templateAnchoredVwapPullbackCrossName;
       case 'stoch_kd_cross_adx':
         return l10n.templateStochKdCrossAdxName;
+      case 'template_bb_squeeze_breakout_name':
+        return l10n.templateBbSqueezeBreakoutName;
+      case 'template_rsi_divergence_approx_name':
+        return l10n.templateRsiDivergenceApproxName;
       default:
         return fallback;
     }
@@ -1012,6 +1016,10 @@ class StrategyTemplates {
         return l10n.templateAnchoredVwapPullbackCrossDesc;
       case 'stoch_kd_cross_adx':
         return l10n.templateStochKdCrossAdxDesc;
+      case 'bb_squeeze_breakout':
+        return l10n.templateBbSqueezeBreakoutDesc;
+      case 'rsi_divergence_approx':
+        return l10n.templateRsiDivergenceApproxDesc;
       default:
         return fallback;
     }

@@ -1,5 +1,78 @@
 # TODO - Implementation Checklist
 
+## Focused Checklist Prioritas refactoring Strategy Builder
+
+- [x] Integrasi Template Picker ke BottomSheetService dan refactor `_showTemplateSheet`
+      - Register `TemplatePickerSheet` sebagai `BottomSheetType.templatePicker`
+      - Ubah pemanggilan dari `showModalBottomSheet` ke `BottomSheetService.showCustomSheet`
+      - Kirim `StrategyBuilderViewModel` via `request.data` untuk sinkronisasi state
+      - Perbaiki logika kategori di `TemplatePickerSheet` (gunakan `_categorizeTemplate` berbasis key)
+      - Verifikasi compile dan preview web tanpa error
+
+- [x] Extract major card widgets (RiskManagement, EntryRules, Preview, etc) ke separate file
+- [ ] Move \_buildRuleCard() ke separate class - ini yang paling urgent
+
+  - example:
+
+    ```dart
+      class _RuleCardBuilder {
+        static Widget build(BuildContext context, ...) { ... }
+
+        static Widget _buildIndicatorSection(...) { ... }
+        static Widget _buildOperatorSection(...) { ... }
+        static Widget _buildValueSection(...) { ... }
+        static Widget _buildValidationMessages(...) { ... }
+      }
+    ```
+
+- [x] Consolidate formatting methods ke utilities
+
+  - example:
+
+    ```dart
+      class IndicatorFormatter {
+        static String format(IndicatorType indicator) { ... }
+        static String formatOperator(BuildContext context, ComparisonOperator op) { ... }
+        static String formatRiskType(RiskType type) { ... }
+        static String operatorTooltip(BuildContext context, ComparisonOperator op) { ... }
+      }
+    ```
+
+- [x] Extract reusable dialogs
+
+  - example:
+
+    ```dart
+      class _DialogBuilder {
+        static Future<void> showConfirmationDialog(
+          BuildContext context, {
+          required String title,
+          required String content,
+          required String confirmLabel,
+          bool isDangerous = false,
+        }) async { ... }
+      }
+    ```
+
+- [x] Create constants class untuk magic numbers
+
+  - example:
+
+    ```dart
+      class StrategyBuilderConstants {
+        static const double cardPadding = 16.0;
+        static const double itemSpacing = 16.0;
+        static const double sectionSpacing = 24.0;
+        static const Duration animationDuration = Duration(milliseconds: 180);
+
+        // Timeframe logic constants
+        static const int m5CandleCount = 360;
+        static const int m15CandleCount = 240;
+        static const int h1CandleCount = 180;
+        static const int defaultCandleCount = 120;
+      }
+    ```
+
 ## Focused Checklist — Refactor & Optimasi
 
 - [x] Parallel indicator calculation

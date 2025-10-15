@@ -179,6 +179,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   List<String> getRuleWarningsFor(int index, bool isEntry) {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     final warnings = <String>[];
+    final l10n =
+        AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!;
 
     // Timeframe smaller than base timeframe (if selected)
     if (rule.timeframe != null && selectedDataId != null) {
@@ -187,8 +189,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         final baseMin = tf_helper.parseTimeframeToMinutes(data.timeframe);
         final ruleMin = tf_helper.parseTimeframeToMinutes(rule.timeframe!);
         if (ruleMin < baseMin) {
-          warnings.add(
-              'Timeframe rule lebih kecil dari data dasar; akan dipaksa ke ${data.timeframe}.');
+          warnings.add(l10n.sbWarningTfGreaterThanBase(data.timeframe));
         }
       }
     }
@@ -197,21 +198,19 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     if (rule.indicator == IndicatorType.rsi && rule.isNumberValue) {
       final v = rule.numberValue;
       if (v != null && (v < 20 || v > 80)) {
-        warnings.add('Nilai ambang RSI di luar rentang umum (20–80).');
+        warnings.add(l10n.sbWarningRsiBetween20And80);
       }
     }
 
     // Operator guidance
     if (rule.operator == ComparisonOperator.equals) {
-      warnings
-          .add('Operator equals cenderung rapuh untuk data harga/indikator.');
+      warnings.add(l10n.sbWarningOperatorEqualsNotSupported);
     }
     if ((rule.operator == ComparisonOperator.crossAbove ||
             rule.operator == ComparisonOperator.crossBelow) &&
         !rule.isNumberValue &&
         rule.compareIndicator == IndicatorType.bollingerBands) {
-      warnings.add(
-          'Perbandingan dengan Bollinger Bands tidak spesifik band (upper/lower).');
+      warnings.add(l10n.sbWarningBbandsSpecifyBand);
     }
 
     // Main indicator period suggestions
@@ -230,7 +229,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     };
     if (indicatorsNeedPeriod.contains(rule.indicator)) {
       if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
-        warnings.add('Period indikator utama belum diisi (>0 disarankan).');
+        warnings.add(l10n.sbPeriodMustBeSetGtZero);
       }
     }
 
@@ -242,7 +241,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     final template = StrategyTemplates.all[key];
     if (template == null) {
       _snackbarService.showSnackbar(
-        message: 'Template tidak ditemukan',
+        message: 'Template not found',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -295,7 +294,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       // Non-critical
     }
     _snackbarService.showSnackbar(
-      message: 'Template diterapkan: ${template.name}',
+      message: 'Template applied: ${template.name}',
       duration: const Duration(seconds: 2),
     );
 
@@ -356,6 +355,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
 
   List<String> _getRuleFatalErrors(RuleBuilder rule) {
     final errors = <String>[];
+    final l10n =
+        AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!;
     // Rising/Falling do not require comparison value
     if (rule.operator == ComparisonOperator.rising ||
         rule.operator == ComparisonOperator.falling) {
@@ -376,31 +377,31 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     };
     if (indicatorsNeedPeriod.contains(rule.indicator)) {
       if (rule.mainPeriod == null || (rule.mainPeriod ?? 0) <= 0) {
-        errors.add('Period indikator utama wajib > 0.');
+        errors.add(l10n.sbPeriodMustBeSetGtZero);
       }
     }
     if (rule.isNumberValue) {
       if (rule.numberValue == null) {
-        errors.add('Nilai angka belum diisi.');
+        errors.add(l10n.sbErrorValueMustBeSet);
       }
       // Strict bounds for RSI numeric thresholds
       if (rule.indicator == IndicatorType.rsi && rule.numberValue != null) {
         if (rule.numberValue! < 0 || rule.numberValue! > 100) {
-          errors.add('Nilai RSI harus antara 0–100.');
+          errors.add(l10n.sbErrorRsiBetween0And100);
         }
       }
       // Bounds for ADX numeric thresholds (0–100)
       if (rule.indicator == IndicatorType.adx && rule.numberValue != null) {
         if (rule.numberValue! < 0 || rule.numberValue! > 100) {
-          errors.add('Nilai ADX harus antara 0–100.');
+          errors.add(l10n.sbErrorAdxBetween0And100);
         }
       }
     } else {
       if (rule.compareIndicator == null) {
-        errors.add('Pilih indikator pembanding.');
+        errors.add(l10n.sbErrorPickComparisonIndicator);
       }
       if (rule.period == null || (rule.period ?? 0) <= 0) {
-        errors.add('Period indikator pembanding wajib > 0.');
+        errors.add(l10n.sbPeriodMustBeSetGtZero);
       }
     }
 
@@ -500,7 +501,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         // Clear the pending key to avoid re-applying
         await _prefs.setString('onboarding.pending_template_key', '');
         _snackbarService.showSnackbar(
-          message: 'Template diterapkan: $pendingKey',
+          message: 'Template applied: $pendingKey',
           duration: const Duration(seconds: 2),
         );
       }
@@ -516,7 +517,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         if (availableData.any((d) => d.id == pendingDataId)) {
           setSelectedData(pendingDataId);
           _snackbarService.showSnackbar(
-            message: 'Data contoh dipilih: $pendingDataId',
+            message: 'Data sample selected: $pendingDataId',
             duration: const Duration(seconds: 2),
           );
         }
@@ -764,8 +765,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     if (!canSave || fatalErrors.isNotEmpty) {
       _snackbarService.showSnackbar(
         message: fatalErrors.isNotEmpty
-            ? 'Perbaiki error sebelum menyimpan:\n• ${fatalErrors.join('\n• ')}'
-            : 'Please fill all required fields',
+            ? 'Fix errors before saving:\n• ${fatalErrors.join('\n• ')}'
+            : 'Please fill required fields',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -822,7 +823,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     } catch (e) {
       debugPrint('Error saving strategy: $e');
       showErrorWithRetry(
-        title: 'Gagal menyimpan strategi',
+        title: 'Failed to save strategy',
         message: e.toString(),
         onRetry: () => saveStrategy(context),
       );
@@ -967,8 +968,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     if (!canSave || fatalErrors.isNotEmpty) {
       _snackbarService.showSnackbar(
         message: fatalErrors.isNotEmpty
-            ? 'Perbaiki error sebelum testing:\n• ${fatalErrors.join('\n• ')}'
-            : 'Please fill all required fields before testing',
+            ? 'Fix errors before running:\n• ${fatalErrors.join('\n• ')}'
+            : 'Please fill required fields before running',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -1028,7 +1029,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     } catch (e) {
       debugPrint('Error running preview backtest: $e');
       showErrorWithRetry(
-        title: 'Preview backtest gagal',
+        title: 'Preview backtest failed',
         message: e.toString(),
         onRetry: () => quickPreviewBacktest(),
       );
@@ -1062,7 +1063,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
           AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!
               .sbBuilderTips,
       description:
-          '• Gunakan Template untuk memulai cepat.\n• Atur period indikator sesuai timeframe.\n• Anchored VWAP: set Anchor Mode & tanggal.\n• Cek Preview di AppBar untuk uji cepat.\n• Autosave aktif: pulihkan draft jika tersedia.',
+          '• Use Template for quick run.\n• Adjust period indikator based on timeframe.\n• Anchored VWAP: set Anchor Mode & date.\n• Check Preview on AppBar for quick test.\n• Autosave active: save drafts to prevent data loss.',
       barrierDismissible: true,
       isScrollControlled: false,
     );
@@ -1073,9 +1074,9 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     // Step 1: Entry vs Exit rules
     var resp = await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Langkah 1: Entry vs Exit Rules',
+      title: 'Step 1: Entry vs Exit Rules',
       description:
-          'Gunakan kolom kiri untuk ENTRY (sinyal masuk) dan kolom kanan untuk EXIT (keluar posisi). Anda dapat menambah/menghapus rule dan menyusun logika dengan AND/OR.',
+          'Use the left column for ENTRY (entry signal) and the right column for EXIT (exit position). You can add/remove rules and compose logic with AND/OR.',
       mainButtonTitle: 'Next',
       secondaryButtonTitle: 'Close',
       barrierDismissible: true,
@@ -1086,9 +1087,9 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     // Step 2: Period di kiri vs Period di kanan
     resp = await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Langkah 2: Period Utama vs Period Pembanding',
+      title: 'Step 2: Main Period vs Comparison Period',
       description:
-          'Field "Main Period" mengatur period indikator utama (kiri). Field "Period" di bagian pembanding (kanan) hanya muncul bila Anda membandingkan ke indikator lain. Sesuaikan period sesuai timeframe untuk hasil akurat.',
+          'Field "Main Period" sets the main indicator period (left column). Field "Period" in the comparison section (right column) will only appear if you are comparing another indicator. Adjust the period to match the timeframe for accurate results.',
       mainButtonTitle: 'Next',
       secondaryButtonTitle: 'Back',
       barrierDismissible: true,
@@ -1099,9 +1100,9 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     // Step 3: Operator
     resp = await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Langkah 3: Operator & Tips',
+      title: 'Step 3: Operator & Tips',
       description:
-          'Operator crossAbove/crossBelow memerlukan pembanding indikator (contoh: EMA vs EMA). Operator rising/falling tidak butuh pembanding; gunakan angka default 0 untuk mendeteksi tren naik/turun.',
+          'The crossAbove/crossBelow operator requires an indicator comparison (e.g. EMA vs EMA). The rising/falling operator does not require a comparison; use the default 0 value to detect up/down trends.',
       mainButtonTitle: 'Next',
       secondaryButtonTitle: 'Back',
       barrierDismissible: true,
@@ -1112,10 +1113,10 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     // Step 4: Anchored VWAP
     await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title: 'Langkah 4: Anchored VWAP',
+      title: 'Step 4: Anchored VWAP',
       description:
-          'Saat memilih pembanding Anchored VWAP, atur "Anchor Mode". Mode "Start of Backtest" mengunci ke awal periode uji. Mode "Anchor by Date" memungkinkan Anda mengisi tanggal (contoh: 2023-01-01) untuk anchor spesifik.',
-      mainButtonTitle: 'Selesai',
+          'When selecting Anchored VWAP, set "Anchor Mode". Mode "Start of Backtest" will align to the start of the backtest period. Mode "Anchor by Date" allows you to specify a date (e.g. 2023-01-01) for a specific anchor.',
+      mainButtonTitle: 'Finish',
       secondaryButtonTitle: 'Back',
       barrierDismissible: true,
       isScrollControlled: false,
@@ -1392,7 +1393,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         final share = locator<ShareService>();
         await share.shareText(jsonStr, subject: 'BacktestX Strategy Template');
         _snackbarService.showSnackbar(
-          message: 'Template JSON dibagikan',
+          message: 'Template JSON shared',
           duration: const Duration(seconds: 2),
         );
       } catch (_) {
@@ -1403,13 +1404,13 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
           await Clipboard.setData(ClipboardData(text: jsonStr));
         }
         _snackbarService.showSnackbar(
-          message: 'Template JSON disalin ke clipboard',
+          message: 'Template JSON copied to clipboard',
           duration: const Duration(seconds: 2),
         );
       }
     } catch (e) {
       _snackbarService.showSnackbar(
-        message: 'Export gagal: $e',
+        message: 'Export failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1425,12 +1426,12 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: jsonStr));
       }
       _snackbarService.showSnackbar(
-        message: 'Template JSON disalin ke clipboard',
+        message: 'Template JSON copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
       _snackbarService.showSnackbar(
-        message: 'Salin JSON gagal: $e',
+        message: 'Copy JSON failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1440,7 +1441,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   Future<void> saveStrategyJsonToFile() async {
     try {
       if (kIsWeb) {
-        throw Exception('Simpan file tidak didukung di Web');
+        throw Exception('Save file not supported on Web');
       }
       final jsonStr = jsonEncode(_buildDraftJson());
       final dir = await getApplicationDocumentsDirectory();
@@ -1452,12 +1453,12 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       final file = io.File(path);
       await file.writeAsString(jsonStr, flush: true);
       _snackbarService.showSnackbar(
-        message: 'Disimpan: $filename',
+        message: 'File saved: $filename',
         duration: const Duration(seconds: 3),
       );
     } catch (e) {
       _snackbarService.showSnackbar(
-        message: 'Simpan file gagal: $e',
+        message: 'Save file failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1468,7 +1469,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     try {
       final decoded = jsonDecode(jsonText);
       if (decoded is! Map) {
-        throw Exception('Format JSON tidak valid');
+        throw Exception('Invalid JSON format');
       }
       // Convert dynamic map to Map<String, dynamic>
       final draft = Map<String, dynamic>.from(decoded);
@@ -1476,12 +1477,12 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       _validateDraftMap(draft);
       _applyDraftMap(draft);
       _snackbarService.showSnackbar(
-        message: 'Template JSON diterapkan',
+        message: 'Template JSON applied',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
       _snackbarService.showSnackbar(
-        message: 'Impor gagal: $e',
+        message: 'Import failed: $e',
         duration: const Duration(seconds: 3),
       );
     }
@@ -1590,7 +1591,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     if (rtName is String) {
       final ok = RiskType.values.any((e) => e.name == rtName);
       if (!ok) {
-        throw Exception('riskType tidak dikenal: $rtName');
+        throw Exception('Unknown risk type: $rtName');
       }
     }
     // Validate rules arrays
@@ -1598,22 +1599,22 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       final v = draft[key];
       if (v == null) continue;
       if (v is! List) {
-        throw Exception('$key harus berupa array');
+        throw Exception('$key must be an array');
       }
       for (final item in v) {
         if (item is! Map) {
-          throw Exception('Item $key harus berupa objek');
+          throw Exception('Item $key must be an object');
         }
         final m = Map<String, dynamic>.from(item);
         final ind = m['indicator'];
         final op = m['operator'];
         if (ind is String) {
           final ok = IndicatorType.values.any((e) => e.name == ind);
-          if (!ok) throw Exception('Indicator tidak dikenal: $ind');
+          if (!ok) throw Exception('Unknown indicator: $ind');
         }
         if (op is String) {
           final ok = ComparisonOperator.values.any((e) => e.name == op);
-          if (!ok) throw Exception('Operator tidak dikenal: $op');
+          if (!ok) throw Exception('Unknown operator: $op');
         }
       }
     }
