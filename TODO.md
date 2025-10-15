@@ -2,15 +2,10 @@
 
 ## Focused Checklist Prioritas refactoring Strategy Builder
 
-- [x] Integrasi Template Picker ke BottomSheetService dan refactor `_showTemplateSheet`
-      - Register `TemplatePickerSheet` sebagai `BottomSheetType.templatePicker`
-      - Ubah pemanggilan dari `showModalBottomSheet` ke `BottomSheetService.showCustomSheet`
-      - Kirim `StrategyBuilderViewModel` via `request.data` untuk sinkronisasi state
-      - Perbaiki logika kategori di `TemplatePickerSheet` (gunakan `_categorizeTemplate` berbasis key)
-      - Verifikasi compile dan preview web tanpa error
+- [x] Integrasi Template Picker ke BottomSheetService dan refactor `_showTemplateSheet` - Register `TemplatePickerSheet` sebagai `BottomSheetType.templatePicker` - Ubah pemanggilan dari `showModalBottomSheet` ke `BottomSheetService.showCustomSheet` - Kirim `StrategyBuilderViewModel` via `request.data` untuk sinkronisasi state - Perbaiki logika kategori di `TemplatePickerSheet` (gunakan `_categorizeTemplate` berbasis key) - Verifikasi compile dan preview web tanpa error
 
 - [x] Extract major card widgets (RiskManagement, EntryRules, Preview, etc) ke separate file
-- [ ] Move \_buildRuleCard() ke separate class - ini yang paling urgent
+- [x] Move \_buildRuleCard() ke separate class - ini yang paling urgent
 
   - example:
 

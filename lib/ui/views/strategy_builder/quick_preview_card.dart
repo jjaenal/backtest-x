@@ -10,7 +10,9 @@ import 'strategy_builder_constants.dart';
 class QuickPreviewCard extends StatelessWidget {
   final StrategyBuilderViewModel viewModel;
   final VoidCallback? onPickTemplate;
-  const QuickPreviewCard({Key? key, required this.viewModel, this.onPickTemplate}) : super(key: key);
+  const QuickPreviewCard(
+      {Key? key, required this.viewModel, this.onPickTemplate})
+      : super(key: key);
 
   String _dateRangeLabel(MarketData md) {
     if (md.candles.isEmpty) return 'No data';
@@ -106,7 +108,9 @@ class QuickPreviewCard extends StatelessWidget {
                                 return 'Test Strategy';
                               })()),
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: StrategyBuilderConstants.mediumSpacing,
+                          ),
                         ),
                       ),
                     ),
@@ -122,8 +126,10 @@ class QuickPreviewCard extends StatelessWidget {
                         .toList();
                     if (data.isEmpty || data.first.candles.isEmpty) {
                       return Container(
-                        margin: const EdgeInsets.only(top: 12),
-                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(
+                            top: StrategyBuilderConstants.mediumSpacing),
+                        padding: const EdgeInsets.all(
+                            StrategyBuilderConstants.mediumSpacing),
                         decoration: BoxDecoration(
                           color: Theme.of(context)
                               .colorScheme
@@ -158,19 +164,24 @@ class QuickPreviewCard extends StatelessWidget {
                         tf_helper.parseTimeframeToMinutes(md.timeframe);
                     int recentCount;
                     if (baseMin <= 5) {
-                      recentCount = StrategyBuilderConstants.m5CandleCount; // ~30 hours of M5
+                      recentCount = StrategyBuilderConstants
+                          .m5CandleCount; // ~30 hours of M5
                     } else if (baseMin <= 15) {
-                      recentCount = StrategyBuilderConstants.m15CandleCount; // ~2.5 days of M15
+                      recentCount = StrategyBuilderConstants
+                          .m15CandleCount; // ~2.5 days of M15
                     } else if (baseMin <= 60) {
-                      recentCount = StrategyBuilderConstants.h1CandleCount; // ~1 week of H1
+                      recentCount = StrategyBuilderConstants
+                          .h1CandleCount; // ~1 week of H1
                     } else {
-                      recentCount = StrategyBuilderConstants.defaultCandleCount; // reduce for higher TFs
+                      recentCount = StrategyBuilderConstants
+                          .defaultCandleCount; // reduce for higher TFs
                     }
                     final recent = md.getRecentCandles(recentCount);
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 12),
+                        const SizedBox(
+                            height: StrategyBuilderConstants.mediumSpacing),
                         Row(
                           children: [
                             Icon(
@@ -181,14 +192,16 @@ class QuickPreviewCard extends StatelessWidget {
                                   .onSurface
                                   .withValues(alpha: 0.8),
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(
+                                width: StrategyBuilderConstants.tinySpacing),
                             Text(
                               'Preview Price (${md.timeframe}) — ${_dateRangeLabel(md)}',
                               style: Theme.of(context).textTheme.labelMedium,
                             ),
                           ],
                         ),
-                        const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                        const SizedBox(
+                            height: StrategyBuilderConstants.smallSpacing),
                         SizedBox(
                           height: 200,
                           child: CandlestickChart(
@@ -198,10 +211,11 @@ class QuickPreviewCard extends StatelessWidget {
                             maxDrawCandles: 600,
                           ),
                         ),
-                        const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                        const SizedBox(
+                            height: StrategyBuilderConstants.smallSpacing),
                         Wrap(
-                          spacing: 12,
-                          runSpacing: 8,
+                          spacing: StrategyBuilderConstants.mediumSpacing,
+                          runSpacing: StrategyBuilderConstants.smallSpacing,
                           children: [
                             _buildStatChip(
                               context,
@@ -228,23 +242,24 @@ class QuickPreviewCard extends StatelessWidget {
 
                   // Preview results
                   if (viewModel.previewResult != null) ...[
-                    const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.itemSpacing),
                     const Divider(),
-                    const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
                     Text(
                       'Preview Results',
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
-                    const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
                     // Quick performance badges (Win Rate & Profit Factor)
                     Builder(builder: (context) {
                       final summary = viewModel.previewResult!.summary;
-                      final winRate = summary.winRate.isNaN
-                          ? 0
-                          : summary.winRate;
-                      final pf = summary.profitFactor.isNaN
-                          ? 0
-                          : summary.profitFactor;
+                      final winRate =
+                          summary.winRate.isNaN ? 0 : summary.winRate;
+                      final pf =
+                          summary.profitFactor.isNaN ? 0 : summary.profitFactor;
                       final wrColor = winRate >= 50
                           ? Theme.of(context).colorScheme.tertiary
                           : Theme.of(context).colorScheme.error;
@@ -252,8 +267,8 @@ class QuickPreviewCard extends StatelessWidget {
                           ? Theme.of(context).colorScheme.tertiary
                           : Theme.of(context).colorScheme.error;
                       return Wrap(
-                        spacing: 12,
-                        runSpacing: 8,
+                        spacing: StrategyBuilderConstants.mediumSpacing,
+                        runSpacing: StrategyBuilderConstants.smallSpacing,
                         children: [
                           _buildStatChip(
                             context,
@@ -281,7 +296,8 @@ class QuickPreviewCard extends StatelessWidget {
                           icon: const Icon(Icons.open_in_new),
                           label: Text(l10n.sbViewFullResults),
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(
+                            width: StrategyBuilderConstants.mediumSpacing),
                         TextButton.icon(
                           onPressed: viewModel.resetPreview,
                           icon: const Icon(Icons.refresh),
@@ -289,7 +305,8 @@ class QuickPreviewCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
 
                     // Base TF vs Rule TF badges
                     Builder(builder: (context) {
@@ -307,8 +324,8 @@ class QuickPreviewCard extends StatelessWidget {
                                 tf: e.value.timeframe!,
                                 warn: viewModel
                                     .getRuleWarningsFor(e.key, true)
-                                    .any((w) => w.contains(
-                                        'Timeframe rule is smaller')),
+                                    .any((w) => w
+                                        .contains('Timeframe rule is smaller')),
                               ))
                           .toList();
                       final exitRuleTfs = viewModel.exitRules
@@ -319,14 +336,15 @@ class QuickPreviewCard extends StatelessWidget {
                                 tf: e.value.timeframe!,
                                 warn: viewModel
                                     .getRuleWarningsFor(e.key, false)
-                                    .any((w) => w.contains(
-                                        'Timeframe rule is smaller')),
+                                    .any((w) => w
+                                        .contains('Timeframe rule is smaller')),
                               ))
                           .toList();
 
                       final chips = <Widget>[];
                       if (baseTf != null) {
-                        chips.add(_buildTfChip(context, 'Base: $baseTf', false));
+                        chips
+                            .add(_buildTfChip(context, 'Base: $baseTf', false));
                       }
                       for (final r in entryRuleTfs) {
                         chips.add(
@@ -362,7 +380,9 @@ class QuickPreviewCard extends StatelessWidget {
                       }
 
                       String resolveRuleTf(String? tfRaw, String baseTf) {
-                        return (tfRaw == null || tfRaw.isEmpty) ? baseTf : tfRaw;
+                        return (tfRaw == null || tfRaw.isEmpty)
+                            ? baseTf
+                            : tfRaw;
                       }
 
                       final baseTf = resolveBaseTf();
@@ -473,7 +493,8 @@ class QuickPreviewCard extends StatelessWidget {
                           context,
                           'Max DD',
                           '${viewModel.previewResult!.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
-                          viewModel.previewResult!.summary.maxDrawdownPercentage <=
+                          viewModel.previewResult!.summary
+                                      .maxDrawdownPercentage <=
                                   20
                               ? Theme.of(context).colorScheme.primary
                               : Theme.of(context).colorScheme.error,
@@ -487,8 +508,7 @@ class QuickPreviewCard extends StatelessWidget {
                         _buildStatCard(
                           context,
                           'PF',
-                          viewModel
-                              .previewResult!.summary.profitFactor
+                          viewModel.previewResult!.summary.profitFactor
                               .toStringAsFixed(2),
                           viewModel.previewResult!.summary.profitFactor > 1
                               ? Theme.of(context).colorScheme.primary
@@ -508,9 +528,8 @@ class QuickPreviewCard extends StatelessWidget {
                         final bg = Theme.of(context)
                             .colorScheme
                             .surfaceContainerHighest;
-                        final fg = Theme.of(context)
-                            .colorScheme
-                            .onSurfaceVariant;
+                        final fg =
+                            Theme.of(context).colorScheme.onSurfaceVariant;
                         final winRate = (s['winRate'] ?? 0).toDouble();
                         final pf = (s['profitFactor'] ?? 0).toDouble();
                         final ex = (s['expectancy'] ?? 0).toDouble();
@@ -518,7 +537,9 @@ class QuickPreviewCard extends StatelessWidget {
                           color: bg,
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                                vertical: 8, horizontal: 12),
+                                vertical: StrategyBuilderConstants.smallSpacing,
+                                horizontal:
+                                    StrategyBuilderConstants.mediumSpacing),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -534,26 +555,33 @@ class QuickPreviewCard extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 4),
                                 Wrap(
-                                  spacing: 8,
-                                  runSpacing: 6,
-                                  crossAxisAlignment:
-                                      WrapCrossAlignment.center,
+                                  spacing:
+                                      StrategyBuilderConstants.smallSpacing,
+                                  runSpacing:
+                                      StrategyBuilderConstants.tinySpacing,
+                                  crossAxisAlignment: WrapCrossAlignment.center,
                                   children: [
                                     Text('Signals: ${s['signals'] ?? 0}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .mediumSpacing),
                                     Text('Trades: ${s['trades'] ?? 0}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .mediumSpacing),
                                     Text('Wins: ${s['wins'] ?? 0}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .mediumSpacing),
                                     Text(
                                       'WinRate: ${winRate.toStringAsFixed(1)}%',
                                       style: Theme.of(context)
@@ -569,7 +597,9 @@ class QuickPreviewCard extends StatelessWidget {
                                                     .error,
                                           ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .mediumSpacing),
                                     Text(
                                       'PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}',
                                       style: Theme.of(context)
@@ -585,7 +615,9 @@ class QuickPreviewCard extends StatelessWidget {
                                                     .error,
                                           ),
                                     ),
-                                    const SizedBox(width: 12),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .mediumSpacing),
                                     Text(
                                       'Expectancy: ${ex.isFinite ? ex.toStringAsFixed(2) : '—'}',
                                       style: Theme.of(context)
@@ -612,7 +644,8 @@ class QuickPreviewCard extends StatelessWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 12),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.mediumSpacing),
                           Text(
                             'Per‑Timeframe Signals & Performance',
                             style: Theme.of(context).textTheme.bodyMedium,
@@ -629,7 +662,8 @@ class QuickPreviewCard extends StatelessWidget {
                       );
                     }),
 
-                    const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.itemSpacing),
 
                     // Save as Template (exports/copies JSON)
                     SizedBox(
@@ -639,12 +673,15 @@ class QuickPreviewCard extends StatelessWidget {
                         icon: const Icon(Icons.save_alt),
                         label: const Text('Simplify as Template'),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: StrategyBuilderConstants.mediumSpacing,
+                          ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
 
                     // Open Template Picker
                     SizedBox(
@@ -654,12 +691,15 @@ class QuickPreviewCard extends StatelessWidget {
                         icon: const Icon(Icons.auto_awesome),
                         label: Text(l10n.sbPickTemplateTooltip),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: StrategyBuilderConstants.mediumSpacing,
+                          ),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
 
                     // View full results button
                     SizedBox(
@@ -669,7 +709,9 @@ class QuickPreviewCard extends StatelessWidget {
                         icon: const Icon(Icons.analytics),
                         label: const Text('View Full Results'),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            vertical: StrategyBuilderConstants.mediumSpacing,
+                          ),
                         ),
                       ),
                     ),
@@ -691,20 +733,22 @@ class QuickPreviewCard extends StatelessWidget {
   ) {
     return Expanded(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.all(12),
+        margin: const EdgeInsets.symmetric(
+            horizontal: StrategyBuilderConstants.microSpacing),
+        padding: const EdgeInsets.all(StrategyBuilderConstants.mediumSpacing),
         decoration: BoxDecoration(
           color: Theme.of(context)
               .colorScheme
               .surfaceContainerHighest
               .withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius:
+              BorderRadius.circular(StrategyBuilderConstants.cornerRadiusSmall),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(label, style: Theme.of(context).textTheme.bodySmall),
-            const SizedBox(height: 6),
+            const SizedBox(height: StrategyBuilderConstants.tinySpacing),
             Text(
               value,
               style: Theme.of(context)
@@ -726,14 +770,14 @@ class QuickPreviewCard extends StatelessWidget {
     IconData? icon,
   }) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor = (color ?? scheme.secondary)
-        .withValues(alpha: 0.12);
+    final bgColor = (color ?? scheme.secondary).withValues(alpha: 0.12);
     final fgColor = (color ?? scheme.onSecondaryContainer);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius:
+            BorderRadius.circular(StrategyBuilderConstants.cornerRadiusSmall),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -744,18 +788,15 @@ class QuickPreviewCard extends StatelessWidget {
           ],
           Text(
             '$label: ',
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall!
-                .copyWith(color: fgColor),
+            style:
+                Theme.of(context).textTheme.bodySmall!.copyWith(color: fgColor),
           ),
           Text(
             value,
             style: Theme.of(context)
                 .textTheme
                 .bodySmall!
-                .copyWith(
-                    color: fgColor, fontWeight: FontWeight.w600),
+                .copyWith(color: fgColor, fontWeight: FontWeight.w600),
           ),
         ],
       ),

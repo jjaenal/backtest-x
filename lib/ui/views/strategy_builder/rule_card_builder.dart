@@ -25,7 +25,8 @@ class RuleCardBuilder {
                 color:
                     Theme.of(context).colorScheme.error.withValues(alpha: 0.25),
               ),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(
+                  StrategyBuilderConstants.cornerRadiusSmall),
             )
           : null,
       child: Padding(
@@ -53,14 +54,15 @@ class RuleCardBuilder {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             DropdownButtonFormField<IndicatorType>(
               value: rule.indicator,
               decoration: InputDecoration(
                 labelText: l10n.sbIndicatorLabel,
                 isDense: false,
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                contentPadding: const EdgeInsets.symmetric(
+                    vertical: StrategyBuilderConstants.mediumSpacing,
+                    horizontal: StrategyBuilderConstants.mediumSpacing),
               ),
               items: IndicatorType.values.map((indicator) {
                 return DropdownMenuItem(
@@ -74,7 +76,7 @@ class RuleCardBuilder {
                 }
               },
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Builder(builder: (context) {
               final needsMainPeriod = {
                 IndicatorType.rsi,
@@ -96,8 +98,9 @@ class RuleCardBuilder {
                   labelText: l10n.sbMainPeriodLabel,
                   hintText: l10n.sbMainPeriodHint,
                   isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: StrategyBuilderConstants.mediumSpacing,
+                      horizontal: StrategyBuilderConstants.mediumSpacing),
                   errorText:
                       (rule.mainPeriod != null && (rule.mainPeriod ?? 0) <= 0)
                           ? l10n.sbErrorMustBeGreaterThanZero
@@ -108,7 +111,7 @@ class RuleCardBuilder {
                     viewModel.updateRuleMainPeriod(index, value, isEntry),
               );
             }),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Builder(builder: (context) {
               final warnings = viewModel.getRuleWarningsFor(index, isEntry);
               final tfWarning = warnings.isNotEmpty ? warnings.first : '';
@@ -122,7 +125,8 @@ class RuleCardBuilder {
                     labelText: l10n.sbTimeframeOptionalLabel,
                     isDense: false,
                     contentPadding: const EdgeInsets.symmetric(
-                        vertical: 12, horizontal: 12),
+                        vertical: StrategyBuilderConstants.mediumSpacing,
+                        horizontal: StrategyBuilderConstants.mediumSpacing),
                   ),
                   items: [
                     DropdownMenuItem<String?>(
@@ -142,7 +146,7 @@ class RuleCardBuilder {
                 ),
               );
             }),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Tooltip(
               message:
                   IndicatorFormatter.operatorTooltip(context, rule.operator),
@@ -151,8 +155,9 @@ class RuleCardBuilder {
                 decoration: InputDecoration(
                   labelText: l10n.sbOperatorLabel,
                   isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: StrategyBuilderConstants.mediumSpacing,
+                      horizontal: StrategyBuilderConstants.mediumSpacing),
                 ),
                 items: ComparisonOperator.values.map((op) {
                   return DropdownMenuItem(
@@ -167,7 +172,7 @@ class RuleCardBuilder {
                 },
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Builder(builder: (context) {
               if (rule.operator == ComparisonOperator.rising ||
                   rule.operator == ComparisonOperator.falling) {
@@ -199,7 +204,8 @@ class RuleCardBuilder {
                         hintText: '1.0',
                         isDense: false,
                         contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 12),
+                            vertical: StrategyBuilderConstants.mediumSpacing,
+                            horizontal: StrategyBuilderConstants.mediumSpacing),
                         errorText: rule.numberValue == null
                             ? l10n.sbErrorValueMustBeSet
                             : null,
@@ -208,7 +214,8 @@ class RuleCardBuilder {
                       onChanged: (value) => viewModel.updateRuleNumberValue(
                           index, value, isEntry),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(
+                        height: StrategyBuilderConstants.smallSpacing),
                     Wrap(
                       spacing: StrategyBuilderConstants.smallSpacing,
                       runSpacing: StrategyBuilderConstants.smallSpacing,
@@ -252,7 +259,10 @@ class RuleCardBuilder {
                               labelText: l10n.sbCompareWithLabel,
                               isDense: false,
                               contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 12),
+                                  vertical:
+                                      StrategyBuilderConstants.mediumSpacing,
+                                  horizontal:
+                                      StrategyBuilderConstants.mediumSpacing),
                               errorText: rule.compareIndicator == null
                                   ? l10n.sbRequiredSelection
                                   : null,
@@ -282,7 +292,10 @@ class RuleCardBuilder {
                               hintText: '14',
                               isDense: false,
                               contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 12, horizontal: 12),
+                                  vertical:
+                                      StrategyBuilderConstants.mediumSpacing,
+                                  horizontal:
+                                      StrategyBuilderConstants.mediumSpacing),
                               errorText: (rule.compareIndicator != null &&
                                       (rule.period == null ||
                                           (rule.period ?? 0) <= 0))
@@ -300,7 +313,7 @@ class RuleCardBuilder {
                 ],
               );
             }),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Builder(builder: (context) {
               final showThenLogic = viewModel.entryRules.length > 1 ||
                   viewModel.exitRules.length > 1;
@@ -319,7 +332,9 @@ class RuleCardBuilder {
                           labelText: l10n.sbThenLogicLabel,
                           isDense: false,
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 12),
+                              vertical: StrategyBuilderConstants.mediumSpacing,
+                              horizontal:
+                                  StrategyBuilderConstants.mediumSpacing),
                         ),
                         items: [
                           DropdownMenuItem<LogicalOperator?>(
@@ -348,7 +363,9 @@ class RuleCardBuilder {
                           labelText: l10n.sbAnchorModeLabel,
                           isDense: false,
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 12),
+                              vertical: StrategyBuilderConstants.mediumSpacing,
+                              horizontal:
+                                  StrategyBuilderConstants.mediumSpacing),
                         ),
                         items: [
                           DropdownMenuItem<AnchorMode?>(
@@ -369,7 +386,7 @@ class RuleCardBuilder {
                 ],
               );
             }),
-            const SizedBox(height: 12),
+            const SizedBox(height: StrategyBuilderConstants.mediumSpacing),
             Builder(builder: (context) {
               final usesAnchoring = rule.anchorMode != null &&
                   !rule.isNumberValue &&
@@ -381,8 +398,9 @@ class RuleCardBuilder {
                   labelText: l10n.sbAnchorDateLabel,
                   hintText: l10n.sbAnchorDateHint,
                   isDense: false,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  contentPadding: const EdgeInsets.symmetric(
+                      vertical: StrategyBuilderConstants.mediumSpacing,
+                      horizontal: StrategyBuilderConstants.mediumSpacing),
                   errorText: (rule.anchorDateController.text.isNotEmpty &&
                           rule.anchorDate == null)
                       ? l10n.sbInvalidDateFormat

@@ -30,6 +30,11 @@ class RiskManagementCard extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: l10n.sbRiskTypeLabel,
                 prefixIcon: const Icon(Icons.trending_up),
+                isDense: false,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: StrategyBuilderConstants.mediumSpacing,
+                  horizontal: StrategyBuilderConstants.mediumSpacing,
+                ),
               ),
               items: RiskType.values.map((type) {
                 return DropdownMenuItem(
@@ -55,6 +60,11 @@ class RiskManagementCard extends StatelessWidget {
                     ? '0.1'
                     : (viewModel.riskType == RiskType.atrBased ? '2.0' : '2.0'),
                 prefixIcon: const Icon(Icons.percent),
+                isDense: false,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: StrategyBuilderConstants.mediumSpacing,
+                  horizontal: StrategyBuilderConstants.mediumSpacing,
+                ),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -73,6 +83,11 @@ class RiskManagementCard extends StatelessWidget {
                           : 'Stop Loss (points)',
                       hintText: viewModel.riskType == RiskType.atrBased ? '2.0' : '100',
                       prefixIcon: const Icon(Icons.arrow_downward),
+                      isDense: false,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: StrategyBuilderConstants.mediumSpacing,
+                        horizontal: StrategyBuilderConstants.mediumSpacing,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                   ),
@@ -85,6 +100,11 @@ class RiskManagementCard extends StatelessWidget {
                       labelText: l10n.sbTakeProfitPoints,
                       hintText: '200',
                       prefixIcon: const Icon(Icons.arrow_upward),
+                      isDense: false,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: StrategyBuilderConstants.mediumSpacing,
+                        horizontal: StrategyBuilderConstants.mediumSpacing,
+                      ),
                     ),
                     keyboardType: TextInputType.number,
                   ),

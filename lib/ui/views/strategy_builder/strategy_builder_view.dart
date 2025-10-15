@@ -31,7 +31,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
       onWillPop: () async {
         if (viewModel.hasAutosaveDraft) {
           final confirm =
-              await sb_dialog.DialogBuilder.showExitConfirmation(context) ?? false;
+              await sb_dialog.DialogBuilder.showExitConfirmation(context) ??
+                  false;
           if (confirm) {
             await viewModel.resetTemplateFilters();
           }
@@ -93,7 +94,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                       return StatefulBuilder(
                         builder: (ctx, setState) {
                           return Padding(
-                            padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
+                            padding: const EdgeInsets.all(
+                                StrategyBuilderConstants.cardPadding),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -101,7 +103,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 Row(
                                   children: [
                                     const Icon(Icons.settings, size: 20),
-                                    const SizedBox(width: StrategyBuilderConstants.smallSpacing),
+                                    const SizedBox(
+                                        width: StrategyBuilderConstants
+                                            .smallSpacing),
                                     Text(
                                       l10n.sbAutosaveSettingsHeader,
                                       style:
@@ -227,14 +231,14 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           if (content != null && content.isNotEmpty) {
                             var proceed = true;
                             if (viewModel.hasUnsavedBuilder) {
-                              proceed =
-                                  await sb_dialog.DialogBuilder.showConfirmationDialog(
-                                        context,
-                                        title: l10n.sbImportConfirmTitle,
-                                        content: l10n.sbImportConfirmContent,
-                                        confirmLabel: l10n.sbOverwrite,
-                                      ) ??
-                                      false;
+                              proceed = await sb_dialog.DialogBuilder
+                                      .showConfirmationDialog(
+                                    context,
+                                    title: l10n.sbImportConfirmTitle,
+                                    content: l10n.sbImportConfirmContent,
+                                    confirmLabel: l10n.sbOverwrite,
+                                  ) ??
+                                  false;
                             }
                             if (proceed) {
                               await viewModel.importStrategyJson(content);
@@ -375,7 +379,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                   child: SingleChildScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
                     child: Padding(
-                      padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
+                      padding: const EdgeInsets.all(
+                          StrategyBuilderConstants.cardPadding),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -397,7 +402,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 // Status (animated)
                                 if (viewModel.autosaveEnabled)
                                   AnimatedSwitcher(
-                                    duration: StrategyBuilderConstants.animationDuration,
+                                    duration: StrategyBuilderConstants
+                                        .animationDuration,
                                     child: (() {
                                       if (viewModel.isAutoSaving) {
                                         return Row(
@@ -509,16 +515,17 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     message: l10n.sbDiscardAutosaveTooltip,
                                     child: TextButton(
                                       onPressed: () async {
-                                        final confirmed = await sb_dialog.DialogBuilder
-                                                .showConfirmationDialog(
-                                              context,
-                                              title: 'Discard Draft?',
-                                              content:
-                                                  'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.',
-                                              confirmLabel: l10n.sbDiscard,
-                                              isDangerous: true,
-                                            ) ??
-                                            false;
+                                        final confirmed =
+                                            await sb_dialog.DialogBuilder
+                                                    .showConfirmationDialog(
+                                                  context,
+                                                  title: 'Discard Draft?',
+                                                  content:
+                                                      'Draft autosave saat ini akan dihapus dan tidak bisa dikembalikan.',
+                                                  confirmLabel: l10n.sbDiscard,
+                                                  isDangerous: true,
+                                                ) ??
+                                                false;
                                         if (confirmed) {
                                           await viewModel.discardDraft();
                                         }
@@ -536,7 +543,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           // Strategy Name
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.all(StrategyBuilderConstants.cardPadding),
+                              padding: const EdgeInsets.all(
+                                  StrategyBuilderConstants.cardPadding),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -554,7 +562,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       prefixIcon: const Icon(Icons.label),
                                     ),
                                   ),
-                                  const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                                  const SizedBox(
+                                      height:
+                                          StrategyBuilderConstants.itemSpacing),
                                   TextField(
                                     controller:
                                         viewModel.initialCapitalController,
@@ -571,22 +581,26 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             ),
                           ),
 
-                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.itemSpacing),
 
                           // Risk Management
                           RiskManagementCard(viewModel: viewModel),
 
-                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.itemSpacing),
 
                           // Entry Rules
                           EntryRulesCard(viewModel: viewModel),
 
-                          const SizedBox(height: StrategyBuilderConstants.itemSpacing),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.itemSpacing),
 
                           // Exit Rules
                           Card(
                             child: Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.all(
+                                  StrategyBuilderConstants.cardPadding),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
@@ -609,7 +623,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                                  const SizedBox(
+                                      height: StrategyBuilderConstants
+                                          .smallSpacing),
                                   if (viewModel.exitRules.isEmpty)
                                     Center(
                                       child: Padding(
@@ -622,7 +638,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                     .colorScheme
                                                     .onSurface
                                                     .withValues(alpha: 0.4)),
-                                            const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                                            const SizedBox(
+                                                height: StrategyBuilderConstants
+                                                    .smallSpacing),
                                             Text(
                                               l10n.sbNoExitRulesYet,
                                               style: TextStyle(
@@ -631,7 +649,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                                       .onSurface
                                                       .withValues(alpha: 0.6)),
                                             ),
-                                            const SizedBox(height: 4),
+                                            const SizedBox(
+                                                height: StrategyBuilderConstants
+                                                    .microSpacing),
                                             Text(
                                               l10n.sbTapToAddRule,
                                               style: TextStyle(
@@ -663,7 +683,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             ),
                           ),
 
-                          const SizedBox(height: StrategyBuilderConstants.sectionSpacing),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.sectionSpacing),
 
                           // Quick Backtest Preview Card
                           QuickPreviewCard(
@@ -672,7 +693,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 _showTemplateSheet(context, viewModel),
                           ),
 
-                          const SizedBox(height: StrategyBuilderConstants.sectionSpacing),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.sectionSpacing),
 
                           // Save Button
                           Tooltip(
@@ -697,8 +719,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                   ? () => viewModel.saveStrategy(context)
                                   : null,
                               style: ElevatedButton.styleFrom(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: StrategyBuilderConstants.itemSpacing),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical:
+                                        StrategyBuilderConstants.itemSpacing),
                                 backgroundColor: Colors.blue,
                                 foregroundColor: Colors.white,
                               ),
@@ -739,7 +762,8 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           ),
 
                           // Error summary banner for quick fix guidance
-                          const SizedBox(height: 12),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.mediumSpacing),
                           Builder(builder: (context) {
                             final errs = viewModel.getAllFatalErrors();
                             if (errs.isEmpty) return const SizedBox.shrink();
@@ -750,10 +774,12 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                 side: BorderSide(
                                   color: scheme.error.withValues(alpha: 0.5),
                                 ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(
+                                    StrategyBuilderConstants.cornerRadiusSmall),
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(12.0),
+                                padding: const EdgeInsets.all(
+                                    StrategyBuilderConstants.mediumSpacing),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -761,7 +787,9 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                       children: [
                                         Icon(Icons.error_outline,
                                             size: 18, color: scheme.error),
-                                        const SizedBox(width: StrategyBuilderConstants.smallSpacing),
+                                        const SizedBox(
+                                            width: StrategyBuilderConstants
+                                                .smallSpacing),
                                         Text(
                                           AppLocalizations.of(context)!
                                               .sbErrorSummaryHeader,
@@ -772,10 +800,13 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                         ),
                                       ],
                                     ),
-                                    const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                                    const SizedBox(
+                                        height: StrategyBuilderConstants
+                                            .smallSpacing),
                                     ...errs.map((e) => Padding(
                                           padding: const EdgeInsets.only(
-                                              bottom: 6.0),
+                                              bottom: StrategyBuilderConstants
+                                                  .tinySpacing),
                                           child: Text(
                                             '• $e',
                                             style: Theme.of(context)
@@ -793,9 +824,11 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                             );
                           }),
 
-                          const SizedBox(height: 8),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.smallSpacing),
 
-                          const SizedBox(height: 24),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.sectionSpacing),
                         ],
                       ),
                     ),

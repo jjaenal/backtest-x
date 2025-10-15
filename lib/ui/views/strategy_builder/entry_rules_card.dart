@@ -40,10 +40,12 @@ class EntryRulesCard extends StatelessWidget {
               Container(
                 margin: const EdgeInsets.only(
                     bottom: StrategyBuilderConstants.smallSpacing),
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(
+                    StrategyBuilderConstants.mediumSpacing),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(
+                      StrategyBuilderConstants.cornerRadiusSmall),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,7 +73,8 @@ class EntryRulesCard extends StatelessWidget {
                                         .onSecondaryContainer,
                                   ),
                             ),
-                          const SizedBox(height: 4),
+                          const SizedBox(
+                              height: StrategyBuilderConstants.microSpacing),
                           Text(
                             viewModel.appliedTemplateDescription!,
                             style:
@@ -102,7 +105,8 @@ class EntryRulesCard extends StatelessWidget {
                             .onSurface
                             .withValues(alpha: 0.4),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(
+                          height: StrategyBuilderConstants.smallSpacing),
                       Text(
                         l10n.sbNoEntryRulesYet,
                         style: TextStyle(
@@ -112,7 +116,8 @@ class EntryRulesCard extends StatelessWidget {
                               .withValues(alpha: 0.6),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(
+                          height: StrategyBuilderConstants.microSpacing),
                       Text(
                         l10n.sbTapToAddRule,
                         style: TextStyle(
