@@ -27,6 +27,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io' as io;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:backtestx/helpers/filename_helper.dart';
+import 'package:backtestx/services/auth_service.dart';
 
 class RuleBuilder {
   IndicatorType indicator;
@@ -86,6 +87,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   final _uuid = const Uuid();
   final _prefs = PrefsService();
   final _bottomSheetService = locator<BottomSheetService>();
+  final _authService = locator<AuthService>();
 
   final String? strategyId;
   Strategy? existingStrategy;
@@ -433,6 +435,17 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
 
   Future<void> initialize() async {
     setBusy(true);
+
+    // Manual auth guard: redirect to Login if not authenticated
+    if (!_authService.isLoggedIn) {
+      _authService.setPostLoginRedirect(
+        Routes.strategyBuilderView,
+        arguments: StrategyBuilderViewArguments(strategyId: strategyId),
+      );
+      _navigationService.replaceWithLoginView();
+      setBusy(false);
+      return;
+    }
 
     if (isEditing) {
       await _loadExistingStrategy();

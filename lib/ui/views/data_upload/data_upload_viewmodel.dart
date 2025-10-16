@@ -132,7 +132,7 @@ class DataUploadViewModel extends BaseViewModel {
 
       // Parse CSV
       if (kIsWeb) {
-        debugPrint('📄 Parsing CSV (web bytes): ${selectedFileName}');
+        debugPrint('📄 Parsing CSV (web bytes): $selectedFileName');
         final marketData = await _dataParserService.parseCsvBytes(
           bytes: selectedFileBytes!,
           symbol: symbolController.text.trim().toUpperCase(),

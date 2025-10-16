@@ -21,8 +21,10 @@ void main() {
     // Stub data queries used by HomeViewModel._loadStats()
     when(storageService.getAllStrategies()).thenAnswer((_) async => []);
     when(storageService.getAllMarketDataInfo()).thenAnswer((_) async => []);
-    when(storageService.getTotalBacktestResultsCount()).thenAnswer((_) async => 0);
-    when(storageService.getLatestBacktestResult()).thenAnswer((_) async => null);
+    when(storageService.getTotalBacktestResultsCount())
+        .thenAnswer((_) async => 0);
+    when(storageService.getLatestBacktestResult())
+        .thenAnswer((_) async => null);
   });
 
   tearDown(() async {});

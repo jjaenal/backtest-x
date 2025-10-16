@@ -119,6 +119,49 @@ class AppLocalizations {
       'startup_init_services': 'Initialize services',
       'startup_load_cache': 'Load cache',
       'startup_prepare_ui': 'Prepare UI',
+      // Signup View
+      'signup_title': 'Sign Up',
+      'signup_confirm_password_label': 'Confirm Password',
+      // Login View
+      'login_title': 'Sign In',
+      'login_post_redirect_banner':
+          'After login, you will be redirected to the requested page.',
+      'login_email_label': 'Email',
+      'login_password_label': 'Password',
+      'login_forgot_password': 'Forgot Password?',
+      'login_sign_in_email': 'Sign In with Email',
+      'login_sign_up_email': 'Sign Up with Email',
+      'login_continue_google': 'Continue with Google',
+      // Home user menu
+      'home_user_menu_tooltip': 'Account',
+      'home_user_unknown': 'Unknown',
+      'home_user_sign_out': 'Sign Out',
+      'home_user_sign_in': 'Sign In',
+      'home_user_sign_up': 'Sign Up',
+      'home_user_change_password': 'Change Password',
+      'home_change_password_success': 'Password updated successfully.',
+      'change_password_title': 'Set New Password',
+      'change_password_description':
+          'Enter a new password and confirm to update your account.',
+      'change_password_new_label': 'New Password',
+      'change_password_confirm_label': 'Confirm New Password',
+      'change_password_save_button': 'Save New Password',
+      'change_password_saving': 'Saving...',
+      'error_password_min': 'Password must be at least 6 characters.',
+      'error_password_confirm_mismatch':
+          'Password confirmation does not match.',
+      'password_strength_weak': 'Weak',
+      'password_strength_medium': 'Medium',
+      'password_strength_strong': 'Strong',
+      // Common errors
+      'error_invalid_email': 'Invalid email format.',
+      'error_password_min_signup':
+          'Password must be at least 6 characters for signup.',
+      'error_auth_invalid_credentials': 'Incorrect email or password.',
+      'error_auth_email_registered': 'Email is already registered.',
+      'error_auth_email_not_confirmed': 'Email not verified. Check your inbox.',
+      'error_auth_generic': 'Authentication error. Please try again.',
+      'error_generic': 'Something went wrong. Please try again.',
       'home_title': 'Backtest‑X',
       'home_tooltip_onboarding': 'Onboarding',
       'home_tooltip_options': 'Options',
@@ -590,6 +633,49 @@ class AppLocalizations {
       'startup_init_services': 'Inisialisasi layanan',
       'startup_load_cache': 'Muat cache',
       'startup_prepare_ui': 'Siapkan UI',
+      // Signup View
+      'signup_title': 'Buat Akun',
+      'signup_confirm_password_label': 'Konfirmasi Password',
+      // Login View
+      'login_title': 'Sign In',
+      'login_post_redirect_banner':
+          'Setelah login, kamu akan diarahkan ke halaman yang diminta.',
+      'login_email_label': 'Email',
+      'login_password_label': 'Password',
+      'login_forgot_password': 'Lupa Password?',
+      'login_sign_in_email': 'Sign In dengan Email',
+      'login_sign_up_email': 'Sign Up dengan Email',
+      'login_continue_google': 'Lanjutkan dengan Google',
+      // Home user menu
+      'home_user_menu_tooltip': 'Akun',
+      'home_user_unknown': 'Tidak diketahui',
+      'home_user_sign_out': 'Keluar',
+      'home_user_sign_in': 'Masuk',
+      'home_user_sign_up': 'Daftar',
+      'home_user_change_password': 'Ubah Kata Sandi',
+      'home_change_password_success': 'Password berhasil diubah.',
+      'change_password_title': 'Atur Password Baru',
+      'change_password_description':
+          'Masukkan password baru dan konfirmasi untuk mengubah password akun.',
+      'change_password_new_label': 'Password Baru',
+      'change_password_confirm_label': 'Konfirmasi Password Baru',
+      'change_password_save_button': 'Simpan Password Baru',
+      'change_password_saving': 'Menyimpan...',
+      'error_password_min': 'Password minimal 6 karakter.',
+      'error_password_confirm_mismatch': 'Konfirmasi password tidak cocok.',
+      'password_strength_weak': 'Lemah',
+      'password_strength_medium': 'Sedang',
+      'password_strength_strong': 'Kuat',
+      // Common errors
+      'error_invalid_email': 'Format email tidak valid.',
+      'error_password_min_signup':
+          'Password minimal 6 karakter untuk pendaftaran.',
+      'error_auth_invalid_credentials': 'Email atau password salah.',
+      'error_auth_email_registered': 'Email sudah terdaftar.',
+      'error_auth_email_not_confirmed':
+          'Email belum terverifikasi. Cek inbox untuk verifikasi.',
+      'error_auth_generic': 'Terjadi kesalahan saat autentikasi. Coba lagi.',
+      'error_generic': 'Terjadi kesalahan. Coba lagi.',
       'home_title': 'Backtest‑X',
       'home_tooltip_onboarding': 'Onboarding',
       'home_tooltip_options': 'Opsi',
@@ -1144,6 +1230,56 @@ class AppLocalizations {
   String get startupLoadCache => _text('startup_load_cache');
   String get startupPrepareUi => _text('startup_prepare_ui');
 
+  // Signup View
+  String get signupTitle => _text('signup_title');
+  String get signupConfirmPasswordLabel =>
+      _text('signup_confirm_password_label');
+
+  // Login View
+  String get loginTitle => _text('login_title');
+  String get loginPostRedirectBanner => _text('login_post_redirect_banner');
+  String get loginEmailLabel => _text('login_email_label');
+  String get loginPasswordLabel => _text('login_password_label');
+  String get loginForgotPassword => _text('login_forgot_password');
+  String get loginSignInEmail => _text('login_sign_in_email');
+  String get loginSignUpEmail => _text('login_sign_up_email');
+  String get loginContinueGoogle => _text('login_continue_google');
+
+  // Home user menu
+  String get homeUserMenuTooltip => _text('home_user_menu_tooltip');
+  String get homeUserUnknown => _text('home_user_unknown');
+  String get homeUserSignOut => _text('home_user_sign_out');
+  String get homeUserSignIn => _text('home_user_sign_in');
+  String get homeUserSignUp => _text('home_user_sign_up');
+  String get homeUserChangePassword => _text('home_user_change_password');
+  String get homeChangePasswordSuccess => _text('home_change_password_success');
+  String get changePasswordTitle => _text('change_password_title');
+  String get changePasswordDescription => _text('change_password_description');
+  String get changePasswordNewLabel => _text('change_password_new_label');
+  String get changePasswordConfirmLabel =>
+      _text('change_password_confirm_label');
+  String get changePasswordSaveButton =>
+      _text('change_password_save_button');
+  String get changePasswordSaving => _text('change_password_saving');
+  String get commonCancel => _text('common_cancel');
+  String get errorPasswordMin => _text('error_password_min');
+  String get errorPasswordConfirmMismatch =>
+      _text('error_password_confirm_mismatch');
+  String get passwordStrengthWeak => _text('password_strength_weak');
+  String get passwordStrengthMedium => _text('password_strength_medium');
+  String get passwordStrengthStrong => _text('password_strength_strong');
+
+  // Common errors
+  String get errorInvalidEmail => _text('error_invalid_email');
+  String get errorPasswordMinSignup => _text('error_password_min_signup');
+  String get errorAuthInvalidCredentials =>
+      _text('error_auth_invalid_credentials');
+  String get errorAuthEmailRegistered => _text('error_auth_email_registered');
+  String get errorAuthEmailNotConfirmed =>
+      _text('error_auth_email_not_confirmed');
+  String get errorAuthGeneric => _text('error_auth_generic');
+  String get errorGeneric => _text('error_generic');
+
   // Data Upload View
   String get dataUploadTitle => _text('data_upload_title');
   String get coachTimeframeHeader => _text('coach_timeframe_header');
@@ -1225,7 +1361,6 @@ class AppLocalizations {
   String get mdRequiredTitle => _text('md_required_title');
   String get mdRequiredDesc => _text('md_required_desc');
   String get mdUploadButton => _text('md_upload_button');
-  String get commonCancel => _text('common_cancel');
 
   String get qtSelectDataTitle => _text('qt_select_data_title');
   String get qtSelectDataDesc => _text('qt_select_data_desc');

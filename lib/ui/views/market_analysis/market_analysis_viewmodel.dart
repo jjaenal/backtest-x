@@ -120,7 +120,8 @@ class MarketAnalysisViewModel extends BaseViewModel {
     // Reload list and re-run analysis for selected item if still exists
     await loadMarketData();
     if (_selectedMarketData != null) {
-      final exists = _marketDataList.any((m) => m.id == _selectedMarketData!.id);
+      final exists =
+          _marketDataList.any((m) => m.id == _selectedMarketData!.id);
       if (exists) {
         await analyzeMarketData();
       } else {

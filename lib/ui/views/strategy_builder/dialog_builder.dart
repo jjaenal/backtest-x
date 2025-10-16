@@ -25,8 +25,7 @@ class DialogBuilder {
             onPressed: () => Navigator.of(ctx).pop(true),
             style: isDangerous
                 ? TextButton.styleFrom(
-                    foregroundColor:
-                        Theme.of(context).colorScheme.error,
+                    foregroundColor: Theme.of(context).colorScheme.error,
                   )
                 : null,
             child: Text(confirmLabel),

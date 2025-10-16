@@ -760,7 +760,7 @@ void main() {
 - Text primary: `colorScheme.onSurface`
 - Muted text: `onSurface` with `0.6–0.8` opacity
 - Icons: `onSurface` or `primary` when active
-- Card/sheet backgrounds: `colorScheme.surface` or `surfaceVariant`
+- Card/sheet backgrounds: `colorScheme.surface` or `surfaceContainerHighest`
 - Outlines/dividers: `colorScheme.outline`
 - Success/Error/Warning: `colorScheme.primary/tertiary/error` with low-opacity fills
 

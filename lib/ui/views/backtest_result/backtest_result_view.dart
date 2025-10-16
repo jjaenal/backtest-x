@@ -9,7 +9,6 @@ import 'package:universal_html/html.dart' if (dart.library.html) 'dart:html'
 import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
-import 'dart:typed_data';
 import 'dart:io' as io;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -144,7 +143,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                   decoration: BoxDecoration(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .surfaceVariant
+                                        .surfaceContainerHighest
                                         .withValues(alpha: 0.12),
                                     borderRadius: BorderRadius.circular(25),
                                     border: Border.all(
@@ -421,8 +420,9 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     value: 'pdf_report',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.picture_as_pdf, size: 18),
-                                        SizedBox(width: 8),
+                                        const Icon(Icons.picture_as_pdf,
+                                            size: 18),
+                                        const SizedBox(width: 8),
                                         Text(AppLocalizations.of(context)!
                                             .menuExportBacktestPdf),
                                       ],
@@ -465,8 +465,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                   value: 'csv',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.table_chart, size: 18),
-                                      SizedBox(width: 8),
+                                      const Icon(Icons.table_chart, size: 18),
+                                      const SizedBox(width: 8),
                                       Text(t.exportCsv),
                                     ],
                                   ),
@@ -475,8 +475,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                   value: 'tsv',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.grid_on, size: 18),
-                                      SizedBox(width: 8),
+                                      const Icon(Icons.grid_on, size: 18),
+                                      const SizedBox(width: 8),
                                       Text(t.exportTsv),
                                     ],
                                   ),
@@ -1526,7 +1526,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
             decoration: BoxDecoration(
               color: Theme.of(context)
                   .colorScheme
-                  .surfaceVariant
+                  .surfaceContainerHighest
                   .withValues(alpha: 0.2),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
@@ -1676,7 +1676,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .colorScheme
-                    .surfaceVariant
+                    .surfaceContainerHighest
                     .withValues(alpha: 0.12),
                 borderRadius: const BorderRadius.only(
                   bottomLeft: Radius.circular(12),

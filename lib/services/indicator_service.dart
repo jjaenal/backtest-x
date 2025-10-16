@@ -501,7 +501,7 @@ class IndicatorService {
 
     double trSum = 0.0, plusDMSum = 0.0, minusDMSum = 0.0;
     // Initial sums over first `period` bars (indices 1..period)
-    final start = 1;
+    const start = 1;
     final endInit = (period < n) ? period : n - 1;
     for (var i = start; i <= endInit; i++) {
       trSum += tr[i];

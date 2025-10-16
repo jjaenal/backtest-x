@@ -13,6 +13,7 @@ import 'package:stacked_services/src/snackbar/snackbar_service.dart';
 import 'package:stacked_shared/stacked_shared.dart';
 
 import '../core/data_manager.dart';
+import '../services/auth_service.dart';
 import '../services/backtest_engine_service.dart';
 import '../services/data_parser_service.dart';
 import '../services/data_validation_service.dart';
@@ -50,4 +51,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => PdfExportService());
   locator.registerLazySingleton(() => ShareService());
   locator.registerLazySingleton(() => DeepLinkService());
+  locator.registerLazySingleton(() => AuthService());
 }

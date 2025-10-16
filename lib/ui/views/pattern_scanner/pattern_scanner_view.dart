@@ -26,9 +26,8 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
-            onPressed: () => viewModel
-                .showPatternsGuide(AppLocalizations.of(context)!
-                    .psPatternsGuideTitle),
+            onPressed: () => viewModel.showPatternsGuide(
+                AppLocalizations.of(context)!.psPatternsGuideTitle),
           ),
         ],
       ),
@@ -62,14 +61,16 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color:
-          Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             AppLocalizations.of(context)!.psSelectMarketData,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
@@ -96,16 +97,13 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                   vertical: 12,
                 ),
               ),
-              hint:
-                  Text(AppLocalizations.of(context)!.psSelectMarketHint),
-              items: model.marketDataList
-                  .toSet()
-                  .map((data) {
-                    return DropdownMenuItem<MarketDataInfo>(
-                      value: data,
-                      child: Text(data.symbol),
-                    );
-                  }).toList(),
+              hint: Text(AppLocalizations.of(context)!.psSelectMarketHint),
+              items: model.marketDataList.toSet().map((data) {
+                return DropdownMenuItem<MarketDataInfo>(
+                  value: data,
+                  child: Text(data.symbol),
+                );
+              }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   model.selectMarketData(value);
@@ -173,7 +171,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.psEmptySelectMarket,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
@@ -204,7 +202,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
           const SizedBox(height: 16),
           Text(
             AppLocalizations.of(context)!.psNoPatternsFound,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
@@ -329,12 +327,14 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
                           .format(pattern.candle.timestamp)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(context,
+                  child: _buildCandleDetail(
+                      context,
                       AppLocalizations.of(context)!.psCandleOpen,
                       pattern.candle.open.toStringAsFixed(4)),
                 ),
                 Expanded(
-                  child: _buildCandleDetail(context,
+                  child: _buildCandleDetail(
+                      context,
                       AppLocalizations.of(context)!.psCandleClose,
                       pattern.candle.close.toStringAsFixed(4)),
                 ),
@@ -374,7 +374,7 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
               decoration: BoxDecoration(
                 color: Theme.of(context)
                     .colorScheme
-                    .surfaceVariant
+                    .surfaceContainerHighest
                     .withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -458,10 +458,12 @@ class PatternScannerView extends StackedView<PatternScannerViewModel> {
   String _localizedPatternName(BuildContext context, String name) {
     final loc = AppLocalizations.of(context)!;
     if (name == 'Spinning Top') return loc.psPatternSpinningTop;
-    if (name == 'Strong Bullish Continuation')
+    if (name == 'Strong Bullish Continuation') {
       return loc.psPatternStrongBullishCont;
-    if (name == 'Strong Bearish Continuation')
+    }
+    if (name == 'Strong Bearish Continuation') {
       return loc.psPatternStrongBearishCont;
+    }
     return name;
   }
 

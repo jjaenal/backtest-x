@@ -279,7 +279,7 @@ class WorkspaceView extends StatelessWidget {
           filled: true,
           fillColor: Theme.of(context)
               .colorScheme
-              .surfaceVariant
+              .surfaceContainerHighest
               .withValues(alpha: 0.3),
         ),
       ),
@@ -581,14 +581,14 @@ class WorkspaceView extends StatelessWidget {
                               )
                             : const Icon(Icons.flash_on, size: 18),
                         label: () {
-                          final baseLabel =
-                              AppLocalizations.of(context)!
-                                  .workspaceQuickTestButton;
+                          final baseLabel = AppLocalizations.of(context)!
+                              .workspaceQuickTestButton;
                           final p = model.getQuickProgress(strategy.id);
                           if (p == null) {
                             return Text(baseLabel);
                           }
-                          final pct = (p * 100).clamp(0, 100).toStringAsFixed(0);
+                          final pct =
+                              (p * 100).clamp(0, 100).toStringAsFixed(0);
                           return Text('$baseLabel ($pct%)');
                         }(),
                         style: ElevatedButton.styleFrom(
@@ -644,8 +644,10 @@ class WorkspaceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:
-            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.2),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -754,8 +756,10 @@ class WorkspaceView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color:
-            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.2),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -798,7 +802,7 @@ class WorkspaceView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceVariant
+            .surfaceContainerHighest
             .withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -882,7 +886,7 @@ class WorkspaceView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceVariant
+            .surfaceContainerHighest
             .withValues(alpha: 0.06),
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
       ),

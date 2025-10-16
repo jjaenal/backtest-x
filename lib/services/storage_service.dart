@@ -32,7 +32,8 @@ class StorageService {
   Stream<MarketDataEvent> get marketDataEvents => _marketDataController.stream;
   Stream<StrategyEvent> get strategyEvents => _strategyController.stream;
   Stream<BacktestResultEvent> get backtestEvents => _resultController.stream;
-  Stream<BacktestProgressEvent> get backtestProgress => _progressController.stream;
+  Stream<BacktestProgressEvent> get backtestProgress =>
+      _progressController.stream;
 
   // Public API to emit progress events to UI subscribers
   void emitBacktestProgress(BacktestProgressEvent event) {
@@ -811,6 +812,7 @@ class MarketDataInfo {
 // ===== Event payloads for realtime UI =====
 
 enum MarketDataEventType { saved, deleted, cleared }
+
 class MarketDataEvent {
   final MarketDataEventType type;
   final String? id;
@@ -819,6 +821,7 @@ class MarketDataEvent {
 }
 
 enum StrategyEventType { saved, deleted, cleared, cacheInvalidated }
+
 class StrategyEvent {
   final StrategyEventType type;
   final String? id;
@@ -826,6 +829,7 @@ class StrategyEvent {
 }
 
 enum BacktestResultEventType { saved, deleted, cleared, cacheInvalidated }
+
 class BacktestResultEvent {
   final BacktestResultEventType type;
   final String? id;
@@ -844,7 +848,8 @@ class BacktestProgressEvent {
   final String strategyId;
   final String? marketDataId;
   final double progress; // 0.0 - 1.0
-  final Map<String, Map<String, num>>? tfStats; // optional per‑TF preview metrics
+  final Map<String, Map<String, num>>?
+      tfStats; // optional per‑TF preview metrics
   const BacktestProgressEvent({
     required this.strategyId,
     this.marketDataId,

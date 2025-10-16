@@ -84,7 +84,8 @@ class BacktestEngineService {
     DateTime? startDate, // Optional: limit by start date
     DateTime? endDate, // Optional: limit by end date
     bool debug = false, // Add debug flag
-    void Function(double progress)? onProgress, // Intermediate progress callback 0..1
+    void Function(double progress)?
+        onProgress, // Intermediate progress callback 0..1
   }) async {
     // Reset last-run per‑TF stats
     _lastTfSignals = {};
@@ -153,8 +154,8 @@ class BacktestEngineService {
     final tfIndicators = <String, Map<String, List<double?>>>{};
     // Base timeframe first
     final baseCandles = tfCandles[baseTimeframe]!;
-    tfIndicators[baseTimeframe] =
-        _precalculateIndicators(baseCandles, strategy, '${marketData.id}|$baseTimeframe');
+    tfIndicators[baseTimeframe] = _precalculateIndicators(
+        baseCandles, strategy, '${marketData.id}|$baseTimeframe');
     // Notify small initial progress
     onProgress?.call(0.05);
     // Other timeframes in parallel
@@ -463,8 +464,8 @@ class BacktestEngineService {
               if (_indicatorCache.containsKey(cacheKey)) {
                 indicators[compareKey] = _indicatorCache[cacheKey]!;
               } else {
-                final series = _indicatorService
-                    .calculateAnchoredVWAP(candles, anchorIndex);
+                final series = _indicatorService.calculateAnchoredVWAP(
+                    candles, anchorIndex);
                 indicators[compareKey] = series;
                 _indicatorCache[cacheKey] = series;
               }
@@ -828,7 +829,7 @@ class BacktestEngineService {
           // ATR%-based sizing: riskValue is % risk per trade, stopLoss is ATR multiple
           final riskAmount =
               currentEquity * (strategy.riskManagement.riskValue / 100);
-          final atrPeriod = 14; // default ATR period
+          const atrPeriod = 14; // default ATR period
           // Compute ATR% up to current index on base timeframe
           final atrPctSeries =
               _indicatorService.calculateATRPct(candles, atrPeriod);

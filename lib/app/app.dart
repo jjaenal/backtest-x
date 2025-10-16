@@ -4,6 +4,8 @@ import 'package:backtestx/services/prefs_service_io_impl.dart';
 import 'package:backtestx/ui/bottom_sheets/notice/notice_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/quick_start_templates/quick_start_templates_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/validation_report/validation_report_sheet.dart';
+import 'package:backtestx/ui/bottom_sheets/template_picker/template_picker_sheet.dart';
+import 'package:backtestx/ui/dialogs/change_password/change_password_dialog.dart';
 import 'package:backtestx/ui/dialogs/info_alert/info_alert_dialog.dart';
 import 'package:backtestx/ui/views/home/home_view.dart';
 import 'package:backtestx/ui/views/startup/startup_view.dart';
@@ -27,6 +29,10 @@ import 'package:backtestx/ui/bottom_sheets/indicator_settings/indicator_settings
 import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick_pattern_guide_sheet.dart';
 import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
 import 'package:backtestx/services/deep_link_service.dart';
+import 'package:backtestx/services/auth_service.dart';
+import 'package:backtestx/app/auth_guard.dart';
+import 'package:backtestx/ui/views/login/login_view.dart';
+import 'package:backtestx/ui/views/signup/signup_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -34,8 +40,9 @@ import 'package:backtestx/services/deep_link_service.dart';
     MaterialRoute(page: HomeView),
     MaterialRoute(page: StartupView),
     MaterialRoute(page: DataUploadView),
-
-    MaterialRoute(page: StrategyBuilderView),
+    MaterialRoute(page: LoginView),
+    MaterialRoute(page: SignupView),
+    MaterialRoute(page: StrategyBuilderView, guards: [AuthGuard]),
     MaterialRoute(page: BacktestResultView),
     MaterialRoute(page: WorkspaceView),
     MaterialRoute(page: ComparisonView),
@@ -59,6 +66,7 @@ import 'package:backtestx/services/deep_link_service.dart';
     LazySingleton(classType: PdfExportService),
     LazySingleton(classType: ShareService),
     LazySingleton(classType: DeepLinkService),
+    LazySingleton(classType: AuthService),
 // @stacked-service
   ],
   bottomsheets: [
@@ -68,10 +76,12 @@ import 'package:backtestx/services/deep_link_service.dart';
     StackedBottomsheet(classType: ValidationReportSheet),
     StackedBottomsheet(classType: OnboardingSheet),
     StackedBottomsheet(classType: QuickStartTemplatesSheet),
+    StackedBottomsheet(classType: TemplatePickerSheet),
 // @stacked-bottom-sheet
   ],
   dialogs: [
     StackedDialog(classType: InfoAlertDialog),
+    StackedDialog(classType: ChangePasswordDialog),
     // @stacked-dialog
   ],
   logger: StackedLogger(),

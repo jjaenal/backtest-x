@@ -144,7 +144,7 @@ class StartupView extends StackedView<StartupViewModel> {
                         child: Text(
                           AppLocalizations.of(context)?.tagline ??
                               'Analyze • Backtest • Optimize',
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             color: Colors.white,
                             letterSpacing: 0.5,
@@ -218,7 +218,7 @@ class StartupView extends StackedView<StartupViewModel> {
                                   AppLocalizations.of(context)
                                           ?.startupStepsDone ??
                                       'All steps completed. Preparing app…',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 14,
                                     color: Colors.white70,
                                   ),
@@ -336,8 +336,8 @@ class _CandlesPainter extends CustomPainter {
     final paint = Paint()..color = color;
     final w = size.width;
     final h = size.height;
-    final candleWidth = 10.0;
-    final gap = 12.0;
+    const candleWidth = 10.0;
+    const gap = 12.0;
     for (var i = 0; i < heights.length; i++) {
       final x = (w - (candleWidth * 3 + gap * 2)) / 2 + i * (candleWidth + gap);
       final ch = heights[i];

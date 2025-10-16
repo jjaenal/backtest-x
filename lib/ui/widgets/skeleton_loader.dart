@@ -9,8 +9,10 @@ class SkeletonLoader {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color:
-            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.3),
         borderRadius: radius ?? BorderRadius.circular(8),
       ),
     );
@@ -26,7 +28,7 @@ class SkeletonLoader {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceVariant
+            .surfaceContainerHighest
             .withValues(alpha: 0.25),
         borderRadius: radius ?? BorderRadius.circular(12),
       ),
@@ -40,7 +42,7 @@ class SkeletonLoader {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceVariant
+            .surfaceContainerHighest
             .withValues(alpha: 0.25),
         shape: BoxShape.circle,
       ),

@@ -1123,6 +1123,7 @@ class MockBacktestEngineService extends _i1.Mock
     DateTime? startDate,
     DateTime? endDate,
     bool? debug = false,
+    void Function(double)? onProgress,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -1134,6 +1135,7 @@ class MockBacktestEngineService extends _i1.Mock
             #startDate: startDate,
             #endDate: endDate,
             #debug: debug,
+            #onProgress: onProgress,
           },
         ),
         returnValue: _i9.Future<_i4.BacktestResult>.value(_FakeBacktestResult_2(
@@ -1147,6 +1149,7 @@ class MockBacktestEngineService extends _i1.Mock
               #startDate: startDate,
               #endDate: endDate,
               #debug: debug,
+              #onProgress: onProgress,
             },
           ),
         )),
@@ -1162,6 +1165,7 @@ class MockBacktestEngineService extends _i1.Mock
               #startDate: startDate,
               #endDate: endDate,
               #debug: debug,
+              #onProgress: onProgress,
             },
           ),
         )),
@@ -1172,6 +1176,37 @@ class MockBacktestEngineService extends _i1.Mock
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockStorageService extends _i1.Mock implements _i16.StorageService {
+  @override
+  _i9.Stream<_i16.MarketDataEvent> get marketDataEvents => (super.noSuchMethod(
+        Invocation.getter(#marketDataEvents),
+        returnValue: _i9.Stream<_i16.MarketDataEvent>.empty(),
+        returnValueForMissingStub: _i9.Stream<_i16.MarketDataEvent>.empty(),
+      ) as _i9.Stream<_i16.MarketDataEvent>);
+
+  @override
+  _i9.Stream<_i16.StrategyEvent> get strategyEvents => (super.noSuchMethod(
+        Invocation.getter(#strategyEvents),
+        returnValue: _i9.Stream<_i16.StrategyEvent>.empty(),
+        returnValueForMissingStub: _i9.Stream<_i16.StrategyEvent>.empty(),
+      ) as _i9.Stream<_i16.StrategyEvent>);
+
+  @override
+  _i9.Stream<_i16.BacktestResultEvent> get backtestEvents =>
+      (super.noSuchMethod(
+        Invocation.getter(#backtestEvents),
+        returnValue: _i9.Stream<_i16.BacktestResultEvent>.empty(),
+        returnValueForMissingStub: _i9.Stream<_i16.BacktestResultEvent>.empty(),
+      ) as _i9.Stream<_i16.BacktestResultEvent>);
+
+  @override
+  _i9.Stream<_i16.BacktestProgressEvent> get backtestProgress =>
+      (super.noSuchMethod(
+        Invocation.getter(#backtestProgress),
+        returnValue: _i9.Stream<_i16.BacktestProgressEvent>.empty(),
+        returnValueForMissingStub:
+            _i9.Stream<_i16.BacktestProgressEvent>.empty(),
+      ) as _i9.Stream<_i16.BacktestProgressEvent>);
+
   @override
   _i9.Future<_i5.Database> get database => (super.noSuchMethod(
         Invocation.getter(#database),
@@ -1185,6 +1220,16 @@ class MockStorageService extends _i1.Mock implements _i16.StorageService {
           Invocation.getter(#database),
         )),
       ) as _i9.Future<_i5.Database>);
+
+  @override
+  void emitBacktestProgress(_i16.BacktestProgressEvent? event) =>
+      super.noSuchMethod(
+        Invocation.method(
+          #emitBacktestProgress,
+          [event],
+        ),
+        returnValueForMissingStub: null,
+      );
 
   @override
   _i9.Future<void> saveStrategy(_i15.Strategy? strategy) => (super.noSuchMethod(
@@ -1341,6 +1386,15 @@ class MockStorageService extends _i1.Mock implements _i16.StorageService {
   void clearCache() => super.noSuchMethod(
         Invocation.method(
           #clearCache,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
           [],
         ),
         returnValueForMissingStub: null,

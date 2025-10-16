@@ -15,6 +15,7 @@ import 'package:backtestx/app/app.bottomsheets.dart';
 
 import 'package:flutter/widgets.dart';
 import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
+import 'package:backtestx/services/auth_service.dart';
 
 class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   final _navigationService = locator<NavigationService>();
@@ -24,6 +25,7 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   final _bottomSheetService = locator<BottomSheetService>();
   final _dataManager = locator<DataManager>();
   final _prefs = PrefsService();
+  final _authService = locator<AuthService>();
 
   bool _isRunningBacktest = false;
   bool get isRunningBacktest => _isRunningBacktest;
@@ -154,6 +156,11 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   }
 
   void navigateToStrategyBuilder() {
+    if (!_authService.isLoggedIn) {
+      _authService.setPostLoginRedirect(Routes.strategyBuilderView);
+      _navigationService.navigateToLoginView();
+      return;
+    }
     _navigationService
         .navigateToStrategyBuilderView()
         .whenComplete(() => refresh());
@@ -168,6 +175,14 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   }
 
   Future<void> editStrategy(String strategyId) async {
+    if (!_authService.isLoggedIn) {
+      _authService.setPostLoginRedirect(
+        Routes.strategyBuilderView,
+        arguments: StrategyBuilderViewArguments(strategyId: strategyId),
+      );
+      _navigationService.navigateToLoginView();
+      return;
+    }
     _navigationService
         .navigateToStrategyBuilderView(strategyId: strategyId)
         .whenComplete(() => refresh());
@@ -351,6 +366,7 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   }
 
   // Refresh data when returning to home
+  @override
   Future<void> refresh() async {
     await _loadStats();
   }

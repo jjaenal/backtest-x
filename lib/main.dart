@@ -12,6 +12,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,19 @@ void main() async {
 
   // Setup locator
   await setupLocator();
+  // Initialize Supabase (use dart-define SUPABASE_URL & SUPABASE_ANON_KEY)
+  const supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'http://localhost',
+  );
+  const supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'invalid-key',
+  );
+  await Supabase.initialize(
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+  );
   setupDialogUi();
   setupBottomSheetUi();
   setupSnackbarUi();

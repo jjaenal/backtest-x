@@ -43,7 +43,8 @@ class IsolateBacktest {
             if (tfStatsRaw is Map) {
               tfStats = tfStatsRaw.map((tf, metrics) {
                 if (metrics is Map) {
-                  final casted = metrics.map((mk, mv) => MapEntry(mk.toString(), (mv as num)));
+                  final casted = metrics
+                      .map((mk, mv) => MapEntry(mk.toString(), (mv as num)));
                   return MapEntry(tf.toString(), casted);
                 }
                 return MapEntry(tf.toString(), <String, num>{});
@@ -59,7 +60,8 @@ class IsolateBacktest {
             );
           } else if (type == 'result') {
             final resultJsonStr = message['data'] as String;
-            final resultJson = jsonDecode(resultJsonStr) as Map<String, dynamic>;
+            final resultJson =
+                jsonDecode(resultJsonStr) as Map<String, dynamic>;
             completer.complete(BacktestResult.fromJson(resultJson));
             rp.close();
           }
@@ -95,8 +97,10 @@ void _isolateEntry(Map args) async {
   final strategyJsonStr = args['strategy'] as String;
   final marketJsonStr = args['marketData'] as String;
 
-  final st = Strategy.fromJson(jsonDecode(strategyJsonStr) as Map<String, dynamic>);
-  final md = MarketData.fromJson(jsonDecode(marketJsonStr) as Map<String, dynamic>);
+  final st =
+      Strategy.fromJson(jsonDecode(strategyJsonStr) as Map<String, dynamic>);
+  final md =
+      MarketData.fromJson(jsonDecode(marketJsonStr) as Map<String, dynamic>);
 
   final engine = BacktestEngineService(indicatorService: IndicatorService());
   final result = await engine.runBacktest(

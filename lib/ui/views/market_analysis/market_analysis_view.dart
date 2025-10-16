@@ -65,8 +65,10 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
   ) {
     return Container(
       padding: const EdgeInsets.all(16),
-      color:
-          Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+      color: Theme.of(context)
+          .colorScheme
+          .surfaceContainerHighest
+          .withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -97,14 +99,12 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                 ),
               ),
               hint: Text(AppLocalizations.of(context)!.maSelectMarketHint),
-              items: model.marketDataList
-                  .toSet()
-                  .map((data) {
-                    return DropdownMenuItem<MarketDataInfo>(
-                      value: data,
-                      child: Text(data.symbol),
-                    );
-                  }).toList(),
+              items: model.marketDataList.toSet().map((data) {
+                return DropdownMenuItem<MarketDataInfo>(
+                  value: data,
+                  child: Text(data.symbol),
+                );
+              }).toList(),
               onChanged: (value) {
                 if (value != null) {
                   model.selectMarketData(value);
@@ -174,90 +174,90 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
                   ),
                 ),
               ),
-          ),
-          const SizedBox(height: 16),
-
-          // RSI Panel
-          SizedBox(
-            height: 180,
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: IndicatorPanel(
-                  type: IndicatorType.rsi,
-                  values: model.rsi!,
-                  totalCandles: model.marketData!.candles.length,
-                  startIndex: model.chartStartIndex,
-                  endIndex: model.chartEndIndex,
-                ),
-              ),
             ),
-          ),
-          const SizedBox(height: 16),
-
-          // MACD Panel
-          SizedBox(
-            height: 180,
-            child: Card(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: IndicatorPanel(
-                  type: IndicatorType.macd,
-                  values: model.macd!['macd']!,
-                  additionalLine1: model.macd!['signal'],
-                  additionalLine2: model.macd!['histogram'],
-                  totalCandles: model.marketData!.candles.length,
-                  startIndex: model.chartStartIndex,
-                  endIndex: model.chartEndIndex,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // Overview card
-          _buildOverviewCard(context, data),
-          const SizedBox(height: 16),
-
-          // Price statistics
-          _buildSectionTitle(AppLocalizations.of(context)!.maPriceStatistics),
-          const SizedBox(height: 12),
-          _buildPriceStats(context, data),
-          const SizedBox(height: 16),
-
-          // Trend analysis
-          _buildSectionTitle(AppLocalizations.of(context)!.maTrendAnalysis),
-          const SizedBox(height: 12),
-          _buildTrendAnalysis(context, data),
-          const SizedBox(height: 16),
-
-          // Volatility
-          _buildSectionTitle(AppLocalizations.of(context)!.maVolatility),
-          const SizedBox(height: 12),
-          _buildVolatilityCard(context, data),
-          const SizedBox(height: 16),
-
-          // Volume (if available)
-          if (data.hasVolumeData) ...[
-            _buildSectionTitle(AppLocalizations.of(context)!.maVolume),
-            const SizedBox(height: 12),
-            _buildVolumeCard(context, data),
             const SizedBox(height: 16),
-          ],
 
-          // Data quality
-          _buildSectionTitle(AppLocalizations.of(context)!.maDataQuality),
-          const SizedBox(height: 12),
-          _buildQualityCard(context, data),
-        ],
-      ),
+            // RSI Panel
+            SizedBox(
+              height: 180,
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: IndicatorPanel(
+                    type: IndicatorType.rsi,
+                    values: model.rsi!,
+                    totalCandles: model.marketData!.candles.length,
+                    startIndex: model.chartStartIndex,
+                    endIndex: model.chartEndIndex,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // MACD Panel
+            SizedBox(
+              height: 180,
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: IndicatorPanel(
+                    type: IndicatorType.macd,
+                    values: model.macd!['macd']!,
+                    additionalLine1: model.macd!['signal'],
+                    additionalLine2: model.macd!['histogram'],
+                    totalCandles: model.marketData!.candles.length,
+                    startIndex: model.chartStartIndex,
+                    endIndex: model.chartEndIndex,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Overview card
+            _buildOverviewCard(context, data),
+            const SizedBox(height: 16),
+
+            // Price statistics
+            _buildSectionTitle(AppLocalizations.of(context)!.maPriceStatistics),
+            const SizedBox(height: 12),
+            _buildPriceStats(context, data),
+            const SizedBox(height: 16),
+
+            // Trend analysis
+            _buildSectionTitle(AppLocalizations.of(context)!.maTrendAnalysis),
+            const SizedBox(height: 12),
+            _buildTrendAnalysis(context, data),
+            const SizedBox(height: 16),
+
+            // Volatility
+            _buildSectionTitle(AppLocalizations.of(context)!.maVolatility),
+            const SizedBox(height: 12),
+            _buildVolatilityCard(context, data),
+            const SizedBox(height: 16),
+
+            // Volume (if available)
+            if (data.hasVolumeData) ...[
+              _buildSectionTitle(AppLocalizations.of(context)!.maVolume),
+              const SizedBox(height: 12),
+              _buildVolumeCard(context, data),
+              const SizedBox(height: 16),
+            ],
+
+            // Data quality
+            _buildSectionTitle(AppLocalizations.of(context)!.maDataQuality),
+            const SizedBox(height: 12),
+            _buildQualityCard(context, data),
+          ],
+        ),
       ),
     );
   }
@@ -363,13 +363,17 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow(AppLocalizations.of(context)!.maPriceHighest, data.highestPrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceHighest,
+                data.highestPrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow(AppLocalizations.of(context)!.maPriceLowest, data.lowestPrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceLowest,
+                data.lowestPrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow(AppLocalizations.of(context)!.maPriceAverage, data.averagePrice.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceAverage,
+                data.averagePrice.toStringAsFixed(4)),
             const Divider(),
-            _buildStatRow(AppLocalizations.of(context)!.maPriceRange, data.priceRange.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maPriceRange,
+                data.priceRange.toStringAsFixed(4)),
           ],
         ),
       ),
@@ -453,7 +457,8 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow(AppLocalizations.of(context)!.maVolatilityAtrLabel, data.atr.toStringAsFixed(4)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolatilityAtrLabel,
+                data.atr.toStringAsFixed(4)),
             const Divider(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -496,9 +501,11 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildStatRow(AppLocalizations.of(context)!.maVolumeTotal, data.totalVolume.toStringAsFixed(0)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolumeTotal,
+                data.totalVolume.toStringAsFixed(0)),
             const Divider(),
-            _buildStatRow(AppLocalizations.of(context)!.maVolumeAverage, data.averageVolume.toStringAsFixed(0)),
+            _buildStatRow(AppLocalizations.of(context)!.maVolumeAverage,
+                data.averageVolume.toStringAsFixed(0)),
           ],
         ),
       ),
@@ -513,11 +520,15 @@ class MarketAnalysisView extends StackedView<MarketAnalysisViewModel> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            _buildQualityRow(AppLocalizations.of(context)!.maQualityValidData, data.isValid),
+            _buildQualityRow(
+                AppLocalizations.of(context)!.maQualityValidData, data.isValid),
             const Divider(),
-            _buildQualityRow(AppLocalizations.of(context)!.maQualityCompleteNoGaps, !data.hasGaps),
+            _buildQualityRow(
+                AppLocalizations.of(context)!.maQualityCompleteNoGaps,
+                !data.hasGaps),
             const Divider(),
-            _buildStatRow(AppLocalizations.of(context)!.maQualityCandles, data.candlesCount.toString()),
+            _buildStatRow(AppLocalizations.of(context)!.maQualityCandles,
+                data.candlesCount.toString()),
           ],
         ),
       ),

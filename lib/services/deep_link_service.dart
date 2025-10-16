@@ -2,6 +2,7 @@ import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/services/auth_service.dart';
 import 'package:backtestx/services/prefs_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:universal_html/html.dart' as html;
@@ -72,6 +73,20 @@ class DeepLinkService {
     final uri = Uri.tryParse(href);
     if (uri == null) return false;
 
+    // Supabase password recovery: detect and route to Login
+    // Keep this early so we don't accidentally navigate elsewhere first
+    try {
+      final hasRecoveryParam = (uri.queryParameters['type'] == 'recovery');
+      final hasRecoveryInFragment = uri.fragment.contains('type=recovery');
+      if (hasRecoveryParam || hasRecoveryInFragment) {
+        final nav = locator<NavigationService>();
+        nav.replaceWith(Routes.loginView);
+        return true;
+      }
+    } catch (_) {
+      // Non-critical; continue normal deep link handling
+    }
+
     // Normalize: extract the path part after hash if present
     String path = uri.path;
     String query = uri.query;
@@ -104,7 +119,8 @@ class DeepLinkService {
       // Onboarding deep link: apply template & data selection
       final tpl = q['templateKey'];
       final dataId = q['dataId'];
-      if ((tpl != null && tpl.isNotEmpty) || (dataId != null && dataId.isNotEmpty)) {
+      if ((tpl != null && tpl.isNotEmpty) ||
+          (dataId != null && dataId.isNotEmpty)) {
         try {
           final prefs = locator<PrefsService>();
           if (tpl != null && tpl.isNotEmpty) {
@@ -115,6 +131,12 @@ class DeepLinkService {
           }
         } catch (_) {}
         final nav = locator<NavigationService>();
+        final auth = locator<AuthService>();
+        if (!auth.isLoggedIn) {
+          auth.setPostLoginRedirect(Routes.strategyBuilderView);
+          nav.replaceWith(Routes.loginView);
+          return true;
+        }
         nav.navigateTo(Routes.strategyBuilderView);
         return true;
       }
@@ -133,8 +155,18 @@ class DeepLinkService {
   }
 
   Future<bool> _openStrategy(String id) async {
-    // Navigate directly; StrategyBuilderViewModel will load strategy by id
     final nav = locator<NavigationService>();
+    final auth = locator<AuthService>();
+    // If not logged in, record post-login redirect and route to Login
+    if (!auth.isLoggedIn) {
+      auth.setPostLoginRedirect(
+        Routes.strategyBuilderView,
+        arguments: StrategyBuilderViewArguments(strategyId: id),
+      );
+      nav.replaceWith(Routes.loginView);
+      return true;
+    }
+    // Navigate directly; StrategyBuilderViewModel will load strategy by id
     nav.navigateTo(
       Routes.strategyBuilderView,
       arguments: StrategyBuilderViewArguments(strategyId: id),
@@ -171,5 +203,33 @@ class DeepLinkService {
     final loc = html.window.location;
     // Heuristic: if there's already a hash pointing to a route, keep using it
     return (loc.hash.isNotEmpty);
+  }
+
+  /// Clear recovery markers (`type=recovery`, tokens) from the URL on web
+  /// to avoid repeatedly showing recovery UI after password change.
+  void clearRecoveryMarkersFromUrl() {
+    if (!kIsWeb) return;
+    try {
+      final loc = html.window.location;
+      // Replace current URL without query params
+      final newUrl = Uri(
+        scheme: loc.protocol.replaceAll(':', ''),
+        host: loc.hostname,
+        port: loc.port.isNotEmpty ? int.tryParse(loc.port) : null,
+        path: loc.pathname,
+      ).toString();
+      html.window.history.replaceState(null, '', newUrl);
+
+      // If hash contains query (e.g. /#/login?type=recovery...), strip it
+      final hash = loc.hash; // includes leading '#'
+      if (hash.isNotEmpty) {
+        final raw = hash.substring(1);
+        final idx = raw.indexOf('?');
+        final clean = idx == -1 ? raw : raw.substring(0, idx);
+        html.window.location.hash = clean;
+      }
+    } catch (_) {
+      // Non-critical; ignore
+    }
   }
 }

@@ -177,7 +177,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
-                        .surfaceVariant
+                        .surfaceContainerHighest
                         .withValues(alpha: 0.2),
                   ),
                   children: [

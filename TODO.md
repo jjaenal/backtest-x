@@ -1,5 +1,75 @@
 # TODO - Implementation Checklist
 
+## Focused Checklist — User Authentication (Google & Email)
+
+Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, lalu iOS/Android.
+
+### High Priority (Sprint 1)
+
+- [x] Pilih provider & arsitektur auth
+  - [x] Default: Supabase Auth (`supabase_flutter`) — single source untuk backend
+  - [ ] Alternatif (opsional): Firebase Auth (hanya jika perlu compat)
+- [x] Tambah dependencies di `pubspec.yaml`
+  - [x] `supabase_flutter`
+  - [x] (opsional) gunakan `--dart-define` untuk inject keys (dev web)
+  - [ ] (opsional) `flutter_secure_storage` untuk secrets lain (bukan session)
+- [ ] Konfigurasi platform
+  - [ ] Supabase Dashboard: set Redirect URLs (Web/mobile) untuk OAuth Google
+  - [x] Web: tidak perlu edit `index.html`; pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` tersedia (preview berjalan)
+  - [ ] Android: intent filter untuk OAuth callback (custom scheme, ex: `io.supabase.flutter://login-callback`)
+  - [ ] iOS: `CFBundleURLSchemes` (custom scheme sama), pastikan openURL handler aktif
+- [x] Init Supabase di `lib/main.dart`
+  - [x] `WidgetsFlutterBinding.ensureInitialized();`
+  - [x] `await Supabase.initialize(url: const String.fromEnvironment('SUPABASE_URL'), anonKey: const String.fromEnvironment('SUPABASE_ANON_KEY'));` (tanpa `authFlowType` untuk kompatibilitas versi saat ini)
+- [ ] Implement `AuthService`
+  - [x] `signInWithGoogle()` via `supabase.auth.signInWithOAuth(Provider.google)` (auto set `redirectTo` di Web)
+  - [x] `signUpWithEmail()` via `supabase.auth.signUp(email, password)`
+  - [x] `signInWithEmail()` via `supabase.auth.signInWithPassword(email, password)`
+  - [x] `signOut()` via `supabase.auth.signOut()`
+  - [x] `sendPasswordResetEmail()` via `supabase.auth.resetPasswordForEmail(email)`
+  - [x] Stream `onAuthStateChange` → sinkronisasi dengan ViewModel/Router
+- [x] UI & Navigasi
+  - [x] `LoginView`: tombol Google + form email/password (banner redirect pasca-login)
+  - [x] `LoginView`: tautan "Lupa Password"
+  - [x] `SignupView`: form email/password + konfirmasi password
+  - [x] `UserView`: menu user (avatar, email, Change Password, Logout, Delete Account, Language, Theme, Help, background processing, etc)
+  - [x] Route guard: proteksi akses ke Strategy Builder bila belum login (set redirect + konsumsi di Login)
+  - [x] Menu user di AppBar (avatar, email, tombol Sign Out)
+- [x] i18n & Error Handling
+  - [x] Tambahkan label & pesan error ke `app_en.arb` dan `app_id.arb`
+  - [x] Pemetaan error Supabase → pesan ramah pengguna (snackbar/banner)
+- [ ] Verifikasi Web
+  - [x] Jalankan preview web dengan define: `flutter run -d web-server --dart-define SUPABASE_URL=<url> --dart-define SUPABASE_ANON_KEY=<key>` (UI OK; uji login butuh keys valid)
+
+### Medium Priority (Sprint 2)
+
+- [ ] Integrasi mobile (Android/iOS)
+  - [ ] Konfigurasi redirect scheme & intent filter; uji Google Sign-In pada perangkat
+  - [ ] Session persistence via `supabase_flutter` (secure storage opsional)
+- [ ] UX polish
+  - [ ] Loading state & disable button saat proses auth
+  - [ ] Konsistensi spacing dengan `StrategyBuilderConstants`
+- [ ] Arsitektur Stacked
+  - [ ] `AuthViewModel` + wiring `NavigationService` (redirect on login/logout)
+  - [ ] Update `app.router.dart` untuk routes & guards
+
+### Low Priority (Sprint 3)
+
+- [ ] Password reset flow lengkap (email link & konfirmasi)
+- [ ] Social login tambahan (Apple, GitHub) — opsional
+- [ ] CI/guard build: deteksi env yang belum dikonfigurasi; fallback dev‑mode (web)
+- [ ] Backend: desain tabel `profiles`, `strategies`, `results` di Supabase
+- [ ] RLS policies untuk per-user akses; migrasi SQL (opsional)
+- [ ] Dokumentasi
+  - [ ] README: panduan setup per platform (Web/Android/iOS)
+  - [ ] COMMANDS.md: ringkas perintah Supabase CLI & Dashboard (referensi)
+
+### Milestone & Deliverables
+
+- Milestone 1: Web login/signup (Google + Email) berjalan; Strategy Builder terproteksi auth
+- Milestone 2: Mobile login/signup berjalan dengan persist aman; UX polished
+- Milestone 3: Error handling & i18n lengkap; dokumentasi & uji dasar
+
 ## Focused Checklist Prioritas refactoring Strategy Builder
 
 - [x] Integrasi Template Picker ke BottomSheetService dan refactor `_showTemplateSheet` - Register `TemplatePickerSheet` sebagai `BottomSheetType.templatePicker` - Ubah pemanggilan dari `showModalBottomSheet` ke `BottomSheetService.showCustomSheet` - Kirim `StrategyBuilderViewModel` via `request.data` untuk sinkronisasi state - Perbaiki logika kategori di `TemplatePickerSheet` (gunakan `_categorizeTemplate` berbasis key) - Verifikasi compile dan preview web tanpa error

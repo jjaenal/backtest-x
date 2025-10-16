@@ -11,7 +11,8 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
   final Function(SheetResponse)? completer;
   final SheetRequest request;
 
-  const TemplatePickerSheet({super.key, required this.completer, required this.request});
+  const TemplatePickerSheet(
+      {super.key, required this.completer, required this.request});
 
   String _categorizeTemplate(String key, StrategyTemplate template) {
     // Simple categorization based on template name
@@ -24,7 +25,8 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
   }
 
   @override
-  Widget builder(BuildContext context, TemplatePickerSheetModel viewModel, Widget? child) {
+  Widget builder(
+      BuildContext context, TemplatePickerSheetModel viewModel, Widget? child) {
     // Get StrategyBuilderViewModel from request data
     final strategyBuilderViewModel = request.data as StrategyBuilderViewModel?;
     if (strategyBuilderViewModel != null) {
@@ -39,7 +41,7 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
     final sheetHeight = MediaQuery.of(context).size.height * 0.85;
     final query = viewModel.selectedTemplateQuery;
     final selectedCats = viewModel.selectedTemplateCategories;
-    
+
     final filtered = query.isEmpty
         ? entries
         : entries.where((e) {
@@ -51,25 +53,25 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
           }).toList();
 
     final filteredByCat = selectedCats.isEmpty
-         ? filtered
-         : filtered.where((e) {
-             final category = _categorizeTemplate(e.key, e.value);
-             return selectedCats.contains(category);
-           }).toList();
+        ? filtered
+        : filtered.where((e) {
+            final category = _categorizeTemplate(e.key, e.value);
+            return selectedCats.contains(category);
+          }).toList();
 
-     // Group by category
-     final grouped = <String, List<MapEntry<String, StrategyTemplate>>>{};
-     for (final entry in filteredByCat) {
-       final category = _categorizeTemplate(entry.key, entry.value);
-       grouped.putIfAbsent(category, () => []).add(entry);
-     }
+    // Group by category
+    final grouped = <String, List<MapEntry<String, StrategyTemplate>>>{};
+    for (final entry in filteredByCat) {
+      final category = _categorizeTemplate(entry.key, entry.value);
+      grouped.putIfAbsent(category, () => []).add(entry);
+    }
 
-     // All categories from all templates
-     final allCats = entries
-         .map((e) => _categorizeTemplate(e.key, e.value))
-         .toSet()
-         .toList()
-       ..sort();
+    // All categories from all templates
+    final allCats = entries
+        .map((e) => _categorizeTemplate(e.key, e.value))
+        .toSet()
+        .toList()
+      ..sort();
 
     return Container(
       height: sheetHeight,
@@ -87,7 +89,8 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
           // Header
           Row(
             children: [
-              Icon(Icons.auto_awesome, color: Theme.of(context).colorScheme.primary),
+              Icon(Icons.auto_awesome,
+                  color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
               Text(
                 l10n.sbPickTemplateTooltip,
@@ -136,24 +139,24 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
               spacing: 8,
               runSpacing: 4,
               children: allCats.map((cat) {
-                 final isSelected = selectedCats.contains(cat);
-                 final count = entries
-                     .where((e) => _categorizeTemplate(e.key, e.value) == cat)
-                     .length;
-                 return FilterChip(
-                   label: Text('$cat ($count)'),
-                   selected: isSelected,
-                   onSelected: (selected) {
-                     final newCats = Set<String>.from(selectedCats);
-                     if (selected) {
-                       newCats.add(cat);
-                     } else {
-                       newCats.remove(cat);
-                     }
-                     viewModel.updateTemplateCategories(newCats);
-                   },
-                 );
-               }).toList(),
+                final isSelected = selectedCats.contains(cat);
+                final count = entries
+                    .where((e) => _categorizeTemplate(e.key, e.value) == cat)
+                    .length;
+                return FilterChip(
+                  label: Text('$cat ($count)'),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    final newCats = Set<String>.from(selectedCats);
+                    if (selected) {
+                      newCats.add(cat);
+                    } else {
+                      newCats.remove(cat);
+                    }
+                    viewModel.updateTemplateCategories(newCats);
+                  },
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
           ],
@@ -183,7 +186,7 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
                   final key = viewModel.recentTemplateKeys[index];
                   final tpl = localized[key] ?? StrategyTemplates.all[key];
                   if (tpl == null) return const SizedBox.shrink();
-                  
+
                   return Container(
                     width: 200,
                     margin: const EdgeInsets.only(right: 8),
@@ -198,9 +201,12 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
                             children: [
                               Text(
                                 tpl.name,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -237,7 +243,7 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
                     itemBuilder: (context, index) {
                       final category = grouped.keys.elementAt(index);
                       final templates = grouped[category]!;
-                      
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -245,9 +251,12 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
                             padding: const EdgeInsets.symmetric(vertical: 8),
                             child: Text(
                               category,
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                             ),
                           ),
                           ...templates.map((entry) {
@@ -255,10 +264,13 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
                             return Card(
                               margin: const EdgeInsets.only(bottom: 8),
                               child: ListTile(
-                                title: _buildHighlightedText(tpl.name, query, context),
-                                subtitle: _buildHighlightedText(tpl.description, query, context),
+                                title: _buildHighlightedText(
+                                    tpl.name, query, context),
+                                subtitle: _buildHighlightedText(
+                                    tpl.description, query, context),
                                 trailing: ElevatedButton(
-                                  onPressed: () => viewModel.applyTemplate(entry.key),
+                                  onPressed: () =>
+                                      viewModel.applyTemplate(entry.key),
                                   child: const Text('Apply'),
                                 ),
                                 onTap: () => viewModel.applyTemplate(entry.key),
@@ -276,7 +288,8 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
     );
   }
 
-  Widget _buildHighlightedText(String text, String query, BuildContext context) {
+  Widget _buildHighlightedText(
+      String text, String query, BuildContext context) {
     if (query.isEmpty) {
       return Text(text);
     }
@@ -300,7 +313,8 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
       spans.add(TextSpan(
         text: text.substring(index, index + query.length),
         style: TextStyle(
-          backgroundColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+          backgroundColor:
+              Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
           fontWeight: FontWeight.bold,
         ),
       ));
@@ -308,9 +322,12 @@ class TemplatePickerSheet extends StackedView<TemplatePickerSheetModel> {
       start = index + query.length;
     }
 
-    return RichText(text: TextSpan(children: spans, style: DefaultTextStyle.of(context).style));
+    return RichText(
+        text: TextSpan(
+            children: spans, style: DefaultTextStyle.of(context).style));
   }
 
   @override
-  TemplatePickerSheetModel viewModelBuilder(BuildContext context) => TemplatePickerSheetModel();
+  TemplatePickerSheetModel viewModelBuilder(BuildContext context) =>
+      TemplatePickerSheetModel();
 }

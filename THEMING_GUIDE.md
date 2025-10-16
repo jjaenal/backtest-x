@@ -14,7 +14,7 @@ This guide standardizes how we use Flutter’s `ThemeData` and `ColorScheme` acr
 - Text primary: `colorScheme.onSurface`
 - Muted text: `onSurface.withValues(alpha:0.6–0.8)`
 - Icons: `onSurface` or `primary` when active
-- Cards/sheets: `colorScheme.surface` or `surfaceVariant`
+- Cards/sheets: `colorScheme.surface` or `surfaceContainerHighest`
 - Outlines/dividers: `colorScheme.outline`
 - Success/Error/Warning: `primary/tertiary/error` with low-opacity fills
 
@@ -85,7 +85,7 @@ final labelColor = cs.onSurface.withValues(alpha:0.7);
 
 ## ColorScheme Map (Semantic → Tokens)
 
-- Backgrounds: `surface`, `surfaceVariant`
+- Backgrounds: `surface`, `surfaceContainerHighest`
 - Primary actions: `primary` (text: `onPrimary`)
 - Success/Positive: `tertiary` (text: `onTertiary`)
 - Error/Destructive: `error` (text: `onError`)
@@ -103,7 +103,7 @@ class AppTokens {
 
   // Surfaces
   Color get cardBg => cs.surface;
-  Color get sheetBg => cs.surfaceVariant;
+  Color get sheetBg => cs.surfaceContainerHighest;
   Color get border => cs.outline.withValues(alpha:0.3);
 
   // Text
@@ -163,7 +163,7 @@ const lightScheme = ColorScheme(
   onBackground: Color(0xFF1A1C1E),
   surface: Colors.white,
   onSurface: Color(0xFF1A1C1E),
-  surfaceVariant: Color(0xFFF0F2F6),
+  surfaceContainerHighest: Color(0xFFF0F2F6),
   outline: Color(0xFFCBD2D9),
 );
 
@@ -182,7 +182,7 @@ const darkScheme = ColorScheme(
   onBackground: Color(0xFFEDEFF3),
   surface: Color(0xFF121417),
   onSurface: Color(0xFFEDEFF3),
-  surfaceVariant: Color(0xFF171A1E),
+  surfaceContainerHighest: Color(0xFF171A1E),
   outline: Color(0xFF3A3F45),
 );
 ```
@@ -193,7 +193,7 @@ const darkScheme = ColorScheme(
 - Keep `ThemeService` toggling `ThemeMode` only; inject schemes via `MaterialApp`.
 - Theme texts via `textTheme` derived from `ColorScheme.onSurface`.
 - Components:
-  - Cards/Sheets: `surface/surfaceVariant` + `outline` border.
+  - Cards/Sheets: `surface/surfaceContainerHighest` + `outline` border.
   - Banners/Alerts: use fills (`errorFill`, `successFill`) with token text.
   - Charts: grid `outline.withValues(alpha:0.2)`, labels `onSurface.withValues(alpha:0.7)`.
 

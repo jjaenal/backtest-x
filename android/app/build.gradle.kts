@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.tuangkang.backtestx"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     // Override Flutter's default NDK to match plugin requirements
     ndkVersion = "27.0.12077973"
 
@@ -23,7 +23,7 @@ android {
     }
 
     // Load release signing configuration from key.properties if present
-    val keystorePropertiesFile = rootProject.file("android/key.properties")
+    val keystorePropertiesFile = rootProject.file("key.properties")
     val keystoreProperties = Properties()
     val hasSigning = keystorePropertiesFile.exists()
     if (hasSigning) {

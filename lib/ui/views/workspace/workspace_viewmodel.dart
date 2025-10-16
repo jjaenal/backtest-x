@@ -109,7 +109,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: url));
       }
       _snackbarService.showSnackbar(
-        message: t?.copyStrategyLinkCopied ?? 'Strategy link copied to clipboard',
+        message:
+            t?.copyStrategyLinkCopied ?? 'Strategy link copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
@@ -135,7 +136,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         await Clipboard.setData(ClipboardData(text: url));
       }
       _snackbarService.showSnackbar(
-        message: t?.copyResultLinkCopied ?? 'Backtest result link copied to clipboard',
+        message: t?.copyResultLinkCopied ??
+            'Backtest result link copied to clipboard',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
@@ -817,7 +819,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
               await _storageService.getBacktestResultsByStrategy(strategy.id);
 
           _snackbarService.showSnackbar(
-            message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSavedToDb ??
+            message: (AppLocalizations.of(
+                        _navigationService.navigatorKey!.currentContext!)
+                    ?.qtSavedToDb ??
                 'Quick test saved to database'),
             duration: const Duration(seconds: 2),
           );
@@ -825,7 +829,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         } catch (e) {
           debugPrint('Error saving quick test: $e');
           showErrorWithRetry(
-            title: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSaveFailedTitle ??
+            title: (AppLocalizations.of(
+                        _navigationService.navigatorKey!.currentContext!)
+                    ?.qtSaveFailedTitle ??
                 'Quick test save failed'),
             message: e.toString(),
             onRetry: () async {
@@ -836,7 +842,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                 }
                 if (result.summary.totalTrades == 0) {
                   _snackbarService.showSnackbar(
-                    message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtNotSavedZeroTrade ??
+                    message: (AppLocalizations.of(_navigationService
+                                .navigatorKey!.currentContext!)
+                            ?.qtNotSavedZeroTrade ??
                         'Quick test result not saved (0 trade)'),
                     duration: const Duration(seconds: 2),
                   );
@@ -846,7 +854,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                 _strategyResults[strategy.id] = await _storageService
                     .getBacktestResultsByStrategy(strategy.id);
                 _snackbarService.showSnackbar(
-                  message: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtSavedToDb ??
+                  message: (AppLocalizations.of(
+                              _navigationService.navigatorKey!.currentContext!)
+                          ?.qtSavedToDb ??
                       'Quick test saved to database'),
                   duration: const Duration(seconds: 2),
                 );
@@ -859,7 +869,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     } catch (e) {
       debugPrint('Error running quick test: $e');
       showErrorWithRetry(
-        title: (AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)?.qtRunFailedTitle ??
+        title: (AppLocalizations.of(
+                    _navigationService.navigatorKey!.currentContext!)
+                ?.qtRunFailedTitle ??
             'Quick test failed'),
         message: e.toString(),
         onRetry: () => quickRunBacktest(strategy),
@@ -888,7 +900,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final ctx = _navigationService.navigatorKey?.currentContext;
       final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
-        message: t?.batchAlreadyRunning ?? 'Batch already running for this strategy',
+        message:
+            t?.batchAlreadyRunning ?? 'Batch already running for this strategy',
         duration: const Duration(seconds: 2),
       );
       return;
@@ -943,10 +956,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final t = ctx != null ? AppLocalizations.of(ctx)! : null;
       final msg = skipped > 0
           ? (t?.batchCompleteSavedSkipped(
-                completed.toString(), total.toString(), skipped.toString()) ??
+                  completed.toString(), total.toString(), skipped.toString()) ??
               'Batch complete: $completed/$total saved (skipped $skipped invalid)')
-          : (t?.batchCompleteSaved(
-                completed.toString(), total.toString()) ??
+          : (t?.batchCompleteSaved(completed.toString(), total.toString()) ??
               'Batch complete: $completed/$total saved');
       _snackbarService.showSnackbar(
         message: msg,
@@ -983,7 +995,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
-          message: t?.noResultsToExport ?? 'No results to export for this strategy',
+          message:
+              t?.noResultsToExport ?? 'No results to export for this strategy',
           duration: const Duration(seconds: 2),
         );
         return;
@@ -1055,7 +1068,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       }
 
       _snackbarService.showSnackbar(
-        message: t?.strategyResultsExported ?? 'Strategy results exported to CSV',
+        message:
+            t?.strategyResultsExported ?? 'Strategy results exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
@@ -1076,7 +1090,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
-          message: t?.noResultsToExport ?? 'No results to export for this strategy',
+          message:
+              t?.noResultsToExport ?? 'No results to export for this strategy',
           duration: const Duration(seconds: 2),
         );
         return;

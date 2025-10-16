@@ -168,15 +168,15 @@ void showErrorWithRetry({
   ShowCustomSnackBar? customShowFn,
 }) {
   // Lightweight telemetry: log show and retry taps
-  debugPrint('[Telemetry] Error snackbar shown: ' + title + ' | ' + message);
-  final onTap = () {
-    debugPrint('[Telemetry] Retry tapped for: ' + title);
+  debugPrint('[Telemetry] Error snackbar shown: $title | $message');
+  onTap() {
+    debugPrint('[Telemetry] Retry tapped for: $title');
     try {
       onRetry();
     } catch (e) {
-      debugPrint('[Telemetry] Retry handler error: ' + e.toString());
+      debugPrint('[Telemetry] Retry handler error: $e');
     }
-  };
+  }
 
   if (customShowFn != null) {
     customShowFn(

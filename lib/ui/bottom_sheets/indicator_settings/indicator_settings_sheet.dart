@@ -69,9 +69,9 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             const SizedBox(height: 8),
 
             // Overlays Section
-            _SectionTitle(l10n.isOverlays),
+            _sectionTitle(l10n.isOverlays),
             const SizedBox(height: 8),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isSma,
               subtitle: l10n.isSimpleMovingAverage,
@@ -80,7 +80,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 viewModel.showSMA = v;
                 viewModel.notifyListeners();
               },
-              trailing: _PeriodSlider(
+              trailing: _periodSlider(
                 label: l10n.isPeriod,
                 value: viewModel.smaPeriod.toDouble(),
                 min: 5,
@@ -92,7 +92,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 color: viewModel.smaColor,
               ),
             ),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isEma,
               subtitle: l10n.isExponentialMovingAverage,
@@ -101,7 +101,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 viewModel.showEMA = v;
                 viewModel.notifyListeners();
               },
-              trailing: _PeriodSlider(
+              trailing: _periodSlider(
                 label: l10n.isPeriod,
                 value: viewModel.emaPeriod.toDouble(),
                 min: 5,
@@ -113,7 +113,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 color: viewModel.emaColor,
               ),
             ),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isBollingerBands,
               subtitle: l10n.isVolatilityBands,
@@ -125,7 +125,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _NumberChip(
+                  _numberChip(
                     context: context,
                     label: l10n.isPeriod,
                     value: viewModel.bbPeriod.toString(),
@@ -144,7 +144,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  _NumberChip(
+                  _numberChip(
                     context: context,
                     label: l10n.isStddev,
                     value: viewModel.bbStdDev.toStringAsFixed(1),
@@ -167,13 +167,13 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
 
             const SizedBox(height: 12),
-            _SectionDivider(context),
+            _sectionDivider(context),
             const SizedBox(height: 12),
 
             // Oscillators Section
-            _SectionTitle(l10n.isOscillators),
+            _sectionTitle(l10n.isOscillators),
             const SizedBox(height: 8),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: 'RSI',
               subtitle: 'Relative Strength Index',
@@ -182,7 +182,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 viewModel.showRSI = v;
                 viewModel.notifyListeners();
               },
-              trailing: _PeriodSlider(
+              trailing: _periodSlider(
                 label: l10n.isPeriod,
                 value: viewModel.rsiPeriod.toDouble(),
                 min: 5,
@@ -194,7 +194,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 color: Colors.purple,
               ),
             ),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isMacd,
               subtitle: '12 / 26 / 9',
@@ -206,7 +206,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _NumberChip(
+                  _numberChip(
                     context: context,
                     label: l10n.isFast,
                     value: viewModel.macdFast.toString(),
@@ -224,7 +224,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  _NumberChip(
+                  _numberChip(
                     context: context,
                     label: l10n.isSlow,
                     value: viewModel.macdSlow.toString(),
@@ -242,7 +242,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  _NumberChip(
+                  _numberChip(
                     context: context,
                     label: l10n.isSignal,
                     value: viewModel.macdSignal.toString(),
@@ -264,13 +264,13 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
             ),
 
             const SizedBox(height: 12),
-            _SectionDivider(context),
+            _sectionDivider(context),
             const SizedBox(height: 12),
 
             // Chart Options Section
-            _SectionTitle(l10n.isChartOptions),
+            _sectionTitle(l10n.isChartOptions),
             const SizedBox(height: 8),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isHighQualityRendering,
               subtitle: l10n.isHighQualitySubtitle,
@@ -280,7 +280,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
                 viewModel.notifyListeners();
               },
             ),
-            _SwitchTile(
+            _switchTile(
               context: context,
               title: l10n.isShowVolume,
               subtitle: l10n.isShowVolumeSubtitle,
@@ -343,14 +343,14 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
       IndicatorSettingsSheetModel();
 
   // Helper Widgets
-  Widget _SectionTitle(String title) {
+  Widget _sectionTitle(String title) {
     return Text(
       title,
       style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
     );
   }
 
-  Widget _SectionDivider(BuildContext context) {
+  Widget _sectionDivider(BuildContext context) {
     return Divider(
       height: 1,
       thickness: 1,
@@ -358,7 +358,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
     );
   }
 
-  Widget _SwitchTile({
+  Widget _switchTile({
     required BuildContext context,
     required String title,
     String? subtitle,
@@ -369,8 +369,10 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        color:
-            Theme.of(context).colorScheme.surfaceVariant.withValues(alpha: 0.3),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -406,7 +408,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
     );
   }
 
-  Widget _PeriodSlider({
+  Widget _periodSlider({
     required String label,
     required double value,
     required double min,
@@ -443,7 +445,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
     );
   }
 
-  Widget _NumberChip({
+  Widget _numberChip({
     required BuildContext context,
     required String label,
     required String value,
@@ -458,7 +460,7 @@ class IndicatorSettingsSheet extends StackedView<IndicatorSettingsSheetModel> {
           borderRadius: BorderRadius.circular(10),
           color: Theme.of(context)
               .colorScheme
-              .surfaceVariant
+              .surfaceContainerHighest
               .withValues(alpha: 0.3),
         ),
         child: Row(

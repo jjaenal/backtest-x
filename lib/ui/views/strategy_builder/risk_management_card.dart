@@ -7,7 +7,8 @@ import 'strategy_builder_constants.dart';
 
 class RiskManagementCard extends StatelessWidget {
   final StrategyBuilderViewModel viewModel;
-  const RiskManagementCard({Key? key, required this.viewModel}) : super(key: key);
+  const RiskManagementCard({Key? key, required this.viewModel})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +82,9 @@ class RiskManagementCard extends StatelessWidget {
                       labelText: viewModel.riskType == RiskType.atrBased
                           ? 'ATR Multiple'
                           : 'Stop Loss (points)',
-                      hintText: viewModel.riskType == RiskType.atrBased ? '2.0' : '100',
+                      hintText: viewModel.riskType == RiskType.atrBased
+                          ? '2.0'
+                          : '100',
                       prefixIcon: const Icon(Icons.arrow_downward),
                       isDense: false,
                       contentPadding: const EdgeInsets.symmetric(

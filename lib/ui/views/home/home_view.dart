@@ -7,6 +7,11 @@ import 'package:stacked/stacked.dart';
 import 'package:backtestx/app/route_observer.dart';
 import 'package:intl/intl.dart';
 import 'home_viewmodel.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/app/app.router.dart';
+import 'package:backtestx/app/app.dialogs.dart';
+import 'package:backtestx/services/auth_service.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
   const HomeView({Key? key}) : super(key: key);
@@ -32,6 +37,105 @@ class HomeView extends StackedView<HomeViewModel> {
         title: Text(AppLocalizations.of(context)?.homeTitle ?? 'Backtest‑X'),
         centerTitle: true,
         actions: [
+          // User menu (avatar/email/sign out)
+          Builder(builder: (ctx) {
+            final client = Supabase.instance.client;
+            final user = client.auth.currentUser;
+            final isLoggedIn = user != null;
+            final initials = (user?.email?.isNotEmpty == true)
+                ? user!.email![0].toUpperCase()
+                : '?';
+            return PopupMenuButton<String>(
+              tooltip:
+                  AppLocalizations.of(ctx)?.homeUserMenuTooltip ?? 'Account',
+              icon: CircleAvatar(
+                child: Text(initials),
+              ),
+              onSelected: (value) async {
+                if (value == 'signout') {
+                  await Supabase.instance.client.auth.signOut();
+                  locator<NavigationService>().replaceWithLoginView();
+                } else if (value == 'signin') {
+                  locator<NavigationService>().navigateToLoginView();
+                } else if (value == 'change_password') {
+                  final t = AppLocalizations.of(context);
+                  final response = await locator<DialogService>().showCustomDialog(
+                    variant: DialogType.changePassword,
+                    title: t?.changePasswordTitle,
+                    description: t?.changePasswordDescription,
+                    barrierDismissible: true,
+                  );
+                  if (response?.confirmed == true) {
+                    locator<SnackbarService>().showSnackbar(
+                      message:
+                          t?.homeChangePasswordSuccess ?? 'Password berhasil diubah.',
+                      duration: const Duration(seconds: 3),
+                    );
+                    final auth = locator<AuthService>();
+                    if (!auth.isLoggedIn) {
+                      locator<NavigationService>().replaceWithLoginView();
+                    }
+                  }
+                }
+              },
+              itemBuilder: (context) {
+                final t = AppLocalizations.of(context);
+                if (isLoggedIn) {
+                  return [
+                    PopupMenuItem<String>(
+                      enabled: false,
+                      value: 'email',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.account_circle),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                                user.email ?? t?.homeUserUnknown ?? 'Unknown'),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<String>(
+                      value: 'change_password',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.password),
+                          const SizedBox(width: 8),
+                          Text(t?.homeUserChangePassword ?? 'Change Password'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<String>(
+                      value: 'signout',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.logout),
+                          const SizedBox(width: 8),
+                          Text(t?.homeUserSignOut ?? 'Sign Out'),
+                        ],
+                      ),
+                    ),
+                  ];
+                } else {
+                  return [
+                    PopupMenuItem<String>(
+                      value: 'signin',
+                      child: Row(
+                        children: [
+                          const Icon(Icons.login),
+                          const SizedBox(width: 8),
+                          Text(t?.homeUserSignIn ?? 'Sign In'),
+                        ],
+                      ),
+                    ),
+                  ];
+                }
+              },
+            );
+          }),
           // Cache status indicator
           // IconButton(
           //   tooltip: viewModel.isWarmingUp
@@ -119,8 +223,8 @@ class HomeView extends StackedView<HomeViewModel> {
                 value: 2,
                 child: Row(
                   children: [
-                    Icon(Icons.download_for_offline_outlined),
-                    SizedBox(width: 8),
+                    const Icon(Icons.download_for_offline_outlined),
+                    const SizedBox(width: 8),
                     Text(AppLocalizations.of(context)?.homeOptionLoadCache ??
                         'Load Cache Now'),
                   ],
@@ -636,7 +740,7 @@ class HomeView extends StackedView<HomeViewModel> {
       decoration: BoxDecoration(
         color: Theme.of(context)
             .colorScheme
-            .surfaceVariant
+            .surfaceContainerHighest
             .withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
@@ -755,7 +859,7 @@ class HomeView extends StackedView<HomeViewModel> {
                   decoration: BoxDecoration(
                     color: Theme.of(context)
                         .colorScheme
-                        .surfaceVariant
+                        .surfaceContainerHighest
                         .withValues(alpha: 0.4),
                     borderRadius: BorderRadius.circular(6),
                   ),

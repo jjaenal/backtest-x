@@ -84,5 +84,6 @@ class SampleDataLoader {
   }
 
   /// Convenience: check whether a given id is the locked sample dataset.
-  static bool isSampleId(String id) => id == sampleId || id.startsWith('sample_');
+  static bool isSampleId(String id) =>
+      id == sampleId || id.startsWith('sample_');
 }

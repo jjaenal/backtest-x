@@ -136,7 +136,8 @@ class PatternScannerViewModel extends BaseViewModel {
   Future<void> refresh() async {
     await loadMarketData();
     if (_selectedMarketData != null) {
-      final exists = _marketDataList.any((m) => m.id == _selectedMarketData!.id);
+      final exists =
+          _marketDataList.any((m) => m.id == _selectedMarketData!.id);
       if (exists) {
         await scanPatterns();
       } else {
