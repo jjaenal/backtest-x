@@ -212,6 +212,7 @@ class AppLocalizations {
       'more_label': 'More',
       'delete_label': 'Delete',
       'load_more': 'Load more',
+      "clear_label": "Clear",
 
       'workspace_tests': 'Tests',
       'workspace_avg_pnl': 'Avg P&L',
@@ -243,6 +244,7 @@ class AppLocalizations {
       'workspace_compare_count_label': 'Compare ({count})',
       'workspace_compare_banner_text': 'Select 2-4 results to compare',
       'workspace_compare_banner_selected_suffix': '({selected}/4 selected)',
+      "workspace_backtest_results_count": "Backtest Results ({shown}/{total})",
 
       'filter_start_date': 'Start Date',
       'filter_end_date': 'End Date',
@@ -256,6 +258,50 @@ class AppLocalizations {
       'export_all_trades_csv': 'Export All Trades CSV',
       'export_tf_stats_csv': 'Export TF Stats CSV',
       'export_results_csv': 'Export Results CSV',
+      // Comparison View
+      'compare_view_title': 'Compare Results',
+      'compare_export_csv_tooltip': 'Export Comparison CSV',
+      'compare_copy_summary_tooltip': 'Copy Comparison Summary',
+      'compare_menu_export': 'Export Comparison',
+      'comparison_csv_exported': 'Comparison CSV exported',
+      'comparison_csv_export_failed': 'Export comparison CSV failed',
+      'best_performers_header': 'Best Performers',
+      'best_highest_pnl': 'Highest P&L',
+      'best_win_rate': 'Best Win Rate',
+      'best_profit_factor': 'Best Profit Factor',
+      'best_lowest_drawdown': 'Lowest Drawdown',
+      'compare_detailed_metrics': 'Detailed Metrics',
+      'compare_metric_column': 'Metric',
+      'compare_total_pnl': 'Total P&L',
+      'compare_return_percent': 'Return %',
+      'compare_win_rate': 'Win Rate',
+      'compare_total_trades': 'Total Trades',
+      'compare_profit_factor': 'Profit Factor',
+      'compare_max_drawdown': 'Max Drawdown',
+      'compare_sharpe_ratio': 'Sharpe Ratio',
+      'compare_avg_win': 'Avg Win',
+      'compare_avg_loss': 'Avg Loss',
+      'compare_largest_win': 'Largest Win',
+      'compare_largest_loss': 'Largest Loss',
+      'compare_expectancy': 'Expectancy',
+      'per_tf_stats_header': 'Per-Timeframe Stats',
+      'chart_metric_label': 'Chart Metric:',
+      'sort_tf_label': 'Sort: TF',
+      'sort_value_up_label': 'Sort: Value ↑',
+      'sort_value_down_label': 'Sort: Value ↓',
+      'agg_avg_label': 'Agg: Avg',
+      'agg_max_label': 'Agg: Max',
+      'menu_export_chart_csv': 'Export Chart CSV',
+      'timeframe_label': 'Timeframe',
+      'grouped_chart_share_png_text': 'BacktestX Grouped Chart',
+      'grouped_chart_pdf_title': 'Grouped Per‑TF: {metric}',
+      'grouped_chart_csv_share_text': 'BacktestX Grouped TF Chart CSV',
+      'empty_grouped_title': 'No grouped data to display',
+      'empty_grouped_tip_filtered':
+          'Adjust the timeframe filters above or change metric.',
+      'empty_grouped_tip_run':
+          'Run comparison with results that include per‑TF stats, or change metric.',
+      'result_index_label': 'Result {index}',
 
       // WorkspaceViewModel messages
       'strategy_results_exported': 'Strategy results exported to CSV',
@@ -298,9 +344,21 @@ class AppLocalizations {
           'Average profit/loss percentage across backtests.',
       'metric_tooltip_win_rate':
           'Average percentage of winning trades across results.',
+      'metric_tooltip_return_pct':
+          'Total profit/loss as percentage of initial capital.',
       'metric_tooltip_pnl': 'Total profit or loss in currency for this result.',
       'metric_tooltip_pf':
           'Profit Factor = gross profit divided by gross loss.',
+      'metric_tooltip_max_drawdown':
+          'Largest peak-to-trough decline during backtest (percentage).',
+      'metric_tooltip_sharpe_ratio':
+          'Risk-adjusted return; higher indicates better risk efficiency.',
+      'metric_tooltip_avg_win': 'Average profit per winning trade.',
+      'metric_tooltip_avg_loss': 'Average loss per losing trade.',
+      'metric_tooltip_largest_win': 'Largest single-trade profit.',
+      'metric_tooltip_largest_loss': 'Largest single-trade loss.',
+      'metric_tooltip_expectancy':
+          'Average expected profit per trade; positive indicates an edge.',
       'metric_tooltip_default': 'Metric description',
 
       'relative_today': 'Today',
@@ -442,6 +500,10 @@ class AppLocalizations {
       'sb_stats_trades': 'Trades',
       'sb_stats_wins': 'Wins',
       'sb_stats_winrate': 'WinRate',
+      'sb_stats_expectancy': 'Expectancy',
+      'sb_stats_avgwin': 'AvgWin',
+      'sb_stats_avgloss': 'AvgLoss',
+      'sb_stats_rr': 'R/R',
       // Strategy Builder — buttons and messages
       'sb_save_strategy_button': 'Save Strategy',
       'sb_update_strategy_button': 'Update Strategy',
@@ -727,6 +789,7 @@ class AppLocalizations {
       'more_label': 'Lainnya',
       'delete_label': 'Hapus',
       'load_more': 'Muat lagi',
+      "clear_label": "Bersihkan",
 
       'workspace_tests': 'Tes',
       'workspace_avg_pnl': 'Rata-rata P&L',
@@ -758,6 +821,7 @@ class AppLocalizations {
       'workspace_compare_count_label': 'Bandingkan ({count})',
       'workspace_compare_banner_text': 'Pilih 2–4 hasil untuk dibandingkan',
       'workspace_compare_banner_selected_suffix': '({selected}/4 terpilih)',
+      "workspace_backtest_results_count": "Hasil Backtest ({shown}/{total})",
 
       'filter_start_date': 'Tanggal Mulai',
       'filter_end_date': 'Tanggal Selesai',
@@ -771,6 +835,51 @@ class AppLocalizations {
       'export_all_trades_csv': 'Ekspor Semua Transaksi CSV',
       'export_tf_stats_csv': 'Ekspor Statistik TF CSV',
       'export_results_csv': 'Ekspor Hasil CSV',
+
+      // Comparison View
+      'compare_view_title': 'Bandingkan Hasil',
+      'compare_export_csv_tooltip': 'Ekspor CSV Perbandingan',
+      'compare_copy_summary_tooltip': 'Salin Ringkasan Perbandingan',
+      'compare_menu_export': 'Ekspor Perbandingan',
+      'comparison_csv_exported': 'CSV perbandingan berhasil diekspor',
+      'comparison_csv_export_failed': 'Ekspor CSV perbandingan gagal',
+      'best_performers_header': 'Performa Terbaik',
+      'best_highest_pnl': 'P&L Tertinggi',
+      'best_win_rate': 'Win Rate Terbaik',
+      'best_profit_factor': 'Profit Factor Terbaik',
+      'best_lowest_drawdown': 'Drawdown Terendah',
+      'compare_detailed_metrics': 'Metrik Detail',
+      'compare_metric_column': 'Metrik',
+      'compare_total_pnl': 'Total P&L',
+      'compare_return_percent': 'Return %',
+      'compare_win_rate': 'Win Rate',
+      'compare_total_trades': 'Total Transaksi',
+      'compare_profit_factor': 'Faktor Profit',
+      'compare_max_drawdown': 'Drawdown Maks',
+      'compare_sharpe_ratio': 'Rasio Sharpe',
+      'compare_avg_win': 'Avg Win',
+      'compare_avg_loss': 'Avg Loss',
+      'compare_largest_win': 'Win Terbesar',
+      'compare_largest_loss': 'Loss Terbesar',
+      'compare_expectancy': 'Ekspektansi',
+      'per_tf_stats_header': 'Statistik Per‑Timeframe',
+      'chart_metric_label': 'Metrik Grafik:',
+      'sort_tf_label': 'Urut: TF',
+      'sort_value_up_label': 'Urut: Nilai ↑',
+      'sort_value_down_label': 'Urut: Nilai ↓',
+      'agg_avg_label': 'Agg: Rata',
+      'agg_max_label': 'Agg: Maks',
+      'menu_export_chart_csv': 'Ekspor Chart CSV',
+      'timeframe_label': 'Timeframe',
+      'grouped_chart_share_png_text': 'BacktestX Grafik Kelompok',
+      'grouped_chart_pdf_title': 'Gabungan Per‑TF: {metric}',
+      'grouped_chart_csv_share_text': 'BacktestX Grafik TF Kelompok CSV',
+      'empty_grouped_title': 'Tidak ada data kelompok untuk ditampilkan',
+      'empty_grouped_tip_filtered':
+          'Sesuaikan filter timeframe di atas atau ganti metrik.',
+      'empty_grouped_tip_run':
+          'Jalankan perbandingan dengan hasil yang punya statistik per‑TF, atau ganti metrik.',
+      'result_index_label': 'Hasil {index}',
 
       // WorkspaceViewModel messages
       'strategy_results_exported': 'Hasil strategi diekspor ke CSV',
@@ -818,6 +927,20 @@ class AppLocalizations {
       'metric_tooltip_pnl':
           'Total profit atau rugi dalam mata uang untuk hasil ini.',
       'metric_tooltip_pf': 'Profit Factor = total profit dibagi total rugi.',
+      'metric_tooltip_return_pct':
+          'Total profit/rugi sebagai persentase dari modal awal.',
+      'metric_tooltip_max_drawdown':
+          'Penurunan puncak ke lembah terbesar selama backtest (persentase).',
+      'metric_tooltip_sharpe_ratio':
+          'Return disesuaikan risiko; lebih tinggi menunjukkan efisiensi risiko lebih baik.',
+      'metric_tooltip_avg_win': 'Rata-rata profit per transaksi menang.',
+      'metric_tooltip_avg_loss': 'Rata-rata rugi per transaksi kalah.',
+      'metric_tooltip_largest_win': 'Profit terbesar dari satu transaksi.',
+      'metric_tooltip_largest_loss': 'Rugi terbesar dari satu transaksi.',
+      'metric_tooltip_expectancy':
+          'Ekspektasi profit rata-rata per transaksi; bernilai positif menunjukkan keunggulan.',
+      'metric_tooltip_total_trades':
+          'Jumlah transaksi ditutup yang termasuk dalam ringkasan.',
       'metric_tooltip_default': 'Deskripsi metrik',
 
       'relative_today': 'Hari ini',
@@ -1258,8 +1381,7 @@ class AppLocalizations {
   String get changePasswordNewLabel => _text('change_password_new_label');
   String get changePasswordConfirmLabel =>
       _text('change_password_confirm_label');
-  String get changePasswordSaveButton =>
-      _text('change_password_save_button');
+  String get changePasswordSaveButton => _text('change_password_save_button');
   String get changePasswordSaving => _text('change_password_saving');
   String get commonCancel => _text('common_cancel');
   String get errorPasswordMin => _text('error_password_min');
@@ -1485,6 +1607,15 @@ class AppLocalizations {
   String get metricTooltipWinRate => _text('metric_tooltip_win_rate');
   String get metricTooltipPnl => _text('metric_tooltip_pnl');
   String get metricTooltipPf => _text('metric_tooltip_pf');
+  String get metricTooltipReturnPct => _text('metric_tooltip_return_pct');
+  String get metricTooltipMaxDrawdown => _text('metric_tooltip_max_drawdown');
+  String get metricTooltipSharpeRatio => _text('metric_tooltip_sharpe_ratio');
+  String get metricTooltipAvgWin => _text('metric_tooltip_avg_win');
+  String get metricTooltipAvgLoss => _text('metric_tooltip_avg_loss');
+  String get metricTooltipLargestWin => _text('metric_tooltip_largest_win');
+  String get metricTooltipLargestLoss => _text('metric_tooltip_largest_loss');
+  String get metricTooltipExpectancy => _text('metric_tooltip_expectancy');
+  String get metricTooltipTotalTrades => _text('metric_tooltip_total_trades');
   String get metricTooltipDefault => _text('metric_tooltip_default');
 
   String workspaceCompareCountLabel(int count) =>
@@ -1519,6 +1650,56 @@ class AppLocalizations {
 
   String get menuExportChartPng => _text('menu_export_chart_png');
   String get menuExportPanelPng => _text('menu_export_panel_png');
+  // Comparison View getters
+  String get compareViewTitle => _text('compare_view_title');
+  String get compareExportCsvTooltip => _text('compare_export_csv_tooltip');
+  String get compareCopySummaryTooltip => _text('compare_copy_summary_tooltip');
+  String get compareMenuExport => _text('compare_menu_export');
+  String get comparisonCsvExported => _text('comparison_csv_exported');
+  String get comparisonCsvExportFailed => _text('comparison_csv_export_failed');
+  String get bestPerformersHeader => _text('best_performers_header');
+  String get bestHighestPnl => _text('best_highest_pnl');
+  String get bestWinRate => _text('best_win_rate');
+  String get bestProfitFactor => _text('best_profit_factor');
+  String get bestLowestDrawdown => _text('best_lowest_drawdown');
+  String get compareDetailedMetrics => _text('compare_detailed_metrics');
+  String get compareMetricColumn => _text('compare_metric_column');
+  String get compareTotalPnl => _text('compare_total_pnl');
+  String get compareReturnPercent => _text('compare_return_percent');
+  String get compareWinRate => _text('compare_win_rate');
+  String get compareTotalTrades => _text('compare_total_trades');
+  String get compareProfitFactor => _text('compare_profit_factor');
+  String get compareMaxDrawdown => _text('compare_max_drawdown');
+  String get compareSharpeRatio => _text('compare_sharpe_ratio');
+  String get compareAvgWin => _text('compare_avg_win');
+  String get compareAvgLoss => _text('compare_avg_loss');
+  String get compareLargestWin => _text('compare_largest_win');
+  String get compareLargestLoss => _text('compare_largest_loss');
+  String get compareExpectancy => _text('compare_expectancy');
+  String get perTfStatsHeader => _text('per_tf_stats_header');
+  String get chartMetricLabel => _text('chart_metric_label');
+  String get sortTfLabel => _text('sort_tf_label');
+  String get sortValueUpLabel => _text('sort_value_up_label');
+  String get sortValueDownLabel => _text('sort_value_down_label');
+  String get aggAvgLabel => _text('agg_avg_label');
+  String get aggMaxLabel => _text('agg_max_label');
+  String get menuExportChartCsv => _text('menu_export_chart_csv');
+  String get timeframeLabel => _text('timeframe_label');
+  String get groupedChartSharePngText => _text('grouped_chart_share_png_text');
+  String groupedChartPdfTitle(String metric) =>
+      _text('grouped_chart_pdf_title').replaceAll('{metric}', metric);
+  String get groupedChartCsvShareText => _text('grouped_chart_csv_share_text');
+  String get emptyGroupedTitle => _text('empty_grouped_title');
+  String get emptyGroupedTipFiltered => _text('empty_grouped_tip_filtered');
+  String get emptyGroupedTipRun => _text('empty_grouped_tip_run');
+  String resultIndexLabel(int index) =>
+      _text('result_index_label').replaceAll('{index}', '$index');
+
+  // SB stats chips (used in per‑TF chips)
+  String get sbStatsExpectancy => _text('sb_stats_expectancy');
+  String get sbStatsAvgWin => _text('sb_stats_avgwin');
+  String get sbStatsAvgLoss => _text('sb_stats_avgloss');
+  String get sbStatsRr => _text('sb_stats_rr');
   // Strategy Builder getters
   String get sbEditStrategyTitle => _text('sb_edit_strategy_title');
   String get sbCreateStrategyTitle => _text('sb_create_strategy_title');

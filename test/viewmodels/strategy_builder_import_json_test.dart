@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stacked_services/stacked_services.dart';
 
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/ui/views/strategy_builder/strategy_builder_viewmodel.dart';
 import 'package:backtestx/models/strategy.dart';
 
 import '../helpers/test_helpers.dart';
-import '../helpers/test_helpers.mocks.dart';
 
 void main() {
   group('StrategyBuilderViewModel - importStrategyJson', () {
@@ -16,7 +14,6 @@ void main() {
 
     test('Successfully imports JSON and normalizes types', () async {
       final vm = StrategyBuilderViewModel(null);
-      final mockSnackbar = locator<SnackbarService>() as MockSnackbarService;
 
       // Build JSON resembling _buildDraftJson but with string numbers
       final map = {
@@ -87,7 +84,6 @@ void main() {
     test('Invalid indicator triggers error snackbar and does not change state',
         () async {
       final vm = StrategyBuilderViewModel(null);
-      final mockSnackbar = locator<SnackbarService>() as MockSnackbarService;
 
       final invalidMap = {
         'name': 'Invalid Template',
@@ -121,7 +117,6 @@ void main() {
 
     test('Invalid riskType triggers error and does not change state', () async {
       final vm = StrategyBuilderViewModel(null);
-      final mockSnackbar = locator<SnackbarService>() as MockSnackbarService;
 
       final invalidMap = {
         'name': 'Invalid Risk',

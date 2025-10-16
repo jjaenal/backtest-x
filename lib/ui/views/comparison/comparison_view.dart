@@ -1,3 +1,4 @@
+import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/models/trade.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -6,10 +7,12 @@ import 'dart:typed_data';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:universal_html/html.dart' as html;
 import 'package:flutter/rendering.dart';
 import 'package:stacked/stacked.dart';
 import 'package:intl/intl.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'comparison_viewmodel.dart';
 import '../../widgets/grouped_tf_bar_chart.dart';
@@ -31,7 +34,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
 
   Widget _buildSummaryCards(BuildContext context, ComparisonViewModel model) {
     return SizedBox(
-      height: 210,
+      height: 230,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.all(16),
@@ -46,6 +49,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
 
   Widget _buildSummaryCard(BuildContext context, ComparisonViewModel model,
       BacktestResult result, int index) {
+    final l10n = AppLocalizations.of(context)!;
     final colors = [Colors.blue, Colors.purple, Colors.orange, Colors.teal];
     final color = colors[index % colors.length];
 
@@ -80,7 +84,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  'Result ${index + 1}',
+                  l10n.resultIndexLabel(index + 1),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -139,6 +143,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
 
   Widget _buildComparisonTable(
       BuildContext context, ComparisonViewModel model) {
+    final l10n = AppLocalizations.of(context)!;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       elevation: 2,
@@ -150,9 +155,9 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Detailed Metrics',
-              style: TextStyle(
+            Text(
+              l10n.compareDetailedMetrics,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -181,11 +186,16 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                         .withValues(alpha: 0.2),
                   ),
                   children: [
-                    _buildTableHeader(context, 'Metric'),
+                    _buildTableHeader(
+                      context,
+                      l10n.compareMetricColumn,
+                      isFirst: true,
+                    ),
                     for (int i = 0; i < results.length; i++)
                       _buildTableHeader(
                         context,
-                        'R${i + 1}: ${model.strategyLabelFor(results[i].strategyId)}',
+                        // '${l10n.resultIndexLabel(i + 1)}: ${model.strategyLabelFor(results[i].strategyId)}',
+                        l10n.resultIndexLabel(i + 1),
                       ),
                   ],
                 ),
@@ -193,7 +203,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Total P&L
                 _buildMetricRow(
                   context,
-                  'Total P&L',
+                  l10n.compareTotalPnl,
                   results.map((r) => _formatPnL(r.summary.totalPnl)).toList(),
                   results.map((r) => r.summary.totalPnl >= 0).toList(),
                 ),
@@ -201,7 +211,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // P&L %
                 _buildMetricRow(
                   context,
-                  'Return %',
+                  l10n.compareReturnPercent,
                   results
                       .map((r) =>
                           _formatPnLPercent(r.summary.totalPnlPercentage))
@@ -214,7 +224,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Win Rate
                 _buildMetricRow(
                   context,
-                  'Win Rate',
+                  l10n.compareWinRate,
                   results
                       .map((r) => '${r.summary.winRate.toStringAsFixed(1)}%')
                       .toList(),
@@ -224,7 +234,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Total Trades
                 _buildMetricRow(
                   context,
-                  'Total Trades',
+                  l10n.compareTotalTrades,
                   results.map((r) => '${r.summary.totalTrades}').toList(),
                   null,
                 ),
@@ -232,7 +242,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Profit Factor
                 _buildMetricRow(
                   context,
-                  'Profit Factor',
+                  l10n.compareProfitFactor,
                   results
                       .map((r) => r.summary.profitFactor.toStringAsFixed(2))
                       .toList(),
@@ -242,7 +252,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Max Drawdown
                 _buildMetricRow(
                   context,
-                  'Max Drawdown',
+                  l10n.compareMaxDrawdown,
                   results
                       .map((r) =>
                           '${r.summary.maxDrawdownPercentage.toStringAsFixed(2)}%')
@@ -255,7 +265,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Sharpe Ratio
                 _buildMetricRow(
                   context,
-                  'Sharpe Ratio',
+                  l10n.compareSharpeRatio,
                   results
                       .map((r) => r.summary.sharpeRatio.toStringAsFixed(2))
                       .toList(),
@@ -265,7 +275,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Average Win
                 _buildMetricRow(
                   context,
-                  'Avg Win',
+                  l10n.compareAvgWin,
                   results
                       .map(
                           (r) => '\$${r.summary.averageWin.toStringAsFixed(2)}')
@@ -276,7 +286,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Average Loss
                 _buildMetricRow(
                   context,
-                  'Avg Loss',
+                  l10n.compareAvgLoss,
                   results
                       .map((r) =>
                           '\$${r.summary.averageLoss.toStringAsFixed(2)}')
@@ -287,7 +297,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Largest Win
                 _buildMetricRow(
                   context,
-                  'Largest Win',
+                  l10n.compareLargestWin,
                   results
                       .map(
                           (r) => '\$${r.summary.largestWin.toStringAsFixed(2)}')
@@ -298,7 +308,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Largest Loss
                 _buildMetricRow(
                   context,
-                  'Largest Loss',
+                  l10n.compareLargestLoss,
                   results
                       .map((r) =>
                           '\$${r.summary.largestLoss.toStringAsFixed(2)}')
@@ -309,7 +319,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 // Expectancy
                 _buildMetricRow(
                   context,
-                  'Expectancy',
+                  l10n.compareExpectancy,
                   results
                       .map(
                           (r) => '\$${r.summary.expectancy.toStringAsFixed(2)}')
@@ -324,7 +334,8 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     );
   }
 
-  Widget _buildTableHeader(BuildContext context, String text) {
+  Widget _buildTableHeader(BuildContext context, String text,
+      {bool isFirst = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       child: Text(
@@ -334,7 +345,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
           fontWeight: FontWeight.bold,
           color: Theme.of(context).colorScheme.onSurface,
         ),
-        textAlign: text == 'Metric' ? TextAlign.left : TextAlign.center,
+        textAlign: isFirst ? TextAlign.left : TextAlign.center,
       ),
     );
   }
@@ -350,7 +361,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           child: Tooltip(
-            message: _metricTooltip(label),
+            message: _metricTooltip(context, label),
             child: Text(
               label,
               style: TextStyle(
@@ -382,38 +393,49 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     );
   }
 
-  String _metricTooltip(String label) {
-    switch (label) {
-      case 'Total P&L':
-        return 'Net profit/loss in currency from all closed trades.';
-      case 'Return %':
-        return 'Total P&L expressed as a percentage of initial capital.';
-      case 'Win Rate':
-        return 'Percentage of winning trades out of total closed trades.';
-      case 'Total Trades':
-        return 'Number of closed trades included in the summary.';
-      case 'Profit Factor':
-        return 'Gross profit divided by gross loss; > 1 indicates profitability.';
-      case 'Max Drawdown':
-        return 'Largest peak-to-trough decline during the backtest (percentage shown).';
-      case 'Sharpe Ratio':
-        return 'Risk-adjusted return; higher values indicate better risk efficiency.';
-      case 'Avg Win':
-        return 'Average profit per winning trade.';
-      case 'Avg Loss':
-        return 'Average loss per losing trade.';
-      case 'Largest Win':
-        return 'Biggest single-trade profit observed.';
-      case 'Largest Loss':
-        return 'Biggest single-trade loss observed.';
-      case 'Expectancy':
-        return 'Average expected profit per trade; positive indicates an edge.';
-      default:
-        return 'Metric description';
+  String _metricTooltip(BuildContext context, String label) {
+    final l = AppLocalizations.of(context)!;
+    if (label == l.compareTotalPnl || label == 'pnl') {
+      return l.metricTooltipPnl;
     }
+    if (label == l.compareReturnPercent || label == 'returnPct') {
+      return l.metricTooltipReturnPct;
+    }
+    if (label == l.compareWinRate || label == 'winRate') {
+      return l.metricTooltipWinRate;
+    }
+    if (label == l.compareTotalTrades || label == 'totalTrades') {
+      return l.metricTooltipTotalTrades;
+    }
+    if (label == l.compareProfitFactor || label == 'profitFactor') {
+      return l.metricTooltipPf;
+    }
+    if (label == l.compareMaxDrawdown || label == 'maxDrawdown') {
+      return l.metricTooltipMaxDrawdown;
+    }
+    if (label == l.compareSharpeRatio || label == 'sharpeRatio') {
+      return l.metricTooltipSharpeRatio;
+    }
+    if (label == l.compareAvgWin || label == 'avgWin') {
+      return l.metricTooltipAvgWin;
+    }
+    if (label == l.compareAvgLoss || label == 'avgLoss') {
+      return l.metricTooltipAvgLoss;
+    }
+    if (label == l.compareLargestWin || label == 'largestWin') {
+      return l.metricTooltipLargestWin;
+    }
+    if (label == l.compareLargestLoss || label == 'largestLoss') {
+      return l.metricTooltipLargestLoss;
+    }
+    if (label == l.compareExpectancy || label == 'expectancy') {
+      return l.metricTooltipExpectancy;
+    }
+    return l.metricTooltipDefault;
   }
 
   Widget _buildBestPerformer(BuildContext context, ComparisonViewModel model) {
+    final l10n = AppLocalizations.of(context)!;
     final bestByPnL = model.bestByPnL;
     final bestByWinRate = model.bestByWinRate;
     final bestByProfitFactor = model.bestByProfitFactor;
@@ -430,9 +452,9 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Best Performers',
-              style: TextStyle(
+            Text(
+              l10n.bestPerformersHeader,
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
@@ -440,7 +462,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             const SizedBox(height: 16),
             _buildPerformerCard(
               context,
-              'Highest P&L',
+              l10n.bestHighestPnl,
               model.strategyLabelFor(bestByPnL.strategyId),
               _formatPnL(bestByPnL.summary.totalPnl),
               Colors.green,
@@ -449,7 +471,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             const SizedBox(height: 12),
             _buildPerformerCard(
               context,
-              'Best Win Rate',
+              l10n.bestWinRate,
               model.strategyLabelFor(bestByWinRate.strategyId),
               '${bestByWinRate.summary.winRate.toStringAsFixed(1)}%',
               Colors.orange,
@@ -458,7 +480,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             const SizedBox(height: 12),
             _buildPerformerCard(
               context,
-              'Best Profit Factor',
+              l10n.bestProfitFactor,
               model.strategyLabelFor(bestByProfitFactor.strategyId),
               bestByProfitFactor.summary.profitFactor.toStringAsFixed(2),
               Colors.blue,
@@ -467,7 +489,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             const SizedBox(height: 12),
             _buildPerformerCard(
               context,
-              'Lowest Drawdown',
+              l10n.bestLowestDrawdown,
               model.strategyLabelFor(lowestDrawdown.strategyId),
               '${lowestDrawdown.summary.maxDrawdownPercentage.toStringAsFixed(2)}%',
               Colors.purple,
@@ -559,63 +581,56 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   @override
   Widget builder(
       BuildContext context, ComparisonViewModel model, Widget? child) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Compare Results'),
+        title: Text(AppLocalizations.of(context)!.compareViewTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.download),
-            tooltip: 'Export Comparison CSV',
+            tooltip: AppLocalizations.of(context)!.compareExportCsvTooltip,
             onPressed: () async {
               final ok = await model.exportComparisonCsv();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok
-                        ? 'Ekspor comparison CSV berhasil'
-                        : 'Ekspor comparison CSV gagal',
-                  ),
-                ),
+              locator<SnackbarService>().showSnackbar(
+                message: ok
+                    ? l10n.comparisonCsvExported
+                    : l10n.comparisonCsvExportFailed,
+                duration: const Duration(seconds: 3),
               );
             },
           ),
           IconButton(
             icon: const Icon(Icons.copy),
-            tooltip: 'Copy Comparison Summary',
+            tooltip: AppLocalizations.of(context)!.compareCopySummaryTooltip,
             onPressed: () async {
               final ok = await model.copySummaryToClipboard();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    ok
-                        ? 'Ringkasan comparison disalin ke clipboard'
-                        : 'Gagal menyalin ringkasan ke clipboard',
-                  ),
-                  duration: const Duration(seconds: 2),
-                ),
+              locator<SnackbarService>().showSnackbar(
+                message:
+                    ok ? l10n.comparisonCsvExported : l10n.copyFailedGeneric,
+                duration: const Duration(seconds: 3),
               );
             },
           ),
           PopupMenuButton(
             icon: const Icon(Icons.more_vert),
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'export',
                 child: Row(
                   children: [
-                    Icon(Icons.download, size: 20),
-                    SizedBox(width: 12),
-                    Text('Export Comparison'),
+                    const Icon(Icons.download, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l10n.compareMenuExport),
                   ],
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'copy',
                 child: Row(
                   children: [
-                    Icon(Icons.copy, size: 20),
-                    SizedBox(width: 12),
-                    Text('Copy Summary'),
+                    const Icon(Icons.copy, size: 20),
+                    const SizedBox(width: 12),
+                    Text(l10n.copySummary),
                   ],
                 ),
               ),
@@ -623,26 +638,19 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             onSelected: (value) async {
               if (value == 'export') {
                 final ok = await model.exportComparisonCsv();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      ok
-                          ? 'Ekspor comparison CSV berhasil'
-                          : 'Ekspor comparison CSV gagal',
-                    ),
-                  ),
+                locator<SnackbarService>().showSnackbar(
+                  message: ok
+                      ? l10n.comparisonCsvExported
+                      : l10n.comparisonCsvExportFailed,
+                  duration: const Duration(seconds: 3),
                 );
               } else if (value == 'copy') {
                 final ok = await model.copySummaryToClipboard();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      ok
-                          ? 'Ringkasan comparison disalin ke clipboard'
-                          : 'Gagal menyalin ringkasan ke clipboard',
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
+                locator<SnackbarService>().showSnackbar(
+                  message: ok
+                      ? l10n.comparisonCsvExported
+                      : l10n.comparisonCsvExportFailed,
+                  duration: const Duration(seconds: 3),
                 );
               }
             },
@@ -691,12 +699,13 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   }
 
   Widget _buildPerTfStats(BuildContext context, ComparisonViewModel model) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionTitle('Per-Timeframe Stats'),
+          _buildSectionTitle(l10n.perTfStatsHeader),
           const SizedBox(height: 12),
           // Global TF filter chips and actions
           Builder(builder: (context) {
@@ -737,19 +746,19 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                       TextButton.icon(
                         onPressed: model.clearTimeframeFilters,
                         icon: const Icon(Icons.clear),
-                        label: const Text('Clear filters'),
+                        label: Text(l10n.sbClearFilters),
                       ),
                     const SizedBox(width: 12),
                     OutlinedButton.icon(
                       onPressed: () =>
                           model.exportComparisonTfStats(format: 'csv'),
                       icon: const Icon(Icons.download),
-                      label: const Text('Export CSV'),
+                      label: Text(l10n.exportCsv),
                     ),
                     OutlinedButton(
                       onPressed: () =>
                           model.exportComparisonTfStats(format: 'tsv'),
-                      child: const Text('Export TSV'),
+                      child: Text(l10n.exportTsv),
                     ),
                   ],
                 ),
@@ -758,8 +767,8 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                 Row(
                   children: [
                     Tooltip(
-                      message: _metricTooltip(model.selectedTfMetric),
-                      child: Text('Chart Metric:',
+                      message: _metricTooltip(context, model.selectedTfMetric),
+                      child: Text(l10n.chartMetricLabel,
                           style: Theme.of(context).textTheme.bodyMedium),
                     ),
                     const SizedBox(width: 8),
@@ -804,13 +813,15 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     // Sorting dropdown
                     DropdownButton<String>(
                       value: model.groupedTfSort,
-                      items: const [
+                      items: [
                         DropdownMenuItem(
-                            value: 'timeframe', child: Text('Sort: TF')),
+                            value: 'timeframe', child: Text(l10n.sortTfLabel)),
                         DropdownMenuItem(
-                            value: 'valueAsc', child: Text('Sort: Value ↑')),
+                            value: 'valueAsc',
+                            child: Text(l10n.sortValueUpLabel)),
                         DropdownMenuItem(
-                            value: 'valueDesc', child: Text('Sort: Value ↓')),
+                            value: 'valueDesc',
+                            child: Text(l10n.sortValueDownLabel)),
                       ],
                       onChanged: (v) =>
                           v != null ? model.setGroupedTfSort(v) : null,
@@ -818,9 +829,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     // Aggregation dropdown (Avg vs Max)
                     DropdownButton<String>(
                       value: model.groupedTfAgg,
-                      items: const [
-                        DropdownMenuItem(value: 'avg', child: Text('Agg: Avg')),
-                        DropdownMenuItem(value: 'max', child: Text('Agg: Max')),
+                      items: [
+                        DropdownMenuItem(
+                            value: 'avg', child: Text(l10n.aggAvgLabel)),
+                        DropdownMenuItem(
+                            value: 'max', child: Text(l10n.aggMaxLabel)),
                       ],
                       onChanged: (v) =>
                           v != null ? model.setGroupedTfAgg(v) : null,
@@ -832,7 +845,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                         pixelRatio: 2.0,
                       ),
                       icon: const Icon(Icons.image),
-                      label: const Text('Export Chart PNG'),
+                      label: Text(l10n.menuExportChartPng),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => _exportGroupedChartPdf(
@@ -841,7 +854,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                         pixelRatio: 2.0,
                       ),
                       icon: const Icon(Icons.picture_as_pdf),
-                      label: const Text('Export Chart PDF'),
+                      label: Text(l10n.menuExportChartPdf),
                     ),
                     OutlinedButton.icon(
                       onPressed: () => _exportGroupedChartCsv(
@@ -849,7 +862,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                         model,
                       ),
                       icon: const Icon(Icons.table_chart),
-                      label: const Text('Export Chart CSV'),
+                      label: Text(l10n.menuExportChartCsv),
                     ),
                   ],
                 ),
@@ -875,7 +888,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'R${index + 1}: ${model.strategyLabelFor(r.strategyId)}',
+                        '${l10n.resultIndexLabel(index + 1)}: ${model.strategyLabelFor(r.strategyId)}',
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium
@@ -937,6 +950,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     double rr,
   ) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
@@ -954,15 +968,18 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             style: theme.textTheme.bodyMedium
                 ?.copyWith(fontWeight: FontWeight.w600),
           ),
-          _statChip(context, 'Signals', signals.toString()),
-          _statChip(context, 'Trades', trades.toString()),
-          _statChip(context, 'Wins', wins.toString()),
-          _statChip(context, 'WinRate', '${winRate.toStringAsFixed(1)}%'),
-          _statChip(context, 'PF', profitFactor.toStringAsFixed(2)),
-          _statChip(context, 'Expectancy', expectancy.toStringAsFixed(2)),
-          _statChip(context, 'AvgWin', avgWin.toStringAsFixed(2)),
-          _statChip(context, 'AvgLoss', avgLoss.toStringAsFixed(2)),
-          _statChip(context, 'R/R', rr.toStringAsFixed(2)),
+          _statChip(context, l10n.sbStatsSignals, signals.toString()),
+          _statChip(context, l10n.sbStatsTrades, trades.toString()),
+          _statChip(context, l10n.sbStatsWins, wins.toString()),
+          _statChip(
+              context, l10n.sbStatsWinRate, '${winRate.toStringAsFixed(1)}%'),
+          _statChip(
+              context, l10n.workspacePfLabel, profitFactor.toStringAsFixed(2)),
+          _statChip(
+              context, l10n.sbStatsExpectancy, expectancy.toStringAsFixed(2)),
+          _statChip(context, l10n.sbStatsAvgWin, avgWin.toStringAsFixed(2)),
+          _statChip(context, l10n.sbStatsAvgLoss, avgLoss.toStringAsFixed(2)),
+          _statChip(context, l10n.sbStatsRr, rr.toStringAsFixed(2)),
         ],
       ),
     );
@@ -998,6 +1015,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     double pixelRatio = 2.0,
   }) async {
     try {
+      final l10n = AppLocalizations.of(context)!;
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
       final composed = await _composeOpaquePng(context, bytes);
@@ -1019,7 +1037,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         final path = '${dir.path}/$fileName';
         final file = File(path);
         await file.writeAsBytes(composed);
-        await Share.shareXFiles([XFile(path)], text: 'BacktestX Grouped Chart');
+        await Share.shareXFiles(
+          [XFile(path)],
+          text: l10n.groupedChartSharePngText,
+        );
       }
     } catch (_) {}
   }
@@ -1030,6 +1051,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     double pixelRatio = 2.0,
   }) async {
     try {
+      final l10n = AppLocalizations.of(context)!;
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
       final composed = await _composeOpaquePng(context, bytes);
@@ -1040,7 +1062,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
       await model.exportImagePdf(
         composed,
         fileName,
-        title: 'Grouped Per‑TF: ${model.selectedTfMetric}',
+        title: l10n.groupedChartPdfTitle(model.selectedTfMetric),
       );
     } catch (_) {}
   }
@@ -1049,13 +1071,14 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
     BuildContext context,
     ComparisonViewModel model,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     try {
       final grouped = model.getGroupedTfMetricSeries();
       final labels = model.getSeriesLabels();
       // Respect the current timeframe ordering used in the chart
       final tfs = model.getTimeframeOrderForGrouped();
       final rows = <List<String>>[];
-      rows.add(['Timeframe', ...labels]);
+      rows.add([l10n.timeframeLabel, ...labels]);
       for (final tf in tfs) {
         final m = grouped[tf] ?? {};
         final row = <String>[tf];
@@ -1085,18 +1108,19 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
         final file = File(path);
         await file.writeAsString(csvContent);
         await Share.shareXFiles([XFile(path)],
-            text: 'BacktestX Grouped TF Chart CSV');
+            text: l10n.groupedChartCsvShareText);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export CSV gagal: $e')),
+          SnackBar(content: Text(l10n.exportFailed(e.toString()))),
         );
       }
     }
   }
 
   Widget _emptyGroupedState(BuildContext context, ComparisonViewModel model) {
+    final l10n = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final hasFilter = model.selectedTimeframeFilters.isNotEmpty;
     return Container(
@@ -1117,7 +1141,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
               const SizedBox(width: 8),
               Text(
-                'No grouped data to display',
+                l10n.emptyGroupedTitle,
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(fontWeight: FontWeight.w600),
               ),
@@ -1125,9 +1149,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
           ),
           const SizedBox(height: 6),
           Text(
-            hasFilter
-                ? 'Adjust the timeframe filters above or change metric.'
-                : 'Run comparison with results that include per‑TF stats, or change metric.',
+            hasFilter ? l10n.emptyGroupedTipFiltered : l10n.emptyGroupedTipRun,
             style: theme.textTheme.bodySmall,
           ),
         ],
