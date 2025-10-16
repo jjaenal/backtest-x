@@ -51,7 +51,7 @@ void main() {
     );
     await dm.cacheData(md);
 
-    final summary = const BacktestSummary(
+    const summary = BacktestSummary(
       totalTrades: 1,
       winningTrades: 1,
       losingTrades: 0,
@@ -67,7 +67,7 @@ void main() {
       largestWin: 10,
       largestLoss: -5,
       expectancy: 5,
-      tfStats: const {},
+      tfStats: {},
     );
 
     final result = BacktestResult(

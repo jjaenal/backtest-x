@@ -7,7 +7,7 @@ void main() {
     test('invalid format (too few columns) returns detailed error', () async {
       final service = DataParserService();
       // Header is optional; provide one invalid data row with 3 columns
-      final csv = '2024-01-01,100,101\n';
+      const csv = '2024-01-01,100,101\n';
       final bytes = Uint8List.fromList(csv.codeUnits);
 
       expect(
@@ -28,7 +28,7 @@ void main() {
     test('row-level error includes line and column details', () async {
       final service = DataParserService();
       // Header + one bad row (Open not a number) -> no valid candles
-      final csv =
+      const csv =
           'Date,Open,High,Low,Close,Volume\n2024-01-01,abc,101,99,100,1000\n';
       final bytes = Uint8List.fromList(csv.codeUnits);
 
@@ -50,7 +50,7 @@ void main() {
 
     test('valid CSV parses successfully', () async {
       final service = DataParserService();
-      final csv =
+      const csv =
           'Date,Open,High,Low,Close,Volume\n2024-01-01,100,101,99,100,1000\n';
       final bytes = Uint8List.fromList(csv.codeUnits);
 

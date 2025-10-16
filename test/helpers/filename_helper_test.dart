@@ -4,7 +4,7 @@ import 'package:backtestx/helpers/filename_helper.dart';
 void main() {
   group('FilenameHelper', () {
     test('sanitize replaces illegal chars and trims underscores', () {
-      final input = ':/bad*name?<>|__file__';
+      const input = ':/bad*name?<>|__file__';
       final out = FilenameHelper.sanitize(input);
       expect(out, 'bad_name_file');
     });

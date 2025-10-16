@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class ErrorBanner extends StatelessWidget {
   final String message;
@@ -53,11 +54,11 @@ class ErrorBanner extends StatelessWidget {
                             foregroundColor: colorScheme.onErrorContainer,
                           ),
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Retry'),
+                          label: Text(AppLocalizations.of(context)?.errorRetry ?? 'Retry'),
                         ),
                       const Spacer(),
                       IconButton(
-                        tooltip: 'Dismiss',
+                        tooltip: AppLocalizations.of(context)?.errorDismiss ?? 'Dismiss',
                         icon: Icon(
                           Icons.close,
                           color: colorScheme.onErrorContainer,

@@ -4,7 +4,7 @@ import 'package:backtestx/helpers/share_content_helper.dart';
 void main() {
   group('PII Redaction', () {
     test('redacts email addresses', () {
-      final input = 'Contact me at john.doe@example.com for details';
+      const input = 'Contact me at john.doe@example.com for details';
       final out = ShareContentHelper.redactPII(input);
       expect(out.contains('example.com'), isFalse);
       expect(out.contains('[email_redacted]'), isTrue);

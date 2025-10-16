@@ -290,8 +290,10 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                                     await viewModel.importStrategyJson(text);
                                   }
                                 }
-                                if (Navigator.of(ctx).canPop()) {
-                                  Navigator.of(ctx).pop();
+                                if (ctx.mounted && Navigator.of(ctx).canPop()) {
+                                  if (ctx.mounted) {
+                                    Navigator.of(ctx).pop();
+                                  }
                                 }
                               },
                               child: Text(l10n.sbApply),

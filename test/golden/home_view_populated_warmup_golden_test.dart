@@ -26,7 +26,7 @@ void main() {
 
     // Deterministic viewport
     await tester.binding.setSurfaceSize(const Size(393, 852));
-    tester.binding.window.devicePixelRatioTestValue = 1.0;
+    tester.view.devicePixelRatio = 1.0;
 
     // Mock path_provider to avoid MissingPluginException in tests
     mockPathProviderForTests();
@@ -68,7 +68,7 @@ void main() {
     when(storage.getAllMarketDataInfo()).thenAnswer((_) async => [mdInfo]);
     when(storage.getTotalBacktestResultsCount()).thenAnswer((_) async => 1);
 
-    final summary = BacktestSummary(
+    const summary = BacktestSummary(
       totalTrades: 10,
       winningTrades: 6,
       losingTrades: 4,
@@ -84,7 +84,7 @@ void main() {
       largestWin: 500.0,
       largestLoss: -300.0,
       expectancy: 12.0,
-      tfStats: const {},
+      tfStats: {},
     );
     final latest = BacktestResult(
       id: 'res1',

@@ -4,13 +4,13 @@ import 'package:backtestx/helpers/share_content_helper.dart';
 void main() {
   group('ShareContentHelper.sanitizeText', () {
     test('removes control characters but preserves \n and \t', () {
-      final input = 'Hello\x00World\nLine2\tTabbed\x1FEnd';
+      const input = 'Hello\x00World\nLine2\tTabbed\x1FEnd';
       final out = ShareContentHelper.sanitizeText(input);
       expect(out, 'HelloWorld\nLine2\tTabbedEnd');
     });
 
     test('collapses multiple spaces and newlines, trims ends', () {
-      final input = '  A   B   C\n\n\nD  ';
+      const input = '  A   B   C\n\n\nD  ';
       final out = ShareContentHelper.sanitizeText(input);
       expect(out, 'A B C\n\nD');
     });

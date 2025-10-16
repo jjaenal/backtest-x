@@ -68,7 +68,7 @@ void main() {
       largestWin: 10,
       largestLoss: -5,
       expectancy: 5,
-      tfStats: const {},
+      tfStats: {},
     );
 
     final result = BacktestResult(

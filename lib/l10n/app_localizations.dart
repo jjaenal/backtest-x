@@ -1493,6 +1493,16 @@ class AppLocalizations {
       _text('workspace_compare_banner_selected_suffix')
           .replaceAll('{selected}', '$selected');
 
+  // Added getters for newly introduced localization keys
+  String get clearLabel => _text('clear_label');
+  String get dialogGotIt => _text('dialog_got_it');
+  String get errorRetry => _text('error_retry');
+  String get errorDismiss => _text('error_dismiss');
+  String workspaceBacktestResultsCount(int shown, int total) =>
+      _text('workspace_backtest_results_count')
+          .replaceAll('{shown}', '$shown')
+          .replaceAll('{total}', '$total');
+
   String get relativeToday => _text('relative_today');
   String get relativeYesterday => _text('relative_yesterday');
   String relativeDaysAgo(int count) =>

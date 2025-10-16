@@ -49,8 +49,8 @@ class OnboardingSheetModel extends BaseViewModel {
   }
 
   Future<void> openLearnPanel() async {
-    final l10n = AppLocalizations.of(
-        locator<NavigationService>().navigatorKey!.currentContext!)!;
+    final l10n =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
     await locator<BottomSheetService>().showCustomSheet(
       variant: BottomSheetType.notice,
       title: l10n.onboardingLearn,
@@ -61,8 +61,8 @@ class OnboardingSheetModel extends BaseViewModel {
   }
 
   Future<void> showCsvNotice() async {
-    final l10n = AppLocalizations.of(
-        locator<NavigationService>().navigatorKey!.currentContext!)!;
+    final l10n =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
     await locator<BottomSheetService>().showCustomSheet(
       variant: BottomSheetType.notice,
       title: l10n.onboardingViewCsvExample,

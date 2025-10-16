@@ -3,6 +3,7 @@ import 'package:backtestx/ui/common/app_colors.dart';
 import 'package:backtestx/ui/common/ui_helpers.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 import 'info_alert_dialog_model.dart';
 
@@ -85,9 +86,9 @@ class InfoAlertDialog extends StackedView<InfoAlertDialogModel> {
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Text(
-                  'Got it',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.dialogGotIt,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,

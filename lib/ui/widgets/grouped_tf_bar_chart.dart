@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui' show FontFeature;
 
 class GroupedTfBarChart extends StatelessWidget {
   final Map<String, Map<String, double>>
@@ -156,8 +155,8 @@ class GroupedTfBarChart extends StatelessWidget {
     double maxVal,
   ) {
     final theme = Theme.of(context);
-    final groupPadding = 6.0;
-    final barHeight = 14.0;
+    const groupPadding = 6.0;
+    const barHeight = 14.0;
     final bgColor = theme.colorScheme.surfaceContainerHighest;
     final borderColor = theme.colorScheme.outlineVariant.withValues(alpha: 0.5);
 
@@ -172,8 +171,8 @@ class GroupedTfBarChart extends StatelessWidget {
           ),
           Expanded(
             child: Container(
-              padding:
-                  EdgeInsets.symmetric(vertical: groupPadding, horizontal: 8),
+              padding: const EdgeInsets.symmetric(
+                  vertical: groupPadding, horizontal: 8),
               decoration: BoxDecoration(
                 color: bgColor,
                 borderRadius: BorderRadius.circular(6),

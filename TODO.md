@@ -32,7 +32,7 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
   - [x] `LoginView`: tombol Google + form email/password (banner redirect pasca-login)
   - [x] `LoginView`: tautan "Lupa Password"
   - [x] `SignupView`: form email/password + konfirmasi password
-  - [x] `UserView`: menu user (avatar, email, Change Password, Logout, Delete Account, Language, Theme, Help, background processing, etc)
+  - [ ] `UserView`: menu user (avatar, email, Change Password, Logout, Delete Account, Language, Theme, Help, background processing, etc)
   - [x] Route guard: proteksi akses ke Strategy Builder bila belum login (set redirect + konsumsi di Login)
   - [x] Menu user di AppBar (avatar, email, tombol Sign Out)
 - [x] i18n & Error Handling

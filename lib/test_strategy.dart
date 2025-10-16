@@ -270,17 +270,17 @@ void main() async {
   
   // Test recommended strategy
   final bestStrategy = ExampleStrategies.conservativeSwing();
-  print('Testing: ${bestStrategy.name}');
+  debugPrint('Testing: ${bestStrategy.name}');
   
   final result = await engine.runBacktest(
     marketData: marketData,
     strategy: bestStrategy,
   );
   
-  print('Win Rate: ${result.summary.winRate}%');
-  print('Total PnL: \${result.summary.totalPnl}');
-  print('Total Trades: ${result.summary.totalTrades}');
-  print('Profit Factor: ${result.summary.profitFactor}');
-  print('---');
+  debugPrint('Win Rate: ${result.summary.winRate}%');
+  debugPrint('Total PnL: \${result.summary.totalPnl}');
+  debugPrint('Total Trades: ${result.summary.totalTrades}');
+  debugPrint('Profit Factor: ${result.summary.profitFactor}');
+  debugPrint('---');
 }
 */

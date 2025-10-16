@@ -182,7 +182,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
     final rule = isEntry ? entryRules[index] : exitRules[index];
     final warnings = <String>[];
     final l10n =
-        AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!;
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
     // Timeframe smaller than base timeframe (if selected)
     if (rule.timeframe != null && selectedDataId != null) {
@@ -358,7 +358,7 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   List<String> _getRuleFatalErrors(RuleBuilder rule) {
     final errors = <String>[];
     final l10n =
-        AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!;
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
     // Rising/Falling do not require comparison value
     if (rule.operator == ComparisonOperator.rising ||
         rule.operator == ComparisonOperator.falling) {
@@ -1072,9 +1072,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
   Future<void> showBuilderTips() async {
     await _bottomSheetService.showCustomSheet(
       variant: BottomSheetType.notice,
-      title:
-          AppLocalizations.of(_navigationService.navigatorKey!.currentContext!)!
-              .sbBuilderTips,
+      title: AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!
+          .sbBuilderTips,
       description:
           '• Use Template for quick run.\n• Adjust period indikator based on timeframe.\n• Anchored VWAP: set Anchor Mode & date.\n• Check Preview on AppBar for quick test.\n• Autosave active: save drafts to prevent data loss.',
       barrierDismissible: true,
@@ -1516,8 +1515,8 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
 
   RuleBuilder _mapToRuleBuilder(dynamic m) {
     final map = Map<String, dynamic>.from(m as Map);
-    String? _asString(dynamic v) => v is String ? v : v?.toString();
-    int? _toInt(dynamic v) {
+    String? asString(dynamic v) => v is String ? v : v?.toString();
+    int? toInt(dynamic v) {
       if (v == null) return null;
       if (v is int) return v;
       if (v is double) return v.toInt();
@@ -1530,25 +1529,25 @@ class StrategyBuilderViewModel extends BaseRefreshableViewModel {
       return null;
     }
 
-    double? _toDouble(dynamic v) {
+    double? toDouble(dynamic v) {
       if (v == null) return null;
       if (v is num) return v.toDouble();
       if (v is String) return double.tryParse(v);
       return null;
     }
 
-    final indicatorName = _asString(map['indicator']);
-    final operatorName = _asString(map['operator']);
+    final indicatorName = asString(map['indicator']);
+    final operatorName = asString(map['operator']);
     final isNumberValue =
         map['isNumberValue'] is bool ? map['isNumberValue'] as bool : true;
-    final numberValue = _toDouble(map['numberValue']);
-    final compareIndicatorName = _asString(map['compareIndicator']);
-    final period = _toInt(map['period']);
-    final mainPeriod = _toInt(map['mainPeriod']);
-    final logicalName = _asString(map['logicalOperator']);
-    final timeframe = _asString(map['timeframe']);
-    final anchorModeName = _asString(map['anchorMode']);
-    final anchorDateStr = _asString(map['anchorDate']);
+    final numberValue = toDouble(map['numberValue']);
+    final compareIndicatorName = asString(map['compareIndicator']);
+    final period = toInt(map['period']);
+    final mainPeriod = toInt(map['mainPeriod']);
+    final logicalName = asString(map['logicalOperator']);
+    final timeframe = asString(map['timeframe']);
+    final anchorModeName = asString(map['anchorMode']);
+    final anchorDateStr = asString(map['anchorDate']);
 
     final indicator = indicatorName != null
         ? IndicatorType.values.firstWhere(

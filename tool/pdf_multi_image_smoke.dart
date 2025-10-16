@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as img;
 import 'package:backtestx/services/pdf_export_service.dart';
 
@@ -29,8 +29,10 @@ Future<void> main() async {
   final hasFooter1 = text.contains('Page 1 of 2');
   final hasFooter2 = text.contains('Page 2 of 2');
 
-  print('PDF length: ${pdfBytes.length}');
-  print('Pages detected: $pagesCount');
-  print('Footer page 1: $hasFooter1');
-  print('Footer page 2: $hasFooter2');
+  if (kDebugMode) {
+    debugPrint('PDF length: ${pdfBytes.length}');
+    debugPrint('Pages detected: $pagesCount');
+    debugPrint('Footer page 1: $hasFooter1');
+    debugPrint('Footer page 2: $hasFooter2');
+  }
 }

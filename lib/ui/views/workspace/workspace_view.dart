@@ -313,7 +313,7 @@ class WorkspaceView extends StatelessWidget {
           if (model.selectedCount > 0)
             TextButton(
               onPressed: model.clearSelection,
-              child: const Text('Clear'),
+              child: Text(AppLocalizations.of(context)!.clearLabel),
             ),
         ],
       ),
@@ -399,8 +399,8 @@ class WorkspaceView extends StatelessWidget {
                             value: 'export_trades_all',
                             child: Row(
                               children: [
-                                Icon(Icons.table_view, size: 20),
-                                SizedBox(width: 12),
+                                const Icon(Icons.table_view, size: 20),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!
                                     .exportAllTradesCsv),
                               ],
@@ -410,8 +410,8 @@ class WorkspaceView extends StatelessWidget {
                             value: 'export_tfstats_csv',
                             child: Row(
                               children: [
-                                Icon(Icons.stacked_line_chart, size: 20),
-                                SizedBox(width: 12),
+                                const Icon(Icons.stacked_line_chart, size: 20),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!
                                     .exportTfStatsCsv),
                               ],
@@ -421,8 +421,8 @@ class WorkspaceView extends StatelessWidget {
                             value: 'export_results_csv',
                             child: Row(
                               children: [
-                                Icon(Icons.file_download, size: 20),
-                                SizedBox(width: 12),
+                                const Icon(Icons.file_download, size: 20),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!
                                     .exportResultsCsv),
                               ],
@@ -454,8 +454,8 @@ class WorkspaceView extends StatelessWidget {
                             value: 'edit',
                             child: Row(
                               children: [
-                                Icon(Icons.edit, size: 20),
-                                SizedBox(width: 12),
+                                const Icon(Icons.edit, size: 20),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!.editLabel),
                               ],
                             ),
@@ -464,8 +464,8 @@ class WorkspaceView extends StatelessWidget {
                             value: 'duplicate',
                             child: Row(
                               children: [
-                                Icon(Icons.content_copy, size: 20),
-                                SizedBox(width: 12),
+                                const Icon(Icons.content_copy, size: 20),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!
                                     .duplicateLabel),
                               ],
@@ -475,8 +475,9 @@ class WorkspaceView extends StatelessWidget {
                             value: 'delete',
                             child: Row(
                               children: [
-                                Icon(Icons.delete, size: 20, color: Colors.red),
-                                SizedBox(width: 12),
+                                const Icon(Icons.delete,
+                                    size: 20, color: Colors.red),
+                                const SizedBox(width: 12),
                                 Text(AppLocalizations.of(context)!.deleteLabel,
                                     style: const TextStyle(color: Colors.red)),
                               ],
@@ -823,7 +824,7 @@ class WorkspaceView extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 AppLocalizations.of(context)!.workspaceQuickTestResultTitle,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -899,7 +900,10 @@ class WorkspaceView extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Backtest Results (${model.getResultsShownCount(strategy.id)}/${allCount})',
+                    AppLocalizations.of(context)!.workspaceBacktestResultsCount(
+                      model.getResultsShownCount(strategy.id),
+                      allCount,
+                    ),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1548,8 +1552,8 @@ class WorkspaceView extends StatelessWidget {
                     value: 0,
                     child: Row(
                       children: [
-                        Icon(Icons.table_chart, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.table_chart, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.copyTradesCsv),
                       ],
                     ),
@@ -1558,8 +1562,8 @@ class WorkspaceView extends StatelessWidget {
                     value: 1,
                     child: Row(
                       children: [
-                        Icon(Icons.copy, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.copy, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.copySummary),
                       ],
                     ),
@@ -1568,8 +1572,8 @@ class WorkspaceView extends StatelessWidget {
                     value: 2,
                     child: Row(
                       children: [
-                        Icon(Icons.download, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.download, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.exportCsv),
                       ],
                     ),
@@ -1578,8 +1582,8 @@ class WorkspaceView extends StatelessWidget {
                     value: 3,
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline, size: 18),
-                        SizedBox(width: 8),
+                        const Icon(Icons.delete_outline, size: 18),
+                        const SizedBox(width: 8),
                         Text(AppLocalizations.of(context)!.deleteLabel),
                       ],
                     ),

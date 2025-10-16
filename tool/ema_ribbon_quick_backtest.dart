@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
@@ -20,33 +21,33 @@ void main() async {
     createdAt: DateTime.now(),
   );
 
-  print('🚀 Running EMA Ribbon quick backtest...');
-  print(
+  debugPrint('🚀 Running EMA Ribbon quick backtest...');
+  debugPrint(
       '   Data: ${marketData.symbol} ${marketData.timeframe} (${marketData.candles.length} candles)');
-  print('   Strategy: ${strategy.name}');
+  debugPrint('   Strategy: ${strategy.name}');
 
   final result = await IsolateBacktest.run(
     marketData: marketData,
     strategy: strategy,
   );
 
-  print('✅ Backtest complete');
-  print('   Trades: ${result.summary.totalTrades}');
-  print('   Win Rate: ${result.summary.winRate.toStringAsFixed(2)}%');
-  print('   Total PnL: \\${result.summary.totalPnl.toStringAsFixed(2)}');
+  debugPrint('✅ Backtest complete');
+  debugPrint('   Trades: ${result.summary.totalTrades}');
+  debugPrint('   Win Rate: ${result.summary.winRate.toStringAsFixed(2)}%');
+  debugPrint('   Total PnL: \\${result.summary.totalPnl.toStringAsFixed(2)}');
 
   // Print first few signals if any trades executed
   final trades = result.trades;
   if (trades.isNotEmpty) {
     final count = trades.length < 5 ? trades.length : 5;
-    print('   First $count trades:');
+    debugPrint('   First $count trades:');
     for (var i = 0; i < count; i++) {
       final t = trades[i];
-      print(
+      debugPrint(
           '   ${i + 1}. ${t.direction.name.toUpperCase()} @ ${t.entryPrice} → ${t.exitPrice} | PnL: \\${t.pnl?.toStringAsFixed(2)}');
     }
   } else {
-    print('   ⚠️  No trades detected on synthetic dataset.');
+    debugPrint('   ⚠️  No trades detected on synthetic dataset.');
   }
 }
 

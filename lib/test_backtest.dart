@@ -41,11 +41,11 @@
 
 //   for (var strategy in strategies) {
 //     for (final rule in strategy.entryRules) {
-//       print('Rule: ${rule.indicator.name} ${rule.operator.name}');
+//       debugPrint('Rule: ${rule.indicator.name} ${rule.operator.name}');
 //       rule.value.when(
-//         number: (n) => print('  Compare with: $n'),
+//         number: (n) => debugPrint('  Compare with: $n'),
 //         indicator: (type, period) =>
-//             print('  Compare with: ${type.name}($period)'),
+//             debugPrint('  Compare with: ${type.name}($period)'),
 //       );
 //     }
 

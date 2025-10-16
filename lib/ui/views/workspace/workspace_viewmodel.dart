@@ -40,8 +40,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   List<Strategy> get strategies => _strategies;
 
   // Results grouped by strategy
-  Map<String, List<BacktestResult>> _strategyResults = {};
-  Map<String, bool> _expandedStrategies = {};
+  final Map<String, List<BacktestResult>> _strategyResults = {};
+  final Map<String, bool> _expandedStrategies = {};
 
   String _searchQuery = '';
   String get searchQuery => _searchQuery;
@@ -54,7 +54,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   String? _selectedDataId;
   String? get selectedDataId => _selectedDataId;
 
-  Map<String, BacktestResult?> _quickResults = {};
+  final Map<String, BacktestResult?> _quickResults = {};
   // Progress percentage per strategy for quick/backtest runs
   final Map<String, double> _quickProgress = {};
   double? getQuickProgress(String strategyId) => _quickProgress[strategyId];
@@ -71,7 +71,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   String? _selectedSymbolFilter;
   String? get selectedSymbolFilter => _selectedSymbolFilter;
   // Multi-select timeframe filters
-  Set<String> _selectedTimeframeFilters = {};
+  final Set<String> _selectedTimeframeFilters = {};
   Set<String> get selectedTimeframeFilters => _selectedTimeframeFilters;
 
   // Date range filters
@@ -99,8 +99,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy a strategy deep link to clipboard
   Future<void> copyStrategyLinkToClipboard(Strategy strategy) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final deepLinks = locator<DeepLinkService>();
       final url = deepLinks.buildStrategyLink(strategyId: strategy.id);
       if (locator.isRegistered<ClipboardService>()) {
@@ -114,8 +114,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.copyFailed(e.toString()) ?? 'Failed to copy link: $e',
         duration: const Duration(seconds: 3),
@@ -126,8 +126,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy a backtest result deep link to clipboard
   Future<void> copyResultLinkToClipboard(BacktestResult result) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final deepLinks = locator<DeepLinkService>();
       final url = deepLinks.buildBacktestResultLink(resultId: result.id);
       if (locator.isRegistered<ClipboardService>()) {
@@ -141,8 +141,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.copyFailed(e.toString()) ?? 'Failed to copy link: $e',
         duration: const Duration(seconds: 3),
@@ -176,12 +176,12 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   BacktestResult? getQuickResult(String strategyId) =>
       _quickResults[strategyId];
 
-  Map<String, bool> _isRunningQuickTest = {};
+  final Map<String, bool> _isRunningQuickTest = {};
   bool isRunningQuickTest(String strategyId) =>
       _isRunningQuickTest[strategyId] ?? false;
 
   // Batch quick test state per strategy
-  Map<String, bool> _isRunningBatchQuickTest = {};
+  final Map<String, bool> _isRunningBatchQuickTest = {};
   bool isRunningBatchQuickTest(String strategyId) =>
       _isRunningBatchQuickTest[strategyId] ?? false;
 
@@ -189,7 +189,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   bool _isCompareMode = false;
   bool get isCompareMode => _isCompareMode;
 
-  Set<String> _selectedResultIds = {};
+  final Set<String> _selectedResultIds = {};
   Set<String> get selectedResultIds => _selectedResultIds;
   int get selectedCount => _selectedResultIds.length;
   bool get canCompare => selectedCount >= 2 && selectedCount <= 4;
@@ -693,8 +693,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       final marketData = _dataManager.getData(_selectedDataId!);
 
       if (marketData == null) {
-        final ctx = _navigationService.navigatorKey?.currentContext;
-        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+        final ctx = StackedService.navigatorKey?.currentContext;
+        final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
         await _bottomSheetService.showCustomSheet(
           variant: BottomSheetType.notice,
           title: t?.mdEmptyTitle ?? 'Data Tidak Ditemukan',
@@ -711,8 +711,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       // Quick validation before running
       final isValid = _dataValidationService.quickValidate(marketData);
       if (!isValid) {
-        final ctx = _navigationService.navigatorKey?.currentContext;
-        final t = ctx != null ? AppLocalizations.of(ctx) : null;
+        final ctx = StackedService.navigatorKey?.currentContext;
+        final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
         final report = _dataValidationService.validateMarketData(marketData);
         await _bottomSheetService.showCustomSheet(
           variant: BottomSheetType.validationReport,
@@ -738,8 +738,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
       // Show quick summary snackbar for immediate feedback
       try {
-        final ctx = _navigationService.navigatorKey?.currentContext;
-        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+        final ctx = StackedService.navigatorKey?.currentContext;
+        final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
         final s = result.summary;
         final pf = s.profitFactor.toStringAsFixed(2);
         final wr = s.winRate.toStringAsFixed(2);
@@ -757,8 +757,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       try {
         final s = result.summary;
         if (s.totalTrades == 0) {
-          final ctx = _navigationService.navigatorKey?.currentContext;
-          final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+          final ctx = StackedService.navigatorKey?.currentContext;
+          final t =
+              ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
           await _bottomSheetService.showCustomSheet(
             variant: BottomSheetType.notice,
             title: t?.qtZeroTradeTitle ?? 'Quick Test: 0 Trade',
@@ -769,8 +770,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
             isScrollControlled: true,
           );
         } else {
-          final ctx = _navigationService.navigatorKey?.currentContext;
-          final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+          final ctx = StackedService.navigatorKey?.currentContext;
+          final t =
+              ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
           final pf = s.profitFactor.toStringAsFixed(2);
           final wr = s.winRate.toStringAsFixed(2);
           final response = await _bottomSheetService.showCustomSheet(
@@ -802,8 +804,9 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
           // Skip saving if no trades to avoid downstream chart errors
           if (result.summary.totalTrades == 0) {
-            final ctx = _navigationService.navigatorKey?.currentContext;
-            final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+            final ctx = StackedService.navigatorKey?.currentContext;
+            final t =
+                ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
             _snackbarService.showSnackbar(
               message: t?.qtNotSavedZeroTrade ??
                   'Quick test result not saved (0 trade)',
@@ -820,7 +823,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
           _snackbarService.showSnackbar(
             message: (AppLocalizations.of(
-                        _navigationService.navigatorKey!.currentContext!)
+                        StackedService.navigatorKey!.currentContext!)
                     ?.qtSavedToDb ??
                 'Quick test saved to database'),
             duration: const Duration(seconds: 2),
@@ -830,7 +833,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
           debugPrint('Error saving quick test: $e');
           showErrorWithRetry(
             title: (AppLocalizations.of(
-                        _navigationService.navigatorKey!.currentContext!)
+                        StackedService.navigatorKey!.currentContext!)
                     ?.qtSaveFailedTitle ??
                 'Quick test save failed'),
             message: e.toString(),
@@ -842,8 +845,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                 }
                 if (result.summary.totalTrades == 0) {
                   _snackbarService.showSnackbar(
-                    message: (AppLocalizations.of(_navigationService
-                                .navigatorKey!.currentContext!)
+                    message: (AppLocalizations.of(
+                                StackedService.navigatorKey!.currentContext!)
                             ?.qtNotSavedZeroTrade ??
                         'Quick test result not saved (0 trade)'),
                     duration: const Duration(seconds: 2),
@@ -855,7 +858,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
                     .getBacktestResultsByStrategy(strategy.id);
                 _snackbarService.showSnackbar(
                   message: (AppLocalizations.of(
-                              _navigationService.navigatorKey!.currentContext!)
+                              StackedService.navigatorKey!.currentContext!)
                           ?.qtSavedToDb ??
                       'Quick test saved to database'),
                   duration: const Duration(seconds: 2),
@@ -869,10 +872,10 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     } catch (e) {
       debugPrint('Error running quick test: $e');
       showErrorWithRetry(
-        title: (AppLocalizations.of(
-                    _navigationService.navigatorKey!.currentContext!)
-                ?.qtRunFailedTitle ??
-            'Quick test failed'),
+        title:
+            (AppLocalizations.of(StackedService.navigatorKey!.currentContext!)
+                    ?.qtRunFailedTitle ??
+                'Quick test failed'),
         message: e.toString(),
         onRetry: () => quickRunBacktest(strategy),
       );
@@ -886,8 +889,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   Future<void> quickRunBacktestBatch(Strategy strategy, {int? maxCount}) async {
     // Ensure we have data
     if (_availableData.isEmpty) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.pleaseUploadMarketData ?? 'Please upload market data first',
         duration: const Duration(seconds: 2),
@@ -897,8 +900,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
     // Prevent parallel runs per strategy
     if (isRunningBatchQuickTest(strategy.id)) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message:
             t?.batchAlreadyRunning ?? 'Batch already running for this strategy',
@@ -952,8 +955,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         }
       }
 
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final msg = skipped > 0
           ? (t?.batchCompleteSavedSkipped(
                   completed.toString(), total.toString(), skipped.toString()) ??
@@ -990,8 +993,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export filtered backtest results (summary rows) for a strategy to CSV
   Future<void> exportFilteredStrategyResultsCsv(Strategy strategy) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
@@ -1073,8 +1076,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
@@ -1085,8 +1088,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export per-timeframe stats for filtered results of a strategy to CSV
   Future<void> exportFilteredStrategyTfStatsCsv(Strategy strategy) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final results = getFilteredResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
@@ -1177,8 +1180,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
@@ -1191,8 +1194,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Export ALL trades across all results for a strategy to a single CSV
   Future<void> exportStrategyTradesCsv(Strategy strategy) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final results = getResults(strategy.id);
       if (results.isEmpty) {
         _snackbarService.showSnackbar(
@@ -1303,15 +1306,16 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         );
       }
 
-      final ctx2 = _navigationService.navigatorKey?.currentContext;
-      final t2 = ctx2 != null ? AppLocalizations.of(ctx2)! : null;
+      final ctx2 = StackedService.navigatorKey?.currentContext;
+      final t2 =
+          ctx2 != null && ctx2.mounted ? AppLocalizations.of(ctx2)! : null;
       _snackbarService.showSnackbar(
         message: t2?.tradesExported ?? 'All trades exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
@@ -1403,16 +1407,17 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       }
 
       // Show export-complete snackbar
-      final ctx2 = _navigationService.navigatorKey?.currentContext;
-      final t2 = ctx2 != null ? AppLocalizations.of(ctx2)! : null;
+      final ctx2 = StackedService.navigatorKey?.currentContext;
+      final t2 =
+          ctx2 != null && ctx2.mounted ? AppLocalizations.of(ctx2)! : null;
       _snackbarService.showSnackbar(
         message: t2?.workspaceExportFilteredResultsCsv ??
             'Filtered results exported to CSV',
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.exportFailed(e.toString()) ?? 'Export failed: $e',
         duration: const Duration(seconds: 3),
@@ -1423,8 +1428,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy single result summary to clipboard
   Future<void> copyResultSummaryToClipboard(BacktestResult result) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final marketData = _dataManager.getData(result.marketDataId);
       String strategyName = 'Strategy ${result.strategyId}';
       try {
@@ -1481,8 +1486,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.copyFailed(e.toString()) ?? 'Copy failed: $e',
         duration: const Duration(seconds: 3),
@@ -1493,8 +1498,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   /// Copy trades table as CSV to clipboard for a single result
   Future<void> copyTradesCsvToClipboard(BacktestResult result) async {
     try {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       final closedTrades =
           result.trades.where((t) => t.status == TradeStatus.closed).toList();
 
@@ -1546,8 +1551,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
         duration: const Duration(seconds: 2),
       );
     } catch (e) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message: t?.copyFailed(e.toString()) ?? 'Copy failed: $e',
         duration: const Duration(seconds: 3),
@@ -1571,8 +1576,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
     await loadData();
 
-    final ctx = _navigationService.navigatorKey?.currentContext;
-    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
     _snackbarService.showSnackbar(
       message: t?.strategyDuplicated ?? 'Strategy duplicated',
       duration: const Duration(seconds: 2),
@@ -1582,8 +1587,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
   Future<void> deleteStrategy(Strategy strategy) async {
     final resultsCount = getResultsCount(strategy.id);
 
-    final ctx = _navigationService.navigatorKey?.currentContext;
-    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
     final response = await _dialogService.showConfirmationDialog(
       title: t?.deleteStrategyTitle ?? 'Delete Strategy',
       description: resultsCount > 0
@@ -1612,8 +1617,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
   // Result actions
   Future<void> deleteResult(BacktestResult result) async {
-    final ctx = _navigationService.navigatorKey?.currentContext;
-    final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
     final response = await _dialogService.showConfirmationDialog(
       title: t?.deleteTitle ?? 'Delete Result',
       description: t?.deleteResultDesc ?? 'Delete this backtest result?',
@@ -1650,8 +1655,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
       _selectedResultIds.remove(resultId);
     } else {
       if (_selectedResultIds.length >= 4) {
-        final ctx = _navigationService.navigatorKey?.currentContext;
-        final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+        final ctx = StackedService.navigatorKey?.currentContext;
+        final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
         _snackbarService.showSnackbar(
           message: t?.maximumCompare ?? 'Maximum 4 results can be compared',
           duration: const Duration(seconds: 2),
@@ -1673,7 +1678,7 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
 
   Future<void> compareSelected() async {
     if (!canCompare) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
+      final ctx = StackedService.navigatorKey?.currentContext;
       final t = ctx != null ? AppLocalizations.of(ctx) : null;
       _snackbarService.showSnackbar(
         message:
@@ -1694,8 +1699,8 @@ class WorkspaceViewModel extends BaseRefreshableViewModel {
     }
 
     if (selectedResults.length < 2) {
-      final ctx = _navigationService.navigatorKey?.currentContext;
-      final t = ctx != null ? AppLocalizations.of(ctx)! : null;
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null && ctx.mounted ? AppLocalizations.of(ctx)! : null;
       _snackbarService.showSnackbar(
         message:
             t?.errorLoadingSelectedResults ?? 'Error loading selected results',

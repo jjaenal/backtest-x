@@ -35,7 +35,7 @@ void main() {
 
     // Deterministic surface size and DPR
     await tester.binding.setSurfaceSize(const Size(393, 852));
-    tester.binding.window.devicePixelRatioTestValue = 1.0;
+    tester.view.devicePixelRatio = 1.0;
 
     // Simulate warm-up in progress without triggering background tasks
     DataManager().warmupNotifier.value = true;

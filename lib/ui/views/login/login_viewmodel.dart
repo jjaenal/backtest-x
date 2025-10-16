@@ -172,7 +172,7 @@ class LoginViewModel extends BaseViewModel {
   }
 
   String _friendlyError(Object e) {
-    final ctx = _nav.navigatorKey?.currentContext;
+    final ctx = StackedService.navigatorKey?.currentContext;
     final t = ctx != null ? AppLocalizations.of(ctx) : null;
 
     // Supabase auth exceptions

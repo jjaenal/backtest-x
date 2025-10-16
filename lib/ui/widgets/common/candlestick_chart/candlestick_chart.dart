@@ -900,7 +900,7 @@ class CandlestickPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: symbol,
-        style: TextStyle(
+        style: const TextStyle(
           color: Colors.white,
           fontSize: 10,
           fontWeight: FontWeight.bold,

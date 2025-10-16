@@ -54,7 +54,7 @@ void main() {
     await dm.cacheData(md);
 
     // Summary with per-timeframe stats available
-    final summary = const BacktestSummary(
+    const summary = BacktestSummary(
       totalTrades: 2,
       winningTrades: 1,
       losingTrades: 1,

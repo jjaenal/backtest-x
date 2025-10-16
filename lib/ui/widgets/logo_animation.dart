@@ -64,8 +64,8 @@ class TuangkangPainter extends CustomPainter {
     final centerY = size.height / 2;
 
     const text = 'Tuangkang';
-    final textLength = text.length;
-    final timePerChar = 1.0 / textLength;
+    const textLength = text.length;
+    const timePerChar = 1.0 / textLength;
 
     double currentX = centerX - 200;
 
@@ -148,7 +148,7 @@ class TuangkangPainter extends CustomPainter {
     // Draw text biasa
     textPainter.paint(
       canvas,
-      Offset(0, 0),
+      const Offset(0, 0),
     );
 
     // Draw outline stroke untuk efek lebih bold

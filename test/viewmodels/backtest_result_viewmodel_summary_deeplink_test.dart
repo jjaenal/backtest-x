@@ -60,7 +60,7 @@ void main() {
     );
     await dm.cacheData(md);
 
-    final summary = const BacktestSummary(
+    const summary = BacktestSummary(
       totalTrades: 1,
       winningTrades: 1,
       losingTrades: 0,

@@ -272,5 +272,5 @@ class GoldStrategies {
 ///     marketData: xauusdData,
 ///     strategy: strategy,
 ///   );
-///   print('${strategy.name}: WR=${result.summary.winRate}%, PnL=\$${result.summary.totalPnl}');
+///   debugPrint('${strategy.name}: WR=${result.summary.winRate}%, PnL=\$${result.summary.totalPnl}');
 /// }
