@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:golden_toolkit/golden_toolkit.dart';
 import 'package:mockito/mockito.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,7 +62,7 @@ Future<void> pumpWidgetForGolden(
 }) async {
   await tester.pumpWidget(
     MediaQuery(
-      data: MediaQueryData(
+      data: const MediaQueryData(
         size: kGoldenViewportSize, 
         devicePixelRatio: kGoldenDevicePixelRatio
       ),

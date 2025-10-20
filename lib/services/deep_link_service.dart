@@ -297,10 +297,9 @@ class DeepLinkService {
     if (_baseUrlOverride != null) return _baseUrlOverride!;
     if (kIsWeb) {
       final location = html.window.location;
-      final String? originMaybe = location.origin;
-      final String? basePathMaybe = location.pathname;
-      final String origin = originMaybe ?? '';
-      final String basePath = basePathMaybe ?? '';
+      // Gunakan String kosong sebagai fallback jika null
+      final String origin = location.origin ?? 'http://localhost';
+      final String basePath = location.pathname ?? '';
       // Trim trailing slash from basePath and origin
       String base = origin;
       // If hosted under a subpath, preserve it
