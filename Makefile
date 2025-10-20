@@ -92,3 +92,12 @@ goldens-file:
 goldens-update-file:
 	@if [ -z "$(FILE)" ]; then echo "FILE is required. Usage: make goldens-update-file FILE=test/golden/<file>.dart"; exit 1; fi
 	flutter test $(FILE) --update-goldens --reporter=expanded --dart-define=GOLDEN_TEST=true
+
+# Run web with dart-define for Supabase (dev convenience)
+run-web:
+	@if [ -z "$(URL)" ] || [ -z "$(KEY)" ]; then echo "URL and KEY are required. Usage: make run-web URL=<supabase_url> KEY=<anon_key>"; exit 1; fi
+	flutter run -d web-server --web-hostname localhost --web-port 8081 --dart-define SUPABASE_URL=$(URL) --dart-define SUPABASE_ANON_KEY=$(KEY)
+
+run-chrome:
+	@if [ -z "$(URL)" ] || [ -z "$(KEY)" ]; then echo "URL and KEY are required. Usage: make run-chrome URL=<supabase_url> KEY=<anon_key>"; exit 1; fi
+	flutter run -d chrome --web-port 8081 --dart-define SUPABASE_URL=$(URL) --dart-define SUPABASE_ANON_KEY=$(KEY)

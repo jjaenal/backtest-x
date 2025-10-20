@@ -332,3 +332,12 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 
 - Workspace Compare MTF visualization (charts + summary)
 - Multi‑timeframe analysis across views (Phase 2 milestone)
+
+## Auth Test Checklist (Web)
+
+- Run dev server: `make run-web URL=<supabase_url> KEY=<anon_key>` on `http://localhost:8081/`.
+- Email signup: submit -> open verification email -> confirm -> app auto-login -> redirect ke rute tersimpan (jika ada) setelah login.
+- Email login: login -> akses rute terproteksi terbuka; banner verifikasi muncul hingga email terkonfirmasi.
+- Resend verification: klik kirim ulang -> cooldown berjalan (detik) -> tombol nonaktif selama cooldown.
+- Password recovery: klik "Lupa Password" -> buka link dari email -> app menampilkan dialog ganti password -> login dengan password baru.
+- Google OAuth: login berhasil; kembali ke origin; rute terproteksi terbuka.

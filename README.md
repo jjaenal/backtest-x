@@ -33,9 +33,9 @@ flutter run
 
 ## 🔐 Authentication Setup (Supabase)
 
-- Set `Site URL` sesuai origin aplikasi (dev/prod). Contoh dev: `http://localhost:8085/`.
+- Set `Site URL` sesuai origin aplikasi (dev/prod). Contoh dev: `http://localhost:8081/`.
 - Tambahkan `Redirect URLs` untuk OAuth Google dan email confirmation:
-  - Web (dev): `http://localhost:8085/`
+  - Web (dev): `http://localhost:8081/`
   - Web (prod): `https://yourdomain.com/`
   - Mobile: `io.supabase.flutter://login-callback` (Android intent filter, iOS CFBundleURLSchemes)
 - Jalankan web dev server dengan port stabil agar link email tetap valid di sesi berbeda:
@@ -43,9 +43,15 @@ flutter run
 ```bash
 flutter run -d web-server \
   --web-hostname localhost \
-  --web-port 8085 \
+  --web-port 8081 \
   --dart-define SUPABASE_URL=<your_supabase_url> \
   --dart-define SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+Alternatif (Makefile):
+
+```bash
+make run-web URL=<your_supabase_url> KEY=<your_anon_key>
 ```
 
 Catatan:
