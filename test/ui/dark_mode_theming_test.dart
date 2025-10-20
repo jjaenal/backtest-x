@@ -24,8 +24,6 @@ class ThemedHarness extends StatelessWidget {
               onTertiary: Colors.white,
               error: Color(0xFFB00020),
               onError: Colors.white,
-              background: Color(0xFFF6F7FB),
-              onBackground: Color(0xFF1A1C1E),
               surface: Colors.white,
               onSurface: Color(0xFF1A1C1E),
               surfaceContainerHighest: Color(0xFFF0F2F6),
@@ -44,8 +42,6 @@ class ThemedHarness extends StatelessWidget {
               onTertiary: Color(0xFF0A0C0F),
               error: Color(0xFFFF5252),
               onError: Color(0xFF0A0C0F),
-              background: Color(0xFF0F1114),
-              onBackground: Color(0xFFEDEFF3),
               surface: Color(0xFF121417),
               onSurface: Color(0xFFEDEFF3),
               surfaceContainerHighest: Color(0xFF171A1E),
@@ -143,16 +139,18 @@ void main() {
 
       final text = tester.widget<Text>(find.byKey(textKey));
       final color = text.style!.color!;
-      // Light onSurface (0xFF1A1C1E) with 0.7 opacity → ARGB 0xB31A1C1E
-      expect(color, const Color(0xB31A1C1E));
+      // Light onSurface with 0.7 opacity derived via withValues
+      final expectedLight = const Color(0xFF1A1C1E).withValues(alpha: 0.7);
+      expect(color, expectedLight);
 
       // Switch to dark and verify new computed color
       mode.value = ThemeMode.dark;
       await tester.pumpAndSettle();
       final textDark = tester.widget<Text>(find.byKey(textKey));
       final colorDark = textDark.style!.color!;
-      // Dark onSurface (0xFFEDEFF3) with 0.7 opacity → ARGB 0xB3EDEFF3
-      expect(colorDark, const Color(0xB3EDEFF3));
+      // Dark onSurface with 0.7 opacity derived via withValues
+      final expectedDark = const Color(0xFFEDEFF3).withValues(alpha: 0.7);
+      expect(colorDark, expectedDark);
     });
   });
 }
