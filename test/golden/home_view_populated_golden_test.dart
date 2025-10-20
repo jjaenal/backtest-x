@@ -10,7 +10,7 @@ void main() {
     await setupGoldenTest();
     setupPopulatedStorageService();
   });
-  
+
   tearDownAll(() => locator.reset());
 
   testGoldens('HomeView - populated state', (tester) async {

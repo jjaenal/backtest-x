@@ -9,7 +9,7 @@ void main() {
   setUpAll(() async {
     await setupGoldenTest();
   });
-  
+
   tearDownAll(() => locator.reset());
 
   testWidgets('HomeView - default state', (tester) async {

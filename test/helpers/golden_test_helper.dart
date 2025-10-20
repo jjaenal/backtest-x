@@ -21,10 +21,10 @@ const double kGoldenDevicePixelRatio = 1.0;
 /// Setup dasar untuk semua golden test
 Future<void> setupGoldenTest() async {
   await setupLocator();
-  
+
   // Use in-memory SharedPreferences for tests
   SharedPreferences.setMockInitialValues({});
-  
+
   // Initialize Supabase with dummy values for tests
   try {
     await Supabase.initialize(
@@ -37,13 +37,13 @@ Future<void> setupGoldenTest() async {
       rethrow;
     }
   }
-  
+
   // Silence info/debug logs in tests
   silenceInfoLogsForTests();
-  
+
   // Mock path_provider to avoid MissingPluginException in tests
   mockPathProviderForTests();
-  
+
   // Disable background warmup to avoid async churn in tests
   DataManager().setBackgroundWarmupEnabled(false);
 }
@@ -56,20 +56,18 @@ Future<void> setupGoldenViewport(WidgetTester tester) async {
 
 /// Pump widget untuk golden test dengan konfigurasi standar
 Future<void> pumpWidgetForGolden(
-  WidgetTester tester, 
+  WidgetTester tester,
   Widget widget, {
   bool tickerEnabled = false,
 }) async {
   await tester.pumpWidget(
     MediaQuery(
       data: const MediaQueryData(
-        size: kGoldenViewportSize, 
-        devicePixelRatio: kGoldenDevicePixelRatio
-      ),
+          size: kGoldenViewportSize, devicePixelRatio: kGoldenDevicePixelRatio),
       child: TickerMode(
         enabled: tickerEnabled,
         child: MaterialApp(
-          debugShowCheckedModeBanner: false, 
+          debugShowCheckedModeBanner: false,
           home: widget,
         ),
       ),
@@ -86,20 +84,21 @@ Future<void> pumpWidgetForGolden(
 MockStorageService setupEmptyStorageService() {
   registerServices();
   final storage = locator<StorageService>() as MockStorageService;
-  
+
   when(storage.getAllStrategies()).thenAnswer((_) async => []);
   when(storage.getAllMarketDataInfo()).thenAnswer((_) async => []);
   when(storage.getTotalBacktestResultsCount()).thenAnswer((_) async => 0);
   when(storage.getLatestBacktestResult()).thenAnswer((_) async => null);
-  
+
   return storage;
 }
 
 /// Setup StorageService dengan data strategi dan market data
-MockStorageService setupPopulatedStorageService({bool withBacktestResults = true}) {
+MockStorageService setupPopulatedStorageService(
+    {bool withBacktestResults = true}) {
   registerServices();
   final storage = locator<StorageService>() as MockStorageService;
-  
+
   final strategy = Strategy(
     id: 'strat1',
     name: 'Test Strategy',
@@ -131,7 +130,7 @@ MockStorageService setupPopulatedStorageService({bool withBacktestResults = true
 
   when(storage.getAllStrategies()).thenAnswer((_) async => [strategy]);
   when(storage.getAllMarketDataInfo()).thenAnswer((_) async => [mdInfo]);
-  
+
   if (withBacktestResults) {
     final backtestResult = BacktestResult(
       id: 'bt1',
@@ -182,14 +181,15 @@ MockStorageService setupPopulatedStorageService({bool withBacktestResults = true
         ),
       ],
     );
-    
+
     when(storage.getTotalBacktestResultsCount()).thenAnswer((_) async => 1);
-    when(storage.getLatestBacktestResult()).thenAnswer((_) async => backtestResult);
+    when(storage.getLatestBacktestResult())
+        .thenAnswer((_) async => backtestResult);
   } else {
     when(storage.getTotalBacktestResultsCount()).thenAnswer((_) async => 0);
     when(storage.getLatestBacktestResult()).thenAnswer((_) async => null);
   }
-  
+
   // Siapkan candles untuk DataManager
   final candles = List.generate(
     120,
@@ -202,7 +202,7 @@ MockStorageService setupPopulatedStorageService({bool withBacktestResults = true
       volume: 100,
     ),
   );
-  
+
   // Cache market data di DataManager
   final dm = DataManager();
   final marketData = MarketData(
@@ -213,12 +213,13 @@ MockStorageService setupPopulatedStorageService({bool withBacktestResults = true
     uploadedAt: mdInfo.uploadedAt,
   );
   dm.cacheData(marketData);
-  
+
   return storage;
 }
 
 /// Verifikasi golden test dengan nama file yang diberikan
-Future<void> verifyGolden(WidgetTester tester, Finder finder, String goldenFileName) async {
+Future<void> verifyGolden(
+    WidgetTester tester, Finder finder, String goldenFileName) async {
   await expectLater(
     finder,
     matchesGoldenFile('goldens/$goldenFileName.png'),

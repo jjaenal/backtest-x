@@ -18,11 +18,12 @@ void main() {
       (tester) async {
     await loadAppFonts();
     await setupGoldenViewport(tester);
-    
+
     // Simulate warm-up completed
     DataManager().warmupNotifier.value = false;
-    
+
     await pumpWidgetForGolden(tester, const HomeView());
-    await verifyGolden(tester, find.byType(HomeView), 'home_view_populated_postwarmup');
+    await verifyGolden(
+        tester, find.byType(HomeView), 'home_view_populated_postwarmup');
   });
 }
