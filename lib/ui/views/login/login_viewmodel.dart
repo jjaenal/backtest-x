@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:meta/meta.dart' show visibleForTesting;
+import 'package:universal_html/html.dart' as html;
 
 /// ViewModel untuk login, menangani autentikasi, banner verifikasi email, dan cooldown kirim ulang.
 class LoginViewModel extends BaseViewModel {
@@ -111,6 +112,16 @@ class LoginViewModel extends BaseViewModel {
       final ctx = StackedService.navigatorKey?.currentContext;
       final t = ctx != null ? AppLocalizations.of(ctx) : null;
       await _auth.signUpWithEmail(email: email, password: password);
+
+      // Simpan kredensial sementara di sessionStorage agar bisa auto-login setelah verifikasi (Web)
+      if (kIsWeb) {
+        try {
+          html.window.sessionStorage['pending_signup_email'] = email;
+          html.window.sessionStorage['pending_signup_password'] = password;
+          html.window.sessionStorage['pending_signup_ts'] =
+              DateTime.now().toIso8601String();
+        } catch (_) {}
+      }
 
       // Tampilkan info bahwa email verifikasi sudah dikirim dan perlu dicek.
       infoMessage = t?.errorAuthEmailNotConfirmed ??
