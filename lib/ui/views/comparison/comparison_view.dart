@@ -605,8 +605,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
             onPressed: () async {
               final ok = await model.copySummaryToClipboard();
               locator<SnackbarService>().showSnackbar(
-                message:
-                    ok ? l10n.comparisonCsvExported : l10n.copyFailedGeneric,
+                message: ok ? l10n.summaryCopied : l10n.copyFailedGeneric,
                 duration: const Duration(seconds: 3),
               );
             },
@@ -647,9 +646,7 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
               } else if (value == 'copy') {
                 final ok = await model.copySummaryToClipboard();
                 locator<SnackbarService>().showSnackbar(
-                  message: ok
-                      ? l10n.comparisonCsvExported
-                      : l10n.comparisonCsvExportFailed,
+                  message: ok ? l10n.summaryCopied : l10n.copyFailedGeneric,
                   duration: const Duration(seconds: 3),
                 );
               }

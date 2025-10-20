@@ -69,19 +69,28 @@ class IsolateBacktest {
       });
     } catch (_) {
       // Fallback: run on main isolate with progress directly
-      final engine = BacktestEngineService();
+      final engine = BacktestEngineService(indicatorService: IndicatorService());
+      StorageService? storageSafe;
+      try {
+        storageSafe = locator<StorageService>();
+      } catch (_) {
+        storageSafe = null;
+      }
       final result = await engine.runBacktest(
         marketData: marketData,
         strategy: strategy,
         onProgress: (p) {
-          locator<StorageService>().emitBacktestProgress(
-            BacktestProgressEvent(
-              strategyId: strategy.id,
-              marketDataId: marketData.id,
-              progress: p,
-              tfStats: engine.lastTfStats,
-            ),
-          );
+          final s = storageSafe;
+          if (s != null) {
+            s.emitBacktestProgress(
+              BacktestProgressEvent(
+                strategyId: strategy.id,
+                marketDataId: marketData.id,
+                progress: p,
+                tfStats: engine.lastTfStats,
+              ),
+            );
+          }
         },
       );
       return result;

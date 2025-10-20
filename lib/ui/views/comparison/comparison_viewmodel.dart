@@ -81,6 +81,8 @@ class ComparisonViewModel extends BaseViewModel {
   String get selectedTfMetric => _selectedTfMetric;
   void setSelectedTfMetric(String metric) {
     _selectedTfMetric = metric;
+    // Persist selected metric
+    _prefs.setString('compare.selectedTfMetric', metric);
     _invalidateGroupedCache();
     _throttleNotify();
   }
@@ -139,6 +141,23 @@ class ComparisonViewModel extends BaseViewModel {
       final savedAgg = await _prefs.getString('compare.groupedTfAgg');
       if (savedAgg != null && groupedAggOptions.contains(savedAgg)) {
         _groupedTfAgg = savedAgg;
+      }
+      // Load selected metric
+      final savedMetric = await _prefs.getString('compare.selectedTfMetric');
+      if (savedMetric != null && availableTfMetrics.contains(savedMetric)) {
+        _selectedTfMetric = savedMetric;
+      }
+      // Load timeframe filters and intersect with available TFs
+      final savedFiltersStr = await _prefs.getString('compare.selectedTfFilters');
+      if (savedFiltersStr != null && savedFiltersStr.trim().isNotEmpty) {
+        final allTfs = getAllAvailableTimeframes().toSet();
+        final saved = savedFiltersStr
+            .split(',')
+            .map((s) => s.trim())
+            .where((s) => s.isNotEmpty && allTfs.contains(s));
+        _selectedTimeframeFilters
+          ..clear()
+          ..addAll(saved);
       }
     } catch (_) {}
     notifyListeners();
@@ -226,12 +245,18 @@ class ComparisonViewModel extends BaseViewModel {
     } else {
       _selectedTimeframeFilters.add(tf);
     }
+    // Persist filters (sorted for stability)
+    _prefs.setString(
+        'compare.selectedTfFilters',
+        (_selectedTimeframeFilters.toList()..sort()).join(','));
     _invalidateGroupedCache();
     _throttleNotify();
   }
 
   void clearTimeframeFilters() {
     _selectedTimeframeFilters.clear();
+    // Clear persisted filters
+    _prefs.setString('compare.selectedTfFilters', '');
     _invalidateGroupedCache();
     _throttleNotify();
   }
@@ -540,7 +565,13 @@ class ComparisonViewModel extends BaseViewModel {
           : rows.map((r) => r.join('\t')).join('\n');
       final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
       final ext = isCsv ? 'csv' : 'tsv';
-      final fileName = generateExportFilename(baseLabel: 'tfstats', ext: ext);
+      // Sertakan filter TF terpilih pada nama file untuk konteks yang jelas
+      final filters = (_selectedTimeframeFilters.toList()..sort());
+      final filterLabel = filters.isEmpty ? 'all' : filters.join('-');
+      final fileName = generateExportFilename(
+        baseLabel: 'tfstats_tfs_$filterLabel',
+        ext: ext,
+      );
 
       if (kIsWeb) {
         final blob = html.Blob([content], mime);

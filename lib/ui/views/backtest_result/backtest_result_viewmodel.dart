@@ -324,8 +324,20 @@ class BacktestResultViewModel extends BaseRefreshableViewModel {
       final isCsv = format.toLowerCase() == 'csv';
       final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
       final ext = isCsv ? 'csv' : 'tsv';
-      final fileName =
-          'backtest_${result.strategyId}_${result.marketDataId}_tfstats.$ext';
+      // Sertakan filter TF terpilih pada nama file
+      final filters = (_selectedTimeframeFilters.toList()..sort());
+      final filterLabel = filters.isEmpty ? 'all' : filters.join('-');
+      final fileName = FilenameHelper.build(
+      [
+      'backtest',
+      result.strategyId,
+      result.marketDataId,
+      'tfstats',
+      'tfs',
+      filterLabel,
+      ],
+      ext: ext,
+      );
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)
           : rows.map((r) => r.join('\t')).join('\n');
@@ -442,8 +454,20 @@ class BacktestResultViewModel extends BaseRefreshableViewModel {
       final isCsv = format.toLowerCase() == 'csv';
       final mime = isCsv ? 'text/csv' : 'text/tab-separated-values';
       final ext = isCsv ? 'csv' : 'tsv';
-      final fileName =
-          'backtest_${result.strategyId}_${result.marketDataId}_trades.$ext';
+      // Sertakan filter TF terpilih pada nama file (berlaku jika filter dipakai)
+      final filters = (_selectedTimeframeFilters.toList()..sort());
+      final filterLabel = filters.isEmpty ? 'all' : filters.join('-');
+      final fileName = FilenameHelper.build(
+      [
+      'backtest',
+      result.strategyId,
+      result.marketDataId,
+      'trades',
+      'tfs',
+      filterLabel,
+      ],
+      ext: ext,
+      );
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)
           : rows.map((r) => r.join('\t')).join('\n');
