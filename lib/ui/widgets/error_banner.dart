@@ -54,11 +54,14 @@ class ErrorBanner extends StatelessWidget {
                             foregroundColor: colorScheme.onErrorContainer,
                           ),
                           icon: const Icon(Icons.refresh),
-                          label: Text(AppLocalizations.of(context)?.errorRetry ?? 'Retry'),
+                          label: Text(
+                              AppLocalizations.of(context)?.errorRetry ??
+                                  'Retry'),
                         ),
                       const Spacer(),
                       IconButton(
-                        tooltip: AppLocalizations.of(context)?.errorDismiss ?? 'Dismiss',
+                        tooltip: AppLocalizations.of(context)?.errorDismiss ??
+                            'Dismiss',
                         icon: Icon(
                           Icons.close,
                           color: colorScheme.onErrorContainer,

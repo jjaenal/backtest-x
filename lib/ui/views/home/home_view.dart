@@ -1,16 +1,13 @@
 import 'package:backtestx/ui/widgets/error_banner.dart';
 import 'package:flutter/material.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
-import 'package:backtestx/services/theme_service.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:stacked/stacked.dart';
 import 'package:backtestx/app/route_observer.dart';
 import 'package:intl/intl.dart';
 import 'home_viewmodel.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/app/app.router.dart';
-import 'package:backtestx/app/app.dialogs.dart';
 import 'package:backtestx/services/auth_service.dart';
 
 class HomeView extends StackedView<HomeViewModel> {
@@ -22,262 +19,47 @@ class HomeView extends StackedView<HomeViewModel> {
     HomeViewModel viewModel,
     Widget? child,
   ) {
-    // Subscribe to RouteObserver to detect navigation back
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!viewModel.routeAwareSubscribed) {
-        final route = ModalRoute.of(context);
-        if (route != null) {
-          appRouteObserver.subscribe(viewModel, route);
-          viewModel.markRouteAwareSubscribed();
+    // Subscribe to RouteObserver to detect navigation back (skip in golden tests)
+    const bool isGoldenTest =
+        bool.fromEnvironment('GOLDEN_TEST', defaultValue: false);
+    if (!isGoldenTest) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!viewModel.routeAwareSubscribed) {
+          final route = ModalRoute.of(context);
+          if (route != null) {
+            appRouteObserver.subscribe(viewModel, route);
+            viewModel.markRouteAwareSubscribed();
+          }
         }
-      }
-    });
+      });
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(AppLocalizations.of(context)?.homeTitle ?? 'Backtest‑X'),
         centerTitle: true,
+        automaticallyImplyLeading: false,
         actions: [
           // User menu (avatar/email/sign out)
           Builder(builder: (ctx) {
-            final client = Supabase.instance.client;
-            final user = client.auth.currentUser;
-            final isLoggedIn = user != null;
-            final initials = (user?.email?.isNotEmpty == true)
-                ? user!.email![0].toUpperCase()
+            final auth = locator<AuthService>();
+            final initials = (auth.currentUserEmail?.isNotEmpty == true)
+                ? auth.currentUserEmail![0].toUpperCase()
                 : '?';
-            return PopupMenuButton<String>(
-              tooltip:
+            return Tooltip(
+              message:
                   AppLocalizations.of(ctx)?.homeUserMenuTooltip ?? 'Account',
-              icon: CircleAvatar(
-                child: Text(initials),
+              child: InkWell(
+                onTap: () => locator<NavigationService>().navigateToUserView(),
+                customBorder: const CircleBorder(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: CircleAvatar(
+                    child: Text(initials),
+                  ),
+                ),
               ),
-              onSelected: (value) async {
-                if (value == 'signout') {
-                  await Supabase.instance.client.auth.signOut();
-                  locator<NavigationService>().replaceWithLoginView();
-                } else if (value == 'signin') {
-                  locator<NavigationService>().navigateToLoginView();
-                } else if (value == 'change_password') {
-                  final t = AppLocalizations.of(context);
-                  final response = await locator<DialogService>().showCustomDialog(
-                    variant: DialogType.changePassword,
-                    title: t?.changePasswordTitle,
-                    description: t?.changePasswordDescription,
-                    barrierDismissible: true,
-                  );
-                  if (response?.confirmed == true) {
-                    locator<SnackbarService>().showSnackbar(
-                      message:
-                          t?.homeChangePasswordSuccess ?? 'Password berhasil diubah.',
-                      duration: const Duration(seconds: 3),
-                    );
-                    final auth = locator<AuthService>();
-                    if (!auth.isLoggedIn) {
-                      locator<NavigationService>().replaceWithLoginView();
-                    }
-                  }
-                }
-              },
-              itemBuilder: (context) {
-                final t = AppLocalizations.of(context);
-                if (isLoggedIn) {
-                  return [
-                    PopupMenuItem<String>(
-                      enabled: false,
-                      value: 'email',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.account_circle),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                                user.email ?? t?.homeUserUnknown ?? 'Unknown'),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem<String>(
-                      value: 'change_password',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.password),
-                          const SizedBox(width: 8),
-                          Text(t?.homeUserChangePassword ?? 'Change Password'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuDivider(),
-                    PopupMenuItem<String>(
-                      value: 'signout',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.logout),
-                          const SizedBox(width: 8),
-                          Text(t?.homeUserSignOut ?? 'Sign Out'),
-                        ],
-                      ),
-                    ),
-                  ];
-                } else {
-                  return [
-                    PopupMenuItem<String>(
-                      value: 'signin',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.login),
-                          const SizedBox(width: 8),
-                          Text(t?.homeUserSignIn ?? 'Sign In'),
-                        ],
-                      ),
-                    ),
-                  ];
-                }
-              },
             );
           }),
-          // Cache status indicator
-          // IconButton(
-          //   tooltip: viewModel.isWarmingUp
-          //       ? (AppLocalizations.of(context)?.homeCacheWarming ??
-          //           'Cache: warming up')
-          //       : (viewModel.dataSetsCount > 0
-          //           ? (AppLocalizations.of(context)?.homeCacheReady ??
-          //               'Cache: ready')
-          //           : (AppLocalizations.of(context)?.homeCacheEmpty ??
-          //               'Cache: empty')),
-          //   icon: Icon(
-          //     viewModel.isWarmingUp
-          //         ? Icons.downloading
-          //         : (viewModel.dataSetsCount > 0
-          //             ? Icons.offline_pin
-          //             : Icons.cloud_off),
-          //     color: viewModel.isWarmingUp
-          //         ? Colors.orange
-          //         : (viewModel.dataSetsCount > 0 ? Colors.green : null),
-          //   ),
-          //   onPressed: viewModel.showCacheInfo,
-          // ),
-          // IconButton(
-          //   icon: const Icon(Icons.help_outline),
-          //   tooltip: AppLocalizations.of(context)?.homeTooltipOnboarding ??
-          //       'Onboarding',
-          //   onPressed: viewModel.showOnboarding,
-          // ),
-          // IconButton(
-          //   icon: const Icon(Icons.brightness_6),
-          //   onPressed: () {
-          //     locator<ThemeService>().toggleTheme();
-          //   },
-          //   tooltip: 'Toggle Theme',
-          // ),
-          // IconButton(
-          //   icon: const Icon(Icons.workspace_premium),
-          //   onPressed: () {},
-          // ),
-          PopupMenuButton<int>(
-            tooltip:
-                AppLocalizations.of(context)?.homeTooltipOptions ?? 'Options',
-            onSelected: (value) {
-              switch (value) {
-                case 1:
-                  viewModel.toggleBackgroundWarmup();
-                  break;
-                case 2:
-                  viewModel.warmUpCacheNow();
-                  break;
-                case 100:
-                  locator<ThemeService>().setLocaleCode(null);
-                  break;
-                case 101:
-                  locator<ThemeService>().setLocaleCode('en');
-                  break;
-                case 102:
-                  locator<ThemeService>().setLocaleCode('id');
-                  break;
-                case 103:
-                  viewModel.showOnboarding();
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem<int>(
-                value: 1,
-                child: Row(
-                  children: [
-                    Icon(
-                      viewModel.backgroundWarmupEnabled
-                          ? Icons.pause_circle_outline
-                          : Icons.play_circle_outline,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(viewModel.backgroundWarmupEnabled
-                        ? (AppLocalizations.of(context)?.homeOptionPauseBg ??
-                            'Pause Background Loading')
-                        : (AppLocalizations.of(context)?.homeOptionEnableBg ??
-                            'Enable Background Loading')),
-                  ],
-                ),
-              ),
-              PopupMenuItem<int>(
-                value: 2,
-                child: Row(
-                  children: [
-                    const Icon(Icons.download_for_offline_outlined),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)?.homeOptionLoadCache ??
-                        'Load Cache Now'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem<int>(
-                value: 100,
-                child: Row(
-                  children: [
-                    const Icon(Icons.language),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)?.languageMenuSystem ??
-                        'Use System Language'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<int>(
-                value: 101,
-                child: Row(
-                  children: [
-                    const Icon(Icons.translate),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)?.languageMenuEnglish ??
-                        'English'),
-                  ],
-                ),
-              ),
-              PopupMenuItem<int>(
-                value: 102,
-                child: Row(
-                  children: [
-                    const Icon(Icons.translate),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)?.languageMenuIndonesian ??
-                        'Indonesian'),
-                  ],
-                ),
-              ),
-              const PopupMenuDivider(),
-              PopupMenuItem<int>(
-                value: 103,
-                child: Row(
-                  children: [
-                    const Icon(Icons.help_outline),
-                    const SizedBox(width: 8),
-                    Text(AppLocalizations.of(context)?.homeHelpOptions ??
-                        'Help'),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ],
       ),
       body: SafeArea(
@@ -293,6 +75,50 @@ class HomeView extends StackedView<HomeViewModel> {
                   message: viewModel.uiErrorMessage!,
                   onRetry: viewModel.refresh,
                   onClose: viewModel.clearUiError,
+                ),
+              ),
+            // Unverified email banner
+            if (viewModel.isLoggedIn && !viewModel.isEmailVerified)
+              Positioned(
+                left: 16,
+                right: 16,
+                top: viewModel.uiErrorMessage != null ? 72 : 8,
+                child: Card(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .tertiaryContainer
+                      .withValues(alpha: 0.2),
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline,
+                            color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            AppLocalizations.of(context)
+                                    ?.errorAuthEmailNotConfirmed ??
+                                'Email belum terverifikasi. Cek inbox untuk verifikasi.',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () =>
+                              viewModel.resendVerificationEmail(context),
+                          icon: const Icon(Icons.mark_email_unread),
+                          label: Text(
+                            AppLocalizations.of(context)?.userEmailResend ??
+                                'Kirim Ulang Email Verifikasi',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             Padding(

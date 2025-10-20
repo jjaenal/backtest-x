@@ -10,4 +10,13 @@ import UIKit
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
+
+  // Ensure URL callbacks from OAuth/deep links are forwarded to Flutter plugins
+  override func application(
+    _ app: UIApplication,
+    open url: URL,
+    options: [UIApplication.OpenURLOptionsKey : Any] = [:]
+  ) -> Bool {
+    return super.application(app, open: url, options: options)
+  }
 }

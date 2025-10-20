@@ -1,3 +1,4 @@
+@Timeout(Duration(seconds: 12))
 import 'package:flutter_test/flutter_test.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
@@ -5,7 +6,6 @@ import 'package:backtestx/services/backtest_engine_service.dart';
 import 'package:backtestx/services/indicator_service.dart';
 import '../helpers/test_helpers.dart';
 
-@Timeout(Duration(seconds: 12))
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   silenceInfoLogsForTests();

@@ -199,7 +199,7 @@ class BacktestEngineService {
     int entryChecks = 0;
     int entrySignals = 0;
     // Map trade ID → contributing timeframes on entry
-    final Map<String, Set<String>> _tradeEntryTfs = {};
+    final Map<String, Set<String>> tradeEntryTfs = {};
 
     for (var i = 0; i < candles.length; i++) {
       final candle = candles[i];
@@ -229,8 +229,7 @@ class BacktestEngineService {
           trades.add(closedTrade);
           currentEquity += closedTrade.pnl!;
           // Update per‑TF trade/win stats for this closed trade
-          final contributing =
-              _tradeEntryTfs[closedTrade.id] ?? {baseTimeframe};
+          final contributing = tradeEntryTfs[closedTrade.id] ?? {baseTimeframe};
           final isWin = (closedTrade.pnl ?? 0) > 0;
           for (final tf in contributing) {
             _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
@@ -304,7 +303,7 @@ class BacktestEngineService {
                     .toList(),
           );
           // Tie contributing TFs to this open trade
-          _tradeEntryTfs[openTrade.id] =
+          tradeEntryTfs[openTrade.id] =
               contributingTfs.isEmpty ? {baseTimeframe} : contributingTfs;
         }
       }
@@ -363,7 +362,7 @@ class BacktestEngineService {
       ));
       // Update per‑TF trade/win stats for forced close at end of data
       final isWinForced = exitPnl > 0;
-      final contributing = _tradeEntryTfs[openTrade.id] ?? {baseTimeframe};
+      final contributing = tradeEntryTfs[openTrade.id] ?? {baseTimeframe};
       for (final tf in contributing) {
         _lastTfTrades[tf] = (_lastTfTrades[tf] ?? 0) + 1;
         if (isWinForced) {

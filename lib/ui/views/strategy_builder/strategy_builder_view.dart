@@ -27,19 +27,22 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
     Widget? child,
   ) {
     final l10n = AppLocalizations.of(context)!;
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
         if (viewModel.hasAutosaveDraft) {
           final confirm =
               await sb_dialog.DialogBuilder.showExitConfirmation(context) ??
                   false;
           if (confirm) {
             await viewModel.resetTemplateFilters();
+            if (context.mounted) Navigator.of(context).pop();
           }
-          return confirm;
+          return;
         }
         await viewModel.resetTemplateFilters();
-        return true;
+        if (context.mounted) Navigator.of(context).pop();
       },
       child: GestureDetector(
         onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
@@ -231,6 +234,7 @@ class StrategyBuilderView extends StackedView<StrategyBuilderViewModel> {
                           if (content != null && content.isNotEmpty) {
                             var proceed = true;
                             if (viewModel.hasUnsavedBuilder) {
+                              if (!context.mounted) return;
                               proceed = await sb_dialog.DialogBuilder
                                       .showConfirmationDialog(
                                     context,

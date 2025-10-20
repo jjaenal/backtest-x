@@ -13,6 +13,8 @@ class AuthGuard extends StackedRouteGuard {
     if (_authService.isLoggedIn) {
       resolver.next(true);
     } else {
+      // Record the intended route so Login can redirect after success
+      _authService.setPostLoginRedirect(Routes.strategyBuilderView);
       _nav.navigateTo(Routes.loginView);
       resolver.next(false);
     }

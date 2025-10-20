@@ -45,6 +45,15 @@ class DataManager {
   /// Initialize cache directory
   Future<void> _initializeCacheDir() async {
     try {
+      // Skip disk initialization entirely during golden tests
+      const bool isGoldenTest =
+          bool.fromEnvironment('GOLDEN_TEST', defaultValue: false);
+      if (isGoldenTest) {
+        debugPrint('🧪 Golden test mode: skipping disk cache initialization');
+        _cacheDir = null;
+        return;
+      }
+
       // On web, path_provider is not available. Use memory-only cache.
       if (kIsWeb) {
         _cacheDir = null;
@@ -95,7 +104,7 @@ class DataManager {
     debugPrint(
         '✅ Cached in memory: ${data.symbol} (${data.candles.length} candles)');
 
-    // Save to disk (persistent)
+    // Save to disk (persistent) — skipped in golden tests
     await _saveToDisk(data);
 
     debugPrint('   Total cached datasets: ${_memoryCache.length}');
@@ -104,6 +113,14 @@ class DataManager {
   /// Save market data to disk
   Future<void> _saveToDisk(MarketData data) async {
     try {
+      // Skip disk operations in golden tests
+      const bool isGoldenTest =
+          bool.fromEnvironment('GOLDEN_TEST', defaultValue: false);
+      if (isGoldenTest) {
+        debugPrint('🧪 Golden test mode: skipping disk save for ${data.id}');
+        return;
+      }
+
       // Skip disk operations on web
       if (kIsWeb) {
         debugPrint('💾 [Web] Skipping disk save for ${data.id}');
@@ -151,6 +168,14 @@ class DataManager {
   /// Load all cached data from disk on startup
   Future<void> _loadAllFromDisk() async {
     try {
+      // Skip disk operations in golden tests
+      const bool isGoldenTest =
+          bool.fromEnvironment('GOLDEN_TEST', defaultValue: false);
+      if (isGoldenTest) {
+        debugPrint('🧪 Golden test mode: skipping disk load');
+        return;
+      }
+
       if (_cacheDir == null || !await _cacheDir!.exists()) {
         debugPrint('⚠️  Cache directory not ready');
         return;

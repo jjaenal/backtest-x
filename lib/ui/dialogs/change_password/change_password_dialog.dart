@@ -57,8 +57,7 @@ class ChangePasswordDialog extends StackedView<ChangePasswordDialogModel> {
               ),
             TextField(
               decoration: InputDecoration(
-                labelText:
-                    t?.changePasswordNewLabel ?? 'New Password',
+                labelText: t?.changePasswordNewLabel ?? 'New Password',
                 suffixIcon: IconButton(
                   icon: Icon(viewModel.obscureNew
                       ? Icons.visibility_off
@@ -143,9 +142,8 @@ class ChangePasswordDialog extends StackedView<ChangePasswordDialogModel> {
                             // Basic validation
                             if (viewModel.newPassword.isEmpty ||
                                 viewModel.newPassword.length < 6) {
-                              viewModel.errorMessage =
-                                  t?.errorPasswordMin ??
-                                      'Password must be at least 6 characters.';
+                              viewModel.errorMessage = t?.errorPasswordMin ??
+                                  'Password must be at least 6 characters.';
                               viewModel.infoMessage = null;
                               viewModel.notifyListeners();
                               return;
@@ -166,23 +164,29 @@ class ChangePasswordDialog extends StackedView<ChangePasswordDialogModel> {
                               final auth = locator<AuthService>();
                               await auth.updatePassword(
                                   newPassword: viewModel.newPassword);
-                              viewModel.infoMessage = t
-                                      ?.homeChangePasswordSuccess ??
-                                  'Password updated successfully.';
+                              viewModel.infoMessage =
+                                  t?.homeChangePasswordSuccess ??
+                                      'Password updated successfully.';
                               viewModel.notifyListeners();
                               // Close dialog after brief feedback
                               await Future.delayed(
                                   const Duration(milliseconds: 300));
                               completer(DialogResponse(confirmed: true));
                             } catch (e) {
-                              final msg = _friendlyError(context, e);
-                              viewModel.errorMessage = msg;
-                              // Also show a snackbar for visibility
-                              locator<SnackbarService>().showSnackbar(
-                                message: msg,
-                                duration: const Duration(seconds: 3),
-                              );
-                              viewModel.notifyListeners();
+                              if (!context.mounted) {
+                                // Context no longer valid; update state only
+                                viewModel.errorMessage = e.toString();
+                                viewModel.notifyListeners();
+                              } else {
+                                final msg = _friendlyError(context, e);
+                                viewModel.errorMessage = msg;
+                                // Also show a snackbar for visibility
+                                locator<SnackbarService>().showSnackbar(
+                                  message: msg,
+                                  duration: const Duration(seconds: 3),
+                                );
+                                viewModel.notifyListeners();
+                              }
                             } finally {
                               viewModel.setBusy(false);
                             }
@@ -201,8 +205,7 @@ class ChangePasswordDialog extends StackedView<ChangePasswordDialogModel> {
                               Text(t?.changePasswordSaving ?? 'Saving...'),
                             ],
                           )
-                        : Text(t?.changePasswordSaveButton ??
-                            'Save New Password'),
+                        : Text(t?.changePasswordSaveButton ?? 'Save Password'),
                   ),
                 ),
               ],

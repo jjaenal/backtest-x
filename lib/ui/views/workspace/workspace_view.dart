@@ -10,6 +10,7 @@ import 'workspace_viewmodel.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
+import 'package:backtestx/helpers/format_helper.dart';
 
 class WorkspaceView extends StatelessWidget {
   const WorkspaceView({Key? key}) : super(key: key);
@@ -666,7 +667,7 @@ class WorkspaceView extends StatelessWidget {
             child: _buildStatItem(
               context,
               'Avg P&L',
-              stats.formatAvgPnlPercent(),
+              FormatHelper.formatPercent(context, stats.avgPnlPercent),
               Icons.trending_up,
               stats.isProfitable ? Colors.green : Colors.red,
             ),
@@ -675,7 +676,7 @@ class WorkspaceView extends StatelessWidget {
             child: _buildStatItem(
               context,
               'Win Rate',
-              stats.formatWinRate(),
+              FormatHelper.formatWinRate(context, stats.avgWinRate),
               Icons.check_circle_outline,
               Colors.orange,
             ),
@@ -1220,7 +1221,7 @@ class WorkspaceView extends StatelessWidget {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            _formatDateTime(result.executedAt),
+                            _formatDateTime(context, result.executedAt),
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 13,
@@ -1264,9 +1265,9 @@ class WorkspaceView extends StatelessWidget {
                             _buildResultMetric(
                               context,
                               'P&L',
-                              _formatPnL(result.summary.totalPnl),
+                              _formatPnL(context, result.summary.totalPnl),
                               _formatPnLPercent(
-                                  result.summary.totalPnlPercentage),
+                                  context, result.summary.totalPnlPercentage),
                               result.summary.totalPnl >= 0
                                   ? Colors.green
                                   : Colors.red,
@@ -1412,18 +1413,16 @@ class WorkspaceView extends StatelessWidget {
     return DateFormat('MMM dd, yyyy').format(date);
   }
 
-  String _formatDateTime(DateTime date) {
-    return DateFormat('MMM dd, yyyy • HH:mm').format(date);
+  String _formatDateTime(BuildContext context, DateTime date) {
+    return FormatHelper.formatDateTime(context, date);
   }
 
-  String _formatPnL(double pnl) {
-    final sign = pnl >= 0 ? '+' : '';
-    return '$sign\$${pnl.toStringAsFixed(2)}';
+  String _formatPnL(BuildContext context, double pnl) {
+    return FormatHelper.formatCurrency(context, pnl);
   }
 
-  String _formatPnLPercent(double percent) {
-    final sign = percent >= 0 ? '+' : '';
-    return '$sign${percent.toStringAsFixed(2)}%';
+  String _formatPnLPercent(BuildContext context, double percent) {
+    return FormatHelper.formatPercent(context, percent);
   }
 
   // Symbol & timeframe chips per result item

@@ -6,10 +6,14 @@ import 'package:backtestx/services/auth_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
+import 'dart:async';
+import 'package:meta/meta.dart' show visibleForTesting;
 
+/// ViewModel untuk login, menangani autentikasi, banner verifikasi email, dan cooldown kirim ulang.
 class LoginViewModel extends BaseViewModel {
   final _auth = locator<AuthService>();
   final _nav = locator<NavigationService>();
+  final _snackbarService = locator<SnackbarService>();
 
   String email = '';
   String password = '';
@@ -18,7 +22,45 @@ class LoginViewModel extends BaseViewModel {
   String newPassword = '';
   String confirmPassword = '';
   bool obscureLoginPassword = true;
+  bool showVerificationBanner = false;
+  DateTime? _lastResendAt;
+  static const Duration resendCooldown = Duration(seconds: 20);
 
+  /// True jika cooldown kirim ulang verifikasi masih berjalan.
+  bool get isResendCooldownActive {
+    if (_lastResendAt == null) return false;
+    return DateTime.now().difference(_lastResendAt!) < resendCooldown;
+  }
+
+  /// Sisa detik cooldown agar UI bisa menampilkan countdown real-time.
+  int get resendCooldownRemainingSeconds {
+    if (!isResendCooldownActive) return 0;
+    final elapsed = DateTime.now().difference(_lastResendAt!).inSeconds;
+    final rem = resendCooldown.inSeconds - elapsed;
+    return rem > 0 ? rem : 0;
+  }
+
+  Timer? _resendCooldownTimer;
+
+  /// Memulai timer periodik 1 detik untuk memicu `notifyListeners()` hingga cooldown selesai.
+  void _startResendCooldownTicker() {
+    _resendCooldownTimer?.cancel();
+    _resendCooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!isResendCooldownActive) {
+        timer.cancel();
+        _resendCooldownTimer = null;
+      }
+      notifyListeners();
+    });
+  }
+
+  /// Menghentikan timer cooldown dan membersihkan referensi untuk mencegah kebocoran.
+  void _stopResendCooldownTicker() {
+    _resendCooldownTimer?.cancel();
+    _resendCooldownTimer = null;
+  }
+
+  /// Validasi format email dengan regex sederhana.
   bool isValidEmail(String value) {
     final emailRegex =
         RegExp(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$");
@@ -45,6 +87,9 @@ class LoginViewModel extends BaseViewModel {
       }
     } catch (e) {
       errorMessage = _friendlyError(e);
+      if (canResendVerification) {
+        showVerificationBanner = true;
+      }
     } finally {
       setBusy(false);
       notifyListeners();
@@ -62,14 +107,17 @@ class LoginViewModel extends BaseViewModel {
       if (password.length < 6) {
         throw Exception('Password minimal 6 karakter untuk pendaftaran.');
       }
+      // Ambil context dan lokalization sebelum operasi async
+      final ctx = StackedService.navigatorKey?.currentContext;
+      final t = ctx != null ? AppLocalizations.of(ctx) : null;
       await _auth.signUpWithEmail(email: email, password: password);
-      final redirect = _auth.takePostLoginRedirect();
-      if (redirect?.route == Routes.strategyBuilderView) {
-        final args = redirect!.arguments as StrategyBuilderViewArguments?;
-        _nav.replaceWithStrategyBuilderView(strategyId: args?.strategyId);
-      } else {
-        _nav.replaceWithHomeView();
-      }
+
+      // Tampilkan info bahwa email verifikasi sudah dikirim dan perlu dicek.
+      infoMessage = t?.errorAuthEmailNotConfirmed ??
+          'Email belum terverifikasi. Cek inbox untuk verifikasi.';
+      showVerificationBanner = true;
+
+      // Jangan navigasi otomatis; tunggu pengguna verifikasi lalu lakukan login.
     } catch (e) {
       errorMessage = _friendlyError(e);
     } finally {
@@ -111,6 +159,15 @@ class LoginViewModel extends BaseViewModel {
     if (qp['type'] == 'recovery') return true;
     if (frag.contains('type=recovery')) return true;
     return false;
+  }
+
+  /// Tampilkan opsi kirim ulang ketika email belum terverifikasi atau banner aktif.
+  bool get canResendVerification {
+    if (showVerificationBanner) return true;
+    final msg = (errorMessage ?? '').toLowerCase();
+    return msg.contains('email not confirmed') ||
+        msg.contains('email not verified') ||
+        msg.contains('email belum terverifikasi');
   }
 
   Future<void> forgotPassword() async {
@@ -204,4 +261,80 @@ class LoginViewModel extends BaseViewModel {
 
     return t?.errorGeneric ?? 'Terjadi kesalahan. Coba lagi.';
   }
+
+  /// Menutup banner verifikasi dan menghentikan ticker cooldown.
+  void dismissVerificationBanner() {
+    showVerificationBanner = false;
+    _stopResendCooldownTicker();
+    notifyListeners();
+  }
+
+  @override
+
+  /// Pastikan ticker cooldown dihentikan saat ViewModel dibuang.
+  void dispose() {
+    _stopResendCooldownTicker();
+    super.dispose();
+  }
+
+  /// Kirim ulang email verifikasi, tampilkan feedback, dan mulai ticker cooldown.
+  Future<void> resendVerificationEmail() async {
+    if (isBusy || isResendCooldownActive) {
+      return;
+    }
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx) : null;
+    if (email.isEmpty || !isValidEmail(email)) {
+      final errMsg = t?.errorInvalidEmail ?? 'Format email tidak valid.';
+      errorMessage = errMsg;
+      infoMessage = null;
+      _snackbarService.showSnackbar(
+        message: errMsg,
+        duration: const Duration(seconds: 3),
+      );
+      notifyListeners();
+      return;
+    }
+    setBusy(true);
+    errorMessage = null;
+    infoMessage = null;
+    try {
+      await _auth.resendEmailVerification(email: email);
+      infoMessage =
+          t?.userEmailResendSuccess ?? 'Email verifikasi telah dikirim.';
+      showVerificationBanner = true;
+      _snackbarService.showSnackbar(
+        message: infoMessage!,
+        duration: const Duration(seconds: 3),
+      );
+      _lastResendAt = DateTime.now();
+      _startResendCooldownTicker();
+    } catch (e) {
+      final errMsg =
+          t?.userEmailResendError ?? 'Gagal mengirim email verifikasi.';
+      errorMessage = errMsg;
+      _snackbarService.showSnackbar(
+        message: errMsg,
+        duration: const Duration(seconds: 3),
+      );
+    } finally {
+      setBusy(false);
+      notifyListeners();
+    }
+  }
+
+  @visibleForTesting
+  void debugStartCooldownNow() {
+    _lastResendAt = DateTime.now();
+    _startResendCooldownTicker();
+  }
+
+  @visibleForTesting
+  void debugSetCooldownElapsedSeconds(int elapsedSeconds) {
+    _lastResendAt = DateTime.now().subtract(Duration(seconds: elapsedSeconds));
+    _startResendCooldownTicker();
+  }
+
+  @visibleForTesting
+  bool get isResendTickerRunning => _resendCooldownTimer != null;
 }

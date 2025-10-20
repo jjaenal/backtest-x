@@ -16,6 +16,7 @@ import 'package:backtestx/app/app.bottomsheets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:backtestx/ui/common/base_refreshable_viewmodel.dart';
 import 'package:backtestx/services/auth_service.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
 
 class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   final _navigationService = locator<NavigationService>();
@@ -49,6 +50,10 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   bool get backgroundWarmupEnabled => _dataManager.isBackgroundWarmupEnabled;
   bool get isWarmingUp => _dataManager.isWarmingUp;
 
+  // Auth status for UI surfaces
+  bool get isLoggedIn => _authService.isLoggedIn;
+  bool get isEmailVerified => _authService.isEmailVerified;
+
   // Subscriptions for realtime updates
   StreamSubscription? _marketDataSub;
   StreamSubscription? _strategySub;
@@ -72,19 +77,19 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
       setBusy(false);
 
       // Onboarding tutorial dialog (one-time)
-      // try {
-      //   final done = await _prefs.getString('onboarding.completed');
-      //   if (done != 'true') {
-      //     final response = await _bottomSheetService.showCustomSheet(
-      //       variant: BottomSheetType.onboarding,
-      //       barrierDismissible: true,
-      //       isScrollControlled: true,
-      //     );
-      //     if (response?.confirmed == true) {
-      //       await _prefs.setString('onboarding.completed', 'true');
-      //     }
-      //   }
-      // } catch (_) {}
+      try {
+        final done = await _prefs.getString('onboarding.completed');
+        if (done != 'true') {
+          final response = await _bottomSheetService.showCustomSheet(
+            variant: BottomSheetType.onboarding,
+            barrierDismissible: true,
+            isScrollControlled: true,
+          );
+          if (response?.confirmed == true) {
+            await _prefs.setString('onboarding.completed', 'true');
+          }
+        }
+      } catch (_) {}
     });
 
     // Realtime subscriptions: refresh stats on storage changes
@@ -174,6 +179,10 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
     _navigationService.navigateToWorkspaceView().whenComplete(() => refresh());
   }
 
+  void navigateToUserAccount() {
+    _navigationService.navigateToUserView();
+  }
+
   Future<void> editStrategy(String strategyId) async {
     if (!_authService.isLoggedIn) {
       _authService.setPostLoginRedirect(
@@ -186,73 +195,6 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
     _navigationService
         .navigateToStrategyBuilderView(strategyId: strategyId)
         .whenComplete(() => refresh());
-  }
-
-  Future<void> showOnboarding() async {
-    final response = await _bottomSheetService.showCustomSheet(
-      variant: BottomSheetType.onboarding,
-      barrierDismissible: true,
-      isScrollControlled: true,
-    );
-    if (response?.confirmed == true) {
-      try {
-        await _prefs.setString('onboarding.completed', 'true');
-      } catch (_) {}
-    }
-  }
-
-  // Background warm-up controls
-  void toggleBackgroundWarmup() {
-    final next = !_dataManager.isBackgroundWarmupEnabled;
-    _dataManager.setBackgroundWarmupEnabled(next);
-    _snackbarService.showSnackbar(
-      message: next
-          ? 'Background cache loading enabled'
-          : 'Background cache loading paused',
-      duration: const Duration(seconds: 2),
-    );
-    rebuildUi();
-  }
-
-  void warmUpCacheNow() {
-    _dataManager.warmUpCacheInBackground(force: true);
-    _snackbarService.showSnackbar(
-      message: 'Loading cache in background…',
-      duration: const Duration(seconds: 2),
-    );
-  }
-
-  Future<void> showCacheInfo() async {
-    try {
-      final mem = _dataManager.getMemoryUsageFormatted();
-      final disk = await _dataManager.getDiskUsageFormatted();
-      final datasets = _dataManager.getAllData().length;
-      final status =
-          isWarmingUp ? 'Warming' : (datasets > 0 ? 'Ready' : 'Empty');
-      final desc = StringBuffer()
-        ..writeln('Status: $status')
-        ..writeln('Datasets: $datasets')
-        ..writeln('Memory: $mem')
-        ..writeln('Disk: $disk');
-
-      final response = await _bottomSheetService.showBottomSheet(
-        title: 'Cache Info',
-        description: desc.toString(),
-        confirmButtonTitle: 'Load Cache Now',
-        cancelButtonTitle:
-            _dataManager.isBackgroundWarmupEnabled ? 'Pause' : 'Enable',
-      );
-      if (response?.confirmed == true) {
-        warmUpCacheNow();
-      } else {
-        toggleBackgroundWarmup();
-      }
-    } catch (e) {
-      _snackbarService.showSnackbar(
-        message: 'Failed to show cache info',
-        duration: const Duration(seconds: 2),
-      );
-    }
   }
 
   Future<void> runStrategy(String strategyId, int index) async {
@@ -382,6 +324,24 @@ class HomeViewModel extends BaseRefreshableViewModel implements RouteAware {
   void didPush() {}
   @override
   void didPop() {}
+
+  Future<void> resendVerificationEmail(BuildContext context) async {
+    final t = AppLocalizations.of(context);
+    try {
+      await _authService.resendEmailVerification();
+      _snackbarService.showSnackbar(
+        message: t?.userEmailResendSuccess ?? 'Verification email sent.',
+        duration: const Duration(seconds: 3),
+      );
+    } catch (_) {
+      _snackbarService.showSnackbar(
+        message:
+            t?.userEmailResendError ?? 'Failed to send verification email.',
+        duration: const Duration(seconds: 3),
+      );
+    }
+  }
+
   @override
   void didPushNext() {}
 

@@ -1,10 +1,10 @@
+@Timeout(Duration(seconds: 20))
 import 'package:flutter_test/flutter_test.dart';
 import 'package:backtestx/models/candle.dart';
 import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/helpers/isolate_backtest.dart';
 import '../helpers/test_helpers.dart';
 
-@Timeout(Duration(seconds: 20))
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   silenceInfoLogsForTests();

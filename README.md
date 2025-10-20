@@ -31,6 +31,31 @@ flutter pub run build_runner build --delete-conflicting-outputs
 flutter run
 ```
 
+## 🔐 Authentication Setup (Supabase)
+
+- Set `Site URL` sesuai origin aplikasi (dev/prod). Contoh dev: `http://localhost:8085/`.
+- Tambahkan `Redirect URLs` untuk OAuth Google dan email confirmation:
+  - Web (dev): `http://localhost:8085/`
+  - Web (prod): `https://yourdomain.com/`
+  - Mobile: `io.supabase.flutter://login-callback` (Android intent filter, iOS CFBundleURLSchemes)
+- Jalankan web dev server dengan port stabil agar link email tetap valid di sesi berbeda:
+
+```bash
+flutter run -d web-server \
+  --web-hostname localhost \
+  --web-port 8085 \
+  --dart-define SUPABASE_URL=<your_supabase_url> \
+  --dart-define SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+Catatan:
+- Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend di Web, dan skema `io.supabase.flutter://login-callback` di mobile untuk OAuth, signup verification, serta reset password.
+- Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
+- Di iOS, `AppDelegate` telah meneruskan `openURL` ke Flutter sehingga plugin menerima callback.
+
+- Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend sehingga link verifikasi diarahkan ke origin yang sedang aktif.
+- Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
+
 ## 📱 Key Features
 
 - **Strategy Builder**: Create trading strategies with custom entry/exit rules
@@ -429,26 +454,20 @@ Date,Open,High,Low,Close,Volume
 
 ## 🖼️ Golden Tests
 
-Untuk menjaga UI tetap stabil, proyek ini menggunakan golden tests.
+Untuk menjaga golden tests stabil dan bebas hang:
 
-Perintah utama:
+- Jalankan semua golden dengan `GOLDEN_TEST`:
+  - `flutter test test/golden --reporter=expanded --dart-define=GOLDEN_TEST=true`
+- Update baseline golden setelah perubahan UI yang disengaja:
+  - `flutter test test/golden --update-goldens --reporter=expanded --dart-define=GOLDEN_TEST=true`
+- Alternatif via Makefile:
+  - `make goldens`
+  - `make goldens-update`
 
-```bash
-# Jalankan semua golden tests (tag dikonfigurasi di dart_test.yaml)
-flutter test --tags golden
-
-# Update seluruh baseline golden
-flutter test --tags golden --update-goldens
-
-# Update baseline untuk satu file tertentu
-flutter test test/golden/home_view_populated_golden_test.dart --update-goldens
-
-# Jalankan satu test berdasarkan nama (VM)
-dart test test/golden/home_view_populated_golden_test.dart \
-  -p vm --plain-name 'HomeView - populated state'
-```
-
-## 🧪 Performance Tests
+Penjelasan:
+- Mode `GOLDEN_TEST` mem-bypass I/O disk di `DataManager` (skip `path_provider` dan read/write file) agar `pump` tidak hang.
+- Golden tests memakai `TickerMode(enabled: false)` dan beberapa `pump` untuk memastikan layout settle.
+- Lihat pratinjau diffs di folder `test/golden/failures/` bila ada perbedaan.
 
 - 10k+ candles integration test (Web + Mobile) ensures large dataset stability.
 - 50k candles isolate stress test validates background isolate scalability.

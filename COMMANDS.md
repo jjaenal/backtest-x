@@ -141,6 +141,51 @@ flutter test --tags golden
 flutter test --tags golden --update-goldens
 ```
 
+# Commands
+
+## Flutter
+
+- Run the app: `flutter run`
+- Analyze: `flutter analyze`
+- Format: `dart format .`
+
+## Golden Tests
+
+Preferred (stable, bypass disk I/O via `GOLDEN_TEST`):
+
+- Run all goldens: `make goldens`
+- Update all goldens: `make goldens-update`
+
+### Grup HomeView
+
+- Jalankan semua skenario HomeView: `make goldens-home`
+- Update semua baseline HomeView: `make goldens-update-home`
+
+Kedua perintah berjalan berurutan untuk skenario:
+- default
+- empty
+- populated
+- populated warmup
+- populated postwarmup
+- warmup
+
+Semua dijalankan dengan `--dart-define=GOLDEN_TEST=true` untuk bypass I/O disk.
+
+Update per-file:
+
+- Update default: `make golden-update-home-default`
+- Update empty: `make golden-update-home-empty`
+- Update populated: `make golden-update-home-populated`
+- Update populated warmup: `make golden-update-home-populated-warmup`
+- Update populated postwarmup: `make golden-update-home-populated-postwarmup`
+- Update warmup: `make golden-update-home-warmup`
+
+Notes:
+
+- These commands pass `--dart-define=GOLDEN_TEST=true` so `DataManager` skips disk cache init and read/write during tests, preventing hangs.
+- Ensure deterministic snapshots: use `TickerMode(enabled: false)`, add sufficient `pump` cycles, and avoid async side effects.
+- If DB-backed tests are needed later, consider `sqflite_common_ffi` and call `initSqfliteFfiForTests()` before running.
+
 Tips agar snapshot deterministik:
 - Kunci viewport: set `SurfaceSize` dan `devicePixelRatio` ke nilai tetap.
 - Hindari `pumpAndSettle`; gunakan beberapa `pump` pendek lalu `expectLater`.
@@ -412,3 +457,14 @@ alias frun="flutter run --hot"
 alias ftest="flutter test"
 alias fclean="flutter clean && flutter pub get"
 ```
+
+### Filter berdasarkan nama/file
+
+- Filter nama (run): `make goldens-name NAME="HomeView warmup"`
+- Filter nama (update): `make goldens-update-name NAME="HomeView warmup"`
+- Filter file (run): `make goldens-file FILE=test/golden/home_view_populated_golden_test.dart`
+- Filter file (update): `make goldens-update-file FILE=test/golden/home_view_populated_golden_test.dart`
+
+Tips:
+- Kutip `NAME` jika mengandung spasi.
+- Semua perintah menyertakan `--dart-define=GOLDEN_TEST=true` untuk bypass I/O disk.

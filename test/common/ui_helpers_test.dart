@@ -7,7 +7,6 @@ void main() {
   group('showErrorWithRetry', () {
     test('uses provided show function and triggers retry', () {
       int calls = 0;
-      dynamic lastVariant;
       String? lastTitle;
       String? lastMessage;
       String? lastMainButtonTitle;
@@ -30,7 +29,6 @@ void main() {
           duration,
         }) {
           calls++;
-          lastVariant = variant;
           lastTitle = title;
           lastMessage = message;
           lastMainButtonTitle = mainButtonTitle;

@@ -16,6 +16,7 @@ import 'package:backtestx/ui/views/market_analysis/market_analysis_view.dart'
     as _i11;
 import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart'
     as _i12;
+import 'package:backtestx/ui/views/user/user_view.dart' as _i16;
 import 'package:backtestx/ui/views/signup/signup_view.dart' as _i6;
 import 'package:backtestx/ui/views/startup/startup_view.dart' as _i3;
 import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart'
@@ -49,6 +50,8 @@ class Routes {
 
   static const patternScannerView = '/pattern-scanner-view';
 
+  static const userView = '/user-view';
+
   static const all = <String>{
     homeView,
     startupView,
@@ -61,6 +64,7 @@ class Routes {
     comparisonView,
     marketAnalysisView,
     patternScannerView,
+    userView,
   };
 }
 
@@ -109,6 +113,10 @@ class StackedRouter extends _i1.RouterBase {
     _i1.RouteDef(
       Routes.patternScannerView,
       page: _i12.PatternScannerView,
+    ),
+    _i1.RouteDef(
+      Routes.userView,
+      page: _i16.UserView,
     ),
   ];
 
@@ -184,6 +192,12 @@ class StackedRouter extends _i1.RouterBase {
     _i12.PatternScannerView: (data) {
       return _i13.MaterialPageRoute<dynamic>(
         builder: (context) => const _i12.PatternScannerView(),
+        settings: data,
+      );
+    },
+    _i16.UserView: (data) {
+      return _i13.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i16.UserView(),
         settings: data,
       );
     },
@@ -442,6 +456,20 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition: transition);
   }
 
+  Future<dynamic> navigateToUserView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.userView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
   Future<dynamic> replaceWithHomeView([
     int? routerId,
     bool preventDuplicates = true,
@@ -600,6 +628,20 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition,
   ]) async {
     return replaceWith<dynamic>(Routes.patternScannerView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
+  Future<dynamic> replaceWithUserView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.userView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,

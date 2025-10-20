@@ -69,6 +69,25 @@ class DeepLinkService {
 
     final location = html.window.location;
     final href = location.href;
+    // If sanitized earlier, sessionStorage may contain an auth error hint
+    final storedErr = html.window.sessionStorage['supabase_auth_error'];
+    if (storedErr != null && storedErr.isNotEmpty) {
+      try {
+        final snackbar = locator<SnackbarService>();
+        snackbar.showSnackbar(
+          message: _mapAuthErrorToFriendlyMessage(null, storedErr),
+          duration: const Duration(seconds: 4),
+        );
+      } catch (_) {}
+      // Clear storage flag and tidy URL
+      html.window.sessionStorage.remove('supabase_auth_error');
+      clearAuthErrorMarkersFromUrl();
+      // Route to Login for clarity
+      final nav = locator<NavigationService>();
+      nav.replaceWith(Routes.loginView);
+      return true;
+    }
+
     // Support both hash and path URL strategies
     final uri = Uri.tryParse(href);
     if (uri == null) return false;
@@ -79,6 +98,95 @@ class DeepLinkService {
       final hasRecoveryParam = (uri.queryParameters['type'] == 'recovery');
       final hasRecoveryInFragment = uri.fragment.contains('type=recovery');
       if (hasRecoveryParam || hasRecoveryInFragment) {
+        final nav = locator<NavigationService>();
+        nav.replaceWith(Routes.loginView);
+        return true;
+      }
+
+      // Handle email confirmation (Supabase uses type=signup)
+      final hasSignupConfirmParam = (uri.queryParameters['type'] == 'signup');
+      final hasSignupConfirmInFragment = uri.fragment.contains('type=signup');
+      if (hasSignupConfirmParam || hasSignupConfirmInFragment) {
+        final auth = locator<AuthService>();
+        final nav = locator<NavigationService>();
+        final snackbar = locator<SnackbarService>();
+        // Jika sudah login, langsung ke Home
+        if (auth.isLoggedIn) {
+          snackbar.showSnackbar(
+            message: 'Email berhasil terverifikasi. Anda sudah masuk.',
+            duration: const Duration(seconds: 3),
+          );
+          clearAuthErrorMarkersFromUrl();
+          nav.replaceWith(Routes.homeView);
+          return true;
+        }
+        // Coba login otomatis menggunakan kredensial yang disimpan sementara saat sign-up
+        String? e;
+        String? p;
+        String? tsStr;
+        try {
+          e = html.window.sessionStorage['pending_signup_email'];
+          p = html.window.sessionStorage['pending_signup_password'];
+          tsStr = html.window.sessionStorage['pending_signup_ts'];
+        } catch (_) {}
+        // Hapus kredensial sementara apapun hasilnya
+        try {
+          html.window.sessionStorage.remove('pending_signup_email');
+          html.window.sessionStorage.remove('pending_signup_password');
+          html.window.sessionStorage.remove('pending_signup_ts');
+        } catch (_) {}
+        DateTime? ts;
+        try {
+          if (tsStr != null && tsStr.isNotEmpty) {
+            ts = DateTime.tryParse(tsStr);
+          }
+        } catch (_) {}
+        final isFresh = ts == null
+            ? true
+            : DateTime.now().difference(ts).inMinutes < 15; // batas 15 menit
+        if (isFresh && e != null && e.isNotEmpty && p != null && p.isNotEmpty) {
+          try {
+            await auth.signInWithEmail(email: e, password: p);
+            snackbar.showSnackbar(
+              message: 'Email terverifikasi. Login otomatis berhasil.',
+              duration: const Duration(seconds: 3),
+            );
+            clearAuthErrorMarkersFromUrl();
+            nav.replaceWith(Routes.homeView);
+            return true;
+          } catch (err) {
+            // Jika login otomatis gagal, arahkan ke Login
+            snackbar.showSnackbar(
+              message: 'Verifikasi sukses. Silakan login manual.',
+              duration: const Duration(seconds: 4),
+            );
+            clearAuthErrorMarkersFromUrl();
+            nav.replaceWith(Routes.loginView);
+            return true;
+          }
+        }
+        // Tanpa kredensial atau sudah lama, minta pengguna login
+        snackbar.showSnackbar(
+          message: 'Email berhasil terverifikasi. Silakan login.',
+          duration: const Duration(seconds: 3),
+        );
+        clearAuthErrorMarkersFromUrl();
+        nav.replaceWith(Routes.loginView);
+        return true;
+      }
+      // Handle auth error redirects, e.g., error=access_denied, error_description=otp_expired
+      final err = uri.queryParameters['error'] ??
+          (Uri.tryParse(uri.fragment)?.queryParameters['error']);
+      final errDesc = uri.queryParameters['error_description'] ??
+          (Uri.tryParse(uri.fragment)?.queryParameters['error_description']);
+      if (err != null || errDesc != null) {
+        final snackbar = locator<SnackbarService>();
+        final message = _mapAuthErrorToFriendlyMessage(err, errDesc);
+        snackbar.showSnackbar(
+          message: message,
+          duration: const Duration(seconds: 4),
+        );
+        clearAuthErrorMarkersFromUrl();
         final nav = locator<NavigationService>();
         nav.replaceWith(Routes.loginView);
         return true;
@@ -144,6 +252,17 @@ class DeepLinkService {
     return false;
   }
 
+  String _mapAuthErrorToFriendlyMessage(String? error, String? description) {
+    final e = (description ?? error ?? '').toLowerCase();
+    if (e.contains('otp_expired')) {
+      return 'Tautan verifikasi email sudah kadaluarsa. Kirim ulang email verifikasi dan coba lagi.';
+    }
+    if (e.contains('access_denied')) {
+      return 'Akses ditolak saat verifikasi email. Pastikan tautan valid atau kirim ulang.';
+    }
+    return 'Terjadi masalah saat verifikasi email. Silakan kirim ulang email verifikasi.';
+  }
+
   Future<bool> _openBacktestResult(String id) async {
     final storage = locator<StorageService>();
     final nav = locator<NavigationService>();
@@ -177,8 +296,11 @@ class DeepLinkService {
   String _determineBaseUrl() {
     if (_baseUrlOverride != null) return _baseUrlOverride!;
     if (kIsWeb) {
-      final origin = html.window.location.origin ?? 'http://localhost';
-      final basePath = html.window.location.pathname ?? '';
+      final location = html.window.location;
+      final String? originMaybe = location.origin;
+      final String? basePathMaybe = location.pathname;
+      final String origin = originMaybe ?? '';
+      final String basePath = basePathMaybe ?? '';
       // Trim trailing slash from basePath and origin
       String base = origin;
       // If hosted under a subpath, preserve it
@@ -228,6 +350,59 @@ class DeepLinkService {
         final clean = idx == -1 ? raw : raw.substring(0, idx);
         html.window.location.hash = clean;
       }
+    } catch (_) {
+      // Non-critical; ignore
+    }
+  }
+
+  /// Clear auth error markers (error, error_description, tokens) from the URL on web.
+  void clearAuthErrorMarkersFromUrl() {
+    if (!kIsWeb) return;
+    try {
+      final loc = html.window.location;
+      final baseUri = Uri(
+        scheme: loc.protocol.replaceAll(':', ''),
+        host: loc.hostname,
+        port: loc.port.isNotEmpty ? int.tryParse(loc.port) : null,
+        path: loc.pathname,
+      );
+
+      // Clean query params
+      final current = Uri.parse(loc.href);
+      final cleanedQuery = Map<String, String>.from(current.queryParameters)
+        ..remove('error')
+        ..remove('error_description')
+        ..remove('type')
+        ..remove('token_hash');
+
+      // Clean fragment params
+      String? cleanedFragment;
+      if (current.fragment.isNotEmpty) {
+        final fragUri = Uri.tryParse(current.fragment);
+        if (fragUri != null) {
+          final cleanedFragQuery =
+              Map<String, String>.from(fragUri.queryParameters)
+                ..remove('error')
+                ..remove('error_description')
+                ..remove('type')
+                ..remove('token_hash');
+          final fragClean = Uri(
+            path: fragUri.path,
+            queryParameters: cleanedFragQuery.isEmpty ? null : cleanedFragQuery,
+          ).toString();
+          cleanedFragment = fragClean.isEmpty ? null : fragClean;
+        }
+      }
+
+      final newUri = Uri(
+        scheme: baseUri.scheme,
+        host: baseUri.host,
+        port: baseUri.port,
+        path: baseUri.path,
+        queryParameters: cleanedQuery.isEmpty ? null : cleanedQuery,
+        fragment: cleanedFragment,
+      ).toString();
+      html.window.history.replaceState(null, '', newUri);
     } catch (_) {
       // Non-critical; ignore
     }

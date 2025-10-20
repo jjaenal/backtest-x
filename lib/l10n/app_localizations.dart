@@ -139,13 +139,34 @@ class AppLocalizations {
       'home_user_sign_in': 'Sign In',
       'home_user_sign_up': 'Sign Up',
       'home_user_change_password': 'Change Password',
+      // User View - Account deletion
+      'user_delete_account': 'Delete Account',
+      'user_delete_account_title': 'Delete Account',
+      'user_delete_account_desc':
+          'Direct account deletion is not available in this app. You can clear local data and sign out.',
+      'user_delete_not_supported':
+          'Direct account deletion is not available in this client.',
+      'user_clear_local_data': 'Clear Local Data',
+      'user_clear_all_data_success': 'Local data cleared.',
+      'user_clear_all_data_error': 'Failed to clear local data.',
+      'user_clear_all_confirm_title': 'Confirm Clear Local Data',
+      'user_clear_all_confirm_desc':
+          'This will delete strategies, results, market data, and drafts stored on this device. Continue?',
+      'user_clear_all_confirm_button': 'Clear',
+      // Email Verification
+      'user_email_verification': 'Email Verification',
+      'user_email_status_verified': 'Verified',
+      'user_email_status_unverified': 'Not Verified',
+      'user_email_resend': 'Resend Verification Email',
+      'user_email_resend_success': 'Verification email sent.',
+      'user_email_resend_error': 'Failed to send verification email.',
       'home_change_password_success': 'Password updated successfully.',
       'change_password_title': 'Set New Password',
       'change_password_description':
           'Enter a new password and confirm to update your account.',
       'change_password_new_label': 'New Password',
       'change_password_confirm_label': 'Confirm New Password',
-      'change_password_save_button': 'Save New Password',
+      'change_password_save_button': 'Save Password',
       'change_password_saving': 'Saving...',
       'error_password_min': 'Password must be at least 6 characters.',
       'error_password_confirm_mismatch':
@@ -183,9 +204,13 @@ class AppLocalizations {
       'home_option_pause_bg': 'Pause Background Loading',
       'home_option_enable_bg': 'Enable Background Loading',
       'home_option_load_cache': 'Load Cache Now',
+      'home_cache_info_title': 'Cache Info',
       'language_menu_system': 'Use System Language',
       'language_menu_english': 'English',
       'language_menu_indonesian': 'Indonesian',
+      'theme_menu_system': 'Use System Theme',
+      "theme_menu_light": "Light",
+      "theme_menu_dark": "Dark",
       'startup_steps_done': 'All steps completed. Preparing app…',
       'home_loading_cache': 'Loading cache…',
       'home_running_backtest': 'Running backtest...',
@@ -213,6 +238,9 @@ class AppLocalizations {
       'delete_label': 'Delete',
       'load_more': 'Load more',
       "clear_label": "Clear",
+      "error_retry": "Try Again",
+      "error_dismiss": "Dismiss",
+      "dialog_got_it": "Got it",
 
       'workspace_tests': 'Tests',
       'workspace_avg_pnl': 'Avg P&L',
@@ -715,13 +743,34 @@ class AppLocalizations {
       'home_user_sign_in': 'Masuk',
       'home_user_sign_up': 'Daftar',
       'home_user_change_password': 'Ubah Kata Sandi',
+      // User View - Penghapusan akun
+      'user_delete_account': 'Hapus Akun',
+      'user_delete_account_title': 'Hapus Akun',
+      'user_delete_account_desc':
+          'Penghapusan akun langsung belum tersedia di aplikasi ini. Kamu bisa bersihkan data lokal dan keluar.',
+      'user_delete_not_supported':
+          'Penghapusan akun langsung belum tersedia di aplikasi ini.',
+      'user_clear_local_data': 'Bersihkan Data Lokal',
+      'user_clear_all_data_success': 'Data lokal dibersihkan.',
+      'user_clear_all_data_error': 'Gagal membersihkan data lokal.',
+      'user_clear_all_confirm_title': 'Konfirmasi Bersihkan Data Lokal',
+      'user_clear_all_confirm_desc':
+          'Ini akan menghapus strategi, hasil backtest, data pasar, dan draft yang tersimpan di perangkat ini. Lanjutkan?',
+      'user_clear_all_confirm_button': 'Bersihkan',
+      // Verifikasi Email
+      'user_email_verification': 'Verifikasi Email',
+      'user_email_status_verified': 'Terverifikasi',
+      'user_email_status_unverified': 'Belum Terverifikasi',
+      'user_email_resend': 'Kirim Ulang Email Verifikasi',
+      'user_email_resend_success': 'Email verifikasi telah dikirim.',
+      'user_email_resend_error': 'Gagal mengirim email verifikasi.',
       'home_change_password_success': 'Password berhasil diubah.',
       'change_password_title': 'Atur Password Baru',
       'change_password_description':
           'Masukkan password baru dan konfirmasi untuk mengubah password akun.',
       'change_password_new_label': 'Password Baru',
       'change_password_confirm_label': 'Konfirmasi Password Baru',
-      'change_password_save_button': 'Simpan Password Baru',
+      'change_password_save_button': 'Simpan Password',
       'change_password_saving': 'Menyimpan...',
       'error_password_min': 'Password minimal 6 karakter.',
       'error_password_confirm_mismatch': 'Konfirmasi password tidak cocok.',
@@ -759,9 +808,13 @@ class AppLocalizations {
       'home_option_pause_bg': 'Jeda Loading Background',
       'home_option_enable_bg': 'Aktifkan Loading Background',
       'home_option_load_cache': 'Muat Cache Sekarang',
+      'home_cache_info_title': 'Info Cache',
       'language_menu_system': 'Gunakan Bahasa Sistem',
       'language_menu_english': 'Bahasa Inggris',
       'language_menu_indonesian': 'Bahasa Indonesia',
+      'theme_menu_system': 'Gunakan Tema Sistem',
+      "theme_menu_light": "Terang",
+      "theme_menu_dark": "Gelap",
       'startup_steps_done': 'Semua langkah selesai. Menyiapkan aplikasi…',
       'home_loading_cache': 'Memuat cache…',
       'home_running_backtest': 'Menjalankan backtest...',
@@ -790,6 +843,9 @@ class AppLocalizations {
       'delete_label': 'Hapus',
       'load_more': 'Muat lagi',
       "clear_label": "Bersihkan",
+      "error_retry": "Coba Lagi",
+      "error_dismiss": "Tutup",
+      "dialog_got_it": "Mengerti",
 
       'workspace_tests': 'Tes',
       'workspace_avg_pnl': 'Rata-rata P&L',
@@ -1345,9 +1401,13 @@ class AppLocalizations {
   String get homeOptionPauseBg => _text('home_option_pause_bg');
   String get homeOptionEnableBg => _text('home_option_enable_bg');
   String get homeOptionLoadCache => _text('home_option_load_cache');
+  String get homeCacheInfoTitle => _text('home_cache_info_title');
   String get languageMenuSystem => _text('language_menu_system');
   String get languageMenuEnglish => _text('language_menu_english');
   String get languageMenuIndonesian => _text('language_menu_indonesian');
+  String get themeMenuSystem => _text('theme_menu_system');
+  String get themeMenuLight => _text('theme_menu_light');
+  String get themeMenuDark => _text('theme_menu_dark');
   String get startupStepsDone => _text('startup_steps_done');
   String get startupInitServices => _text('startup_init_services');
   String get startupLoadCache => _text('startup_load_cache');
@@ -1375,6 +1435,24 @@ class AppLocalizations {
   String get homeUserSignIn => _text('home_user_sign_in');
   String get homeUserSignUp => _text('home_user_sign_up');
   String get homeUserChangePassword => _text('home_user_change_password');
+  // User View - Delete Account
+  String get userDeleteAccount => _text('user_delete_account');
+  String get userDeleteAccountTitle => _text('user_delete_account_title');
+  String get userDeleteAccountDesc => _text('user_delete_account_desc');
+  String get userDeleteNotSupported => _text('user_delete_not_supported');
+  String get userClearLocalData => _text('user_clear_local_data');
+  String get userClearAllDataSuccess => _text('user_clear_all_data_success');
+  String get userClearAllDataError => _text('user_clear_all_data_error');
+  String get userClearAllConfirmTitle => _text('user_clear_all_confirm_title');
+  String get userClearAllConfirmDesc => _text('user_clear_all_confirm_desc');
+  String get userClearAllConfirmButton =>
+      _text('user_clear_all_confirm_button');
+  String get userEmailVerification => _text('user_email_verification');
+  String get userEmailStatusVerified => _text('user_email_status_verified');
+  String get userEmailStatusUnverified => _text('user_email_status_unverified');
+  String get userEmailResend => _text('user_email_resend');
+  String get userEmailResendSuccess => _text('user_email_resend_success');
+  String get userEmailResendError => _text('user_email_resend_error');
   String get homeChangePasswordSuccess => _text('home_change_password_success');
   String get changePasswordTitle => _text('change_password_title');
   String get changePasswordDescription => _text('change_password_description');

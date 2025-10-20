@@ -1,5 +1,6 @@
-import 'dart:io';
 import 'dart:math';
+import '../config/temp_dir_stub.dart'
+    if (dart.library.io) '../config/temp_dir_io.dart';
 import 'package:backtestx/services/data_validation_service.dart';
 import 'package:backtestx/services/share_service.dart';
 import 'package:backtestx/services/deep_link_service.dart';
@@ -21,6 +22,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:sqflite/sqflite.dart' as sqflite;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
+import 'package:backtestx/services/auth_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 // @stacked-import
 
 import 'test_helpers.mocks.dart';
@@ -76,6 +79,8 @@ void registerServices() {
   if (!locator.isRegistered<DataManager>()) {
     locator.registerSingleton<DataManager>(DataManager());
   }
+  // Always override AuthService with a safe fake to avoid Supabase dependency
+  getAndRegisterFakeAuthService();
 // @stacked-mock-register
 }
 
@@ -174,6 +179,44 @@ MockSnackbarService getAndRegisterSnackbarService() {
   locator.registerSingleton<SnackbarService>(service);
   return service;
 }
+
+// Lightweight fake AuthService to avoid Supabase dependency in unit tests
+class FakeAuthService extends AuthService {
+  final bool _isLoggedIn;
+  final bool _isEmailVerified;
+  FakeAuthService({bool isLoggedIn = false, bool isEmailVerified = false})
+      : _isLoggedIn = isLoggedIn,
+        _isEmailVerified = isEmailVerified;
+
+  @override
+  bool get isLoggedIn => _isLoggedIn;
+
+  @override
+  bool get isEmailVerified => _isEmailVerified;
+
+  @override
+  Stream<AuthState> get authState => const Stream.empty();
+
+  @override
+  Future<void> resendEmailVerification({String? email}) async {}
+
+  @override
+  Future<void> signOut() async {}
+}
+
+AuthService getAndRegisterFakeAuthService({
+  bool isLoggedIn = false,
+  bool isEmailVerified = false,
+}) {
+  _removeRegistrationIfExists<AuthService>();
+  final service = FakeAuthService(
+    isLoggedIn: isLoggedIn,
+    isEmailVerified: isEmailVerified,
+  );
+  locator.registerSingleton<AuthService>(service);
+  return service;
+}
+
 // @stacked-mock-create
 
 ClipboardService getAndRegisterClipboardServiceInstance(
@@ -196,8 +239,7 @@ void mockPathProviderForTests({String? tempDirPath}) {
   TestWidgetsFlutterBinding.ensureInitialized();
   final messenger =
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-  final basePath =
-      tempDirPath ?? Directory.systemTemp.createTempSync('backtestx_test').path;
+  final basePath = tempDirPath ?? createTempDirPath();
 
   messenger.setMockMethodCallHandler(channel, (MethodCall methodCall) async {
     // path_provider returns a String path; we provide the same.

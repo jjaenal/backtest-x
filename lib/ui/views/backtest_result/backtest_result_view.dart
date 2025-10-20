@@ -530,12 +530,18 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         debugPrint('PNG export failed: RenderRepaintBoundary not found');
         return;
       }
-      final pr = pixelRatio ?? ui.window.devicePixelRatio;
-      final image = await renderObject.toImage(pixelRatio: pr);
-      // Gunakan warna theme sebagai background; fallback ke putih jika context null
+      // Pre-capture context and theme before async gap
       final ctx = _tfChartKey.currentContext;
       final themeBg =
           ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      // Avoid deprecated window; derive DPR from context or PlatformDispatcher
+      final pr = pixelRatio ??
+          (ctx != null
+              ? View.of(ctx).devicePixelRatio
+              : (ui.PlatformDispatcher.instance.views.isNotEmpty
+                  ? ui.PlatformDispatcher.instance.views.first.devicePixelRatio
+                  : 1.0));
+      final image = await renderObject.toImage(pixelRatio: pr);
       final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
       final fileName = viewModel.generateExportFilename(
         baseLabel: 'per_timeframe_chart',
@@ -574,12 +580,19 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         debugPrint('PNG export failed: Panel RenderRepaintBoundary not found');
         return;
       }
-      final pr = pixelRatio ?? ui.window.devicePixelRatio;
-      final image = await renderObject.toImage(pixelRatio: pr);
-      // Gunakan warna theme sebagai background; fallback ke putih jika context null
+      // Pre-capture context and theme before async gap
       final ctx = _tfPanelKey.currentContext;
       final themeBg =
           ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      // Avoid deprecated window; derive DPR from context or PlatformDispatcher
+      final pr = pixelRatio ??
+          (ctx != null
+              ? View.of(ctx).devicePixelRatio
+              : (ui.PlatformDispatcher.instance.views.isNotEmpty
+                  ? ui.PlatformDispatcher.instance.views.first.devicePixelRatio
+                  : 1.0));
+      final image = await renderObject.toImage(pixelRatio: pr);
+      // Gunakan warna theme sebagai background; fallback ke putih jika context null
       final bytes = await _composeOpaquePng(image, backgroundColor: themeBg);
       final fileName = viewModel.generateExportFilename(
         baseLabel: 'per_timeframe_panel',
@@ -659,11 +672,18 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         debugPrint('PDF export failed: RenderRepaintBoundary not found');
         return;
       }
-      final pr = pixelRatio ?? ui.window.devicePixelRatio;
-      final image = await renderObject.toImage(pixelRatio: pr);
+      // Pre-capture context and theme before async gap
       final ctx = _tfChartKey.currentContext;
       final themeBg =
           ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      // Avoid deprecated window; derive DPR from context or PlatformDispatcher
+      final pr = pixelRatio ??
+          (ctx != null
+              ? View.of(ctx).devicePixelRatio
+              : (ui.PlatformDispatcher.instance.views.isNotEmpty
+                  ? ui.PlatformDispatcher.instance.views.first.devicePixelRatio
+                  : 1.0));
+      final image = await renderObject.toImage(pixelRatio: pr);
       final pngBytes = await _composeOpaquePng(image, backgroundColor: themeBg);
       final fileName = viewModel.generateExportFilename(
         baseLabel: 'chart',
@@ -687,11 +707,18 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         debugPrint('PDF export failed: Panel RenderRepaintBoundary not found');
         return;
       }
-      final pr = pixelRatio ?? ui.window.devicePixelRatio;
-      final image = await renderObject.toImage(pixelRatio: pr);
+      // Pre-capture context and theme before async gap
       final ctx = _tfPanelKey.currentContext;
       final themeBg =
           ctx != null ? Theme.of(ctx).colorScheme.surface : Colors.white;
+      // Avoid deprecated window; derive DPR from context or PlatformDispatcher
+      final pr = pixelRatio ??
+          (ctx != null
+              ? View.of(ctx).devicePixelRatio
+              : (ui.PlatformDispatcher.instance.views.isNotEmpty
+                  ? ui.PlatformDispatcher.instance.views.first.devicePixelRatio
+                  : 1.0));
+      final image = await renderObject.toImage(pixelRatio: pr);
       final pngBytes = await _composeOpaquePng(image, backgroundColor: themeBg);
       final fileName = viewModel.generateExportFilename(
         baseLabel: 'panel',
@@ -716,12 +743,25 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         debugPrint('PDF export failed: Chart boundary not found');
         return;
       }
-      final pr = pixelRatio ?? ui.window.devicePixelRatio;
-      final chartImage = await chartObj.toImage(pixelRatio: pr);
+      // Pre-capture DPR using available contexts; avoid deprecated window
       final chartCtx = _tfChartKey.currentContext;
+      final panelCtx = _tfPanelKey.currentContext;
+      final pr = pixelRatio ??
+          (chartCtx != null
+              ? View.of(chartCtx).devicePixelRatio
+              : panelCtx != null
+                  ? View.of(panelCtx).devicePixelRatio
+                  : (ui.PlatformDispatcher.instance.views.isNotEmpty
+                      ? ui.PlatformDispatcher.instance.views.first
+                          .devicePixelRatio
+                      : 1.0));
       final themeBgChart = chartCtx != null
           ? Theme.of(chartCtx).colorScheme.surface
           : Colors.white;
+      final themeBgPanel = panelCtx != null
+          ? Theme.of(panelCtx).colorScheme.surface
+          : Colors.white;
+      final chartImage = await chartObj.toImage(pixelRatio: pr);
       final chartPng =
           await _composeOpaquePng(chartImage, backgroundColor: themeBgChart);
 
@@ -732,10 +772,6 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         return;
       }
       final panelImage = await panelObj.toImage(pixelRatio: pr);
-      final panelCtx = _tfPanelKey.currentContext;
-      final themeBgPanel = panelCtx != null
-          ? Theme.of(panelCtx).colorScheme.surface
-          : Colors.white;
       final panelPng =
           await _composeOpaquePng(panelImage, backgroundColor: themeBgPanel);
 

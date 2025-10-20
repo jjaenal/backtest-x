@@ -1016,9 +1016,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   }) async {
     try {
       final l10n = AppLocalizations.of(context)!;
+      final background = Theme.of(context).colorScheme.surface;
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
-      final composed = await _composeOpaquePng(context, bytes);
+      final composed = await _composeOpaquePng(bytes, background);
       final fileName = model.generateExportFilename(
         baseLabel: 'grouped_${model.selectedTfMetric}',
         ext: 'png',
@@ -1052,9 +1053,10 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   }) async {
     try {
       final l10n = AppLocalizations.of(context)!;
+      final background = Theme.of(context).colorScheme.surface;
       final bytes = await _captureWidgetPng(_groupedTfChartKey, pixelRatio);
       if (bytes == null) return;
-      final composed = await _composeOpaquePng(context, bytes);
+      final composed = await _composeOpaquePng(bytes, background);
       final fileName = model.generateExportFilename(
         baseLabel: 'grouped_${model.selectedTfMetric}',
         ext: 'pdf',
@@ -1171,11 +1173,11 @@ class ComparisonView extends StackedView<ComparisonViewModel> {
   }
 
   Future<Uint8List> _composeOpaquePng(
-      BuildContext context, Uint8List rawPngBytes) async {
+      Uint8List rawPngBytes, Color backgroundColor) async {
     final uiImage = await decodeImageFromList(rawPngBytes);
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final paint = Paint()..color = Theme.of(context).colorScheme.surface;
+    final paint = Paint()..color = backgroundColor;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, uiImage.width.toDouble(), uiImage.height.toDouble()),
       paint,
