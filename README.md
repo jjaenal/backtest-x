@@ -199,6 +199,12 @@ Kemudian buka `ios/Runner.xcworkspace` di Xcode untuk menyelesaikan proses archi
 
 ### Environment Configuration & Fallback Mode
 
+## 🌐 Localization
+
+- See `docs/LOCALIZATION.md` for naming conventions, adding keys, and guard scripts.
+- Manual `AppLocalizations` is the source of truth; ARB keys are snake_case, getters are camelCase.
+- Run `dart run tool/check_arb_consistency.dart` to validate ARB consistency and unused keys.
+
 Aplikasi memerlukan konfigurasi Supabase untuk autentikasi dan penyimpanan data:
 
 - **Konfigurasi Normal**: Gunakan `--dart-define` untuk menyediakan kredensial Supabase:

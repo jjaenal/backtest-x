@@ -320,8 +320,8 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 - [ ] Interpolation & plurals for counts (trades, signals, wins)
 - [ ] RTL readiness baseline (no layout break; respect `Directionality` where applicable)
 - [ ] Tests: unit for localization lookups; golden for key screens in `en`/`id`
-- [ ] Docs: README section for localization and contribution guidelines
-- [ ] CI/guard: script to check ARB key consistency and unused keys (optional)
+- [x] Docs: README section for localization and contribution guidelines
+- [x] CI/guard: script to check ARB key consistency and unused keys (optional)
 
 ## Progress Update — ATR Enhancements
 

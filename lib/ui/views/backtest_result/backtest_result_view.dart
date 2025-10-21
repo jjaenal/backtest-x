@@ -364,55 +364,53 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'png_chart_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.bar_chart, size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Export Chart PNG…'),
+                                        const Icon(Icons.bar_chart, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.menuExportChartPng),
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'png_panel_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.dashboard_customize,
-                                            size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Export Panel PNG…'),
+                                        const Icon(Icons.dashboard_customize, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.menuExportPanelPng),
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'pdf_chart_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.bar_chart, size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Export Chart PDF…'),
+                                        const Icon(Icons.bar_chart, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.menuExportChartPdf),
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'pdf_chart_panel_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.picture_as_pdf, size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Export Chart + Panel PDF…'),
+                                        const Icon(Icons.picture_as_pdf, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.menuExportChartPanelPdf),
                                       ],
                                     ),
                                   ),
-                                  const PopupMenuItem(
+                                  PopupMenuItem(
                                     value: 'pdf_panel_dialog',
                                     child: Row(
                                       children: [
-                                        Icon(Icons.dashboard_customize,
-                                            size: 18),
-                                        SizedBox(width: 8),
-                                        Text('Export Panel PDF…'),
+                                        const Icon(Icons.dashboard_customize, size: 18),
+                                        const SizedBox(width: 8),
+                                        Text(AppLocalizations.of(context)!.menuExportPanelPdf),
                                       ],
                                     ),
                                   ),
@@ -641,7 +639,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   // ==== Export Chart/Panel as PDF (single page) ====
   Future<void> _promptExportChartPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
-    final ratio = await _promptPixelRatio(context, title: 'Export Chart PDF');
+    final ratio = await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportChartPdf);
     if (ratio != null) {
       await _exportTfChartPdf(viewModel, pixelRatio: ratio);
     }
@@ -649,7 +647,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
 
   Future<void> _promptExportPanelPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
-    final ratio = await _promptPixelRatio(context, title: 'Export Panel PDF');
+    final ratio = await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportPanelPdf);
     if (ratio != null) {
       await _exportTfPanelPdf(viewModel, pixelRatio: ratio);
     }
@@ -658,7 +656,7 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   Future<void> _promptExportChartPanelPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
     final ratio =
-        await _promptPixelRatio(context, title: 'Export Chart + Panel PDF');
+        await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportChartPanelPdf);
     if (ratio != null) {
       await _exportTfChartPanelPdf(viewModel, pixelRatio: ratio);
     }
@@ -784,8 +782,10 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
         chartPng,
         panelPng,
         fileName: fileName,
-        chartTitle: 'Per‑Timeframe Chart',
-        panelTitle: 'Per‑Timeframe Panel',
+        chartTitle:
+            AppLocalizations.of(_tfChartKey.currentContext!)!.perTfChartTitle,
+        panelTitle:
+            AppLocalizations.of(_tfPanelKey.currentContext!)!.perTfPanelTitle,
       );
     } catch (e) {
       debugPrint('Chart+Panel PDF export failed: $e');

@@ -553,6 +553,36 @@ class AppLocalizations {
       'prompt_export_panel_pdf': 'Export Panel PDF',
       'prompt_export_chart_panel_pdf': 'Export Chart + Panel PDF',
 
+      // PDF export labels/content (en)
+      'pdf_performance_summary': 'Performance Summary',
+      'pdf_total_trades': 'Total Trades',
+      'pdf_winning_trades': 'Winning Trades',
+      'pdf_losing_trades': 'Losing Trades',
+      'pdf_win_rate': 'Win Rate',
+      'pdf_total_pnl': 'Total PnL',
+      'pdf_total_pnl_percent': 'Total PnL %',
+      'pdf_profit_factor': 'Profit Factor',
+      'pdf_max_drawdown': 'Max Drawdown',
+      'pdf_max_drawdown_percent': 'Max Drawdown %',
+      'pdf_sharpe_ratio': 'Sharpe Ratio',
+      'pdf_avg_win': 'Average Win',
+      'pdf_avg_loss': 'Average Loss',
+      'pdf_largest_win': 'Largest Win',
+      'pdf_largest_loss': 'Largest Loss',
+      'pdf_expectancy': 'Expectancy',
+      'pdf_operator_and': 'AND',
+      'pdf_operator_or': 'OR',
+      'pdf_page_of_format': 'Page {page} of {total}',
+      'per_tf_chart_title': 'Per‑Timeframe Chart',
+      'per_tf_panel_title': 'Per‑Timeframe Panel',
+      'pdf_share_backtest_report_text': 'BacktestX PDF Report',
+      'pdf_share_image_pdf_text': 'BacktestX Image PDF',
+      'pdf_share_comparison_pdf_text': 'BacktestX Comparison PDF',
+      'pdf_export_success': 'PDF exported successfully',
+      'pdf_export_failed_prefix': 'Export PDF failed: ',
+      'backtest_report_filename_label': 'Backtest Report',
+      'comparison_filename_label': 'Comparison',
+
       // Bottom sheets (en)
       'notice_pick_option': 'Select one option:',
       'indicator_settings_title': 'Chart Indicators',
@@ -1161,6 +1191,36 @@ class AppLocalizations {
       'prompt_export_chart_pdf': 'Ekspor Chart PDF',
       'prompt_export_panel_pdf': 'Ekspor Panel PDF',
       'prompt_export_chart_panel_pdf': 'Ekspor Chart + Panel PDF',
+
+      // PDF export labels/content (id)
+      'pdf_performance_summary': 'Ringkasan Performa',
+      'pdf_total_trades': 'Total Transaksi',
+      'pdf_winning_trades': 'Transaksi Menang',
+      'pdf_losing_trades': 'Transaksi Kalah',
+      'pdf_win_rate': 'Win Rate',
+      'pdf_total_pnl': 'Total PnL',
+      'pdf_total_pnl_percent': 'Total PnL %',
+      'pdf_profit_factor': 'Faktor Profit',
+      'pdf_max_drawdown': 'Drawdown Maks',
+      'pdf_max_drawdown_percent': 'Drawdown Maks %',
+      'pdf_sharpe_ratio': 'Rasio Sharpe',
+      'pdf_avg_win': 'Rata-rata Win',
+      'pdf_avg_loss': 'Rata-rata Loss',
+      'pdf_largest_win': 'Win Terbesar',
+      'pdf_largest_loss': 'Loss Terbesar',
+      'pdf_expectancy': 'Ekspektansi',
+      'pdf_operator_and': 'DAN',
+      'pdf_operator_or': 'ATAU',
+      'pdf_page_of_format': 'Halaman {page} dari {total}',
+      'per_tf_chart_title': 'Chart per‑Timeframe',
+      'per_tf_panel_title': 'Panel per‑Timeframe',
+      'pdf_share_backtest_report_text': 'BacktestX Laporan PDF',
+      'pdf_share_image_pdf_text': 'BacktestX Gambar PDF',
+      'pdf_share_comparison_pdf_text': 'BacktestX PDF Perbandingan',
+      'pdf_export_success': 'PDF berhasil diekspor',
+      'pdf_export_failed_prefix': 'Ekspor PDF gagal: ',
+      'backtest_report_filename_label': 'Laporan Backtest',
+      'comparison_filename_label': 'Perbandingan',
 
       // Bottom sheets (id)
       'notice_pick_option': 'Pilih salah satu opsi:',
@@ -1918,6 +1978,38 @@ class AppLocalizations {
   String get menuExportChartPanelPdf => _text('menu_export_chart_panel_pdf');
   String get menuExportPanelPdf => _text('menu_export_panel_pdf');
   String get menuExportBacktestPdf => _text('menu_export_backtest_pdf');
+
+  // PDF export getters
+  String get pdfPerformanceSummary => _text('pdf_performance_summary');
+  String get pdfTotalTrades => _text('pdf_total_trades');
+  String get pdfWinningTrades => _text('pdf_winning_trades');
+  String get pdfLosingTrades => _text('pdf_losing_trades');
+  String get pdfWinRate => _text('pdf_win_rate');
+  String get pdfTotalPnl => _text('pdf_total_pnl');
+  String get pdfTotalPnlPercent => _text('pdf_total_pnl_percent');
+  String get pdfProfitFactor => _text('pdf_profit_factor');
+  String get pdfMaxDrawdown => _text('pdf_max_drawdown');
+  String get pdfMaxDrawdownPercent => _text('pdf_max_drawdown_percent');
+  String get pdfSharpeRatio => _text('pdf_sharpe_ratio');
+  String get pdfAvgWin => _text('pdf_avg_win');
+  String get pdfAvgLoss => _text('pdf_avg_loss');
+  String get pdfLargestWin => _text('pdf_largest_win');
+  String get pdfLargestLoss => _text('pdf_largest_loss');
+  String get pdfExpectancy => _text('pdf_expectancy');
+  String get pdfOperatorAnd => _text('pdf_operator_and');
+  String get pdfOperatorOr => _text('pdf_operator_or');
+  String pdfPageOf(int page, int total) => _text('pdf_page_of_format')
+      .replaceAll('{page}', '$page')
+      .replaceAll('{total}', '$total');
+  String get perTfChartTitle => _text('per_tf_chart_title');
+  String get perTfPanelTitle => _text('per_tf_panel_title');
+  String get pdfShareBacktestReportText => _text('pdf_share_backtest_report_text');
+  String get pdfShareImagePdfText => _text('pdf_share_image_pdf_text');
+  String get pdfShareComparisonPdfText => _text('pdf_share_comparison_pdf_text');
+  String get pdfExportSuccess => _text('pdf_export_success');
+  String pdfExportFailed(String error) => _text('pdf_export_failed_prefix') + error;
+  String get backtestReportFilenameLabel => _text('backtest_report_filename_label');
+  String get comparisonFilenameLabel => _text('comparison_filename_label');
 
   // Strategy Builder — buttons and messages
   String get sbSaveStrategyButton => _text('sb_save_strategy_button');
