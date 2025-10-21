@@ -4,6 +4,8 @@ import 'package:backtestx/l10n/app_localizations.dart';
 class ErrorBanner extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
+  final VoidCallback? onSecondary;
+  final String? secondaryLabel;
   final VoidCallback? onClose;
   final bool dense;
 
@@ -11,6 +13,8 @@ class ErrorBanner extends StatelessWidget {
     Key? key,
     required this.message,
     this.onRetry,
+    this.onSecondary,
+    this.secondaryLabel,
     this.onClose,
     this.dense = false,
   }) : super(key: key);
@@ -57,6 +61,20 @@ class ErrorBanner extends StatelessWidget {
                           label: Text(
                               AppLocalizations.of(context)?.errorRetry ??
                                   'Retry'),
+                        ),
+                      if (onSecondary != null)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 6.0),
+                          child: TextButton.icon(
+                            onPressed: onSecondary,
+                            style: TextButton.styleFrom(
+                              foregroundColor: colorScheme.onErrorContainer,
+                            ),
+                            icon: const Icon(Icons.help_outline),
+                            label: Text(
+                              secondaryLabel ?? 'Learn more',
+                            ),
+                          ),
                         ),
                       const Spacer(),
                       IconButton(

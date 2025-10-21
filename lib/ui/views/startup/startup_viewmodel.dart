@@ -5,12 +5,23 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 import 'package:backtestx/core/data_manager.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/services/env_service.dart';
 
 class StartupViewModel extends BaseViewModel {
   final _navigationService = locator<NavigationService>();
+  final _envService = locator<EnvService>();
 
   // Branding: static version label for footer
   String get appVersion => 'v0.1.0';
+
+  // Env banner flag (web-only when not configured)
+  bool get showEnvWarning => _envService.isDevFallbackWeb && !_envWarningDismissed;
+
+  bool _envWarningDismissed = false;
+  void dismissEnvBanner() {
+    _envWarningDismissed = true;
+    notifyListeners();
+  }
 
   // Startup progress steps for a more informative splash experience
   final List<String> _startupSteps = const [

@@ -1,6 +1,7 @@
 {
   "appTitle": "Backtest‑X",
   "tagline": "Analisis • Backtest • Optimasi",
+  "learn_more": "Pelajari lebih lanjut",
   "data_upload_title": "Unggah Data Pasar",
   "coach_timeframe_header": "Coach Marks — Dampak Timeframe",
   "coach_timeframe_body": "Timeframe mempengaruhi indikator (EMA/RSI/VWAP, dll). Data 1H vs 4H dapat menghasilkan sinyal berbeda. Gunakan timeframe yang konsisten.",

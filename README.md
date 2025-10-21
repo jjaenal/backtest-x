@@ -54,13 +54,32 @@ Alternatif (Makefile):
 make run-web URL=<your_supabase_url> KEY=<your_anon_key>
 ```
 
+### Environment Configuration & Fallback Mode
+
+Aplikasi memerlukan konfigurasi Supabase untuk autentikasi dan penyimpanan data:
+
+- **Konfigurasi Normal**: Gunakan `--dart-define` untuk menyediakan kredensial Supabase:
+  ```bash
+  flutter run --dart-define=SUPABASE_URL=<your_supabase_url> --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+  ```
+
+- **Fallback Mode (Web Dev)**: Jika kredensial tidak dikonfigurasi saat menjalankan aplikasi web:
+  - Banner peringatan akan muncul di StartupView
+  - Operasi autentikasi diblokir dengan pesan error yang jelas
+  - Tombol "Learn more" tersedia untuk membuka dokumentasi Supabase Flutter
+  - Fitur ini membantu developer mengetahui bahwa kredensial belum dikonfigurasi
+
+- **Produksi**: Pastikan selalu menyediakan kredensial yang valid untuk build produksi:
+  ```bash
+  flutter build web --dart-define=SUPABASE_URL=<your_supabase_url> --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+  ```
+
 Catatan:
 - Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend di Web, dan skema `io.supabase.flutter://login-callback` di mobile untuk OAuth, signup verification, serta reset password.
 - Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
 - Di iOS, `AppDelegate` telah meneruskan `openURL` ke Flutter sehingga plugin menerima callback.
 
 - Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend sehingga link verifikasi diarahkan ke origin yang sedang aktif.
-- Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
 
 ## 📱 Key Features
 

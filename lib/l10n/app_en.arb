@@ -1,6 +1,7 @@
 {
   "appTitle": "Backtest‑X",
   "tagline": "Analyze • Backtest • Optimize",
+  "learn_more": "Learn more",
   "data_upload_title": "Upload Market Data",
   "coach_timeframe_header": "Coach Marks — Timeframe Impact",
   "coach_timeframe_body": "Timeframe affects indicators (EMA/RSI/VWAP, etc). 1H vs 4H can produce different signals. Use a consistent timeframe.",

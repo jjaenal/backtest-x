@@ -30,6 +30,7 @@ import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick
 import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 import 'package:backtestx/services/auth_service.dart';
+import 'package:backtestx/services/env_service.dart';
 import 'package:backtestx/services/database_service.dart';
 import 'package:backtestx/app/auth_guard.dart';
 import 'package:backtestx/ui/views/login/login_view.dart';
@@ -71,6 +72,7 @@ import 'package:backtestx/ui/views/user/user_view.dart';
     LazySingleton(classType: DeepLinkService),
     LazySingleton(classType: AuthService),
     LazySingleton(classType: DatabaseService),
+    LazySingleton(classType: EnvService),
 // @stacked-service
   ],
   bottomsheets: [
