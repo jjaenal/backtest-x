@@ -199,6 +199,92 @@ Catatan:
 - Proses warm-up ditahan bila toggle dimatikan, dan dilanjutkan kembali saat diaktifkan.
 - Throttling & batching mengurangi spike I/O sehingga UI tetap responsif.
 
+## 📊 Database Structure (Supabase)
+
+Aplikasi menggunakan Supabase sebagai backend dengan struktur tabel berikut:
+
+### Tabel `profiles`
+
+Menyimpan data profil pengguna yang terhubung dengan `auth.users`.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key, referensi ke auth.users(id) |
+| email | TEXT | Email pengguna |
+| full_name | TEXT | Nama lengkap (opsional) |
+| avatar_url | TEXT | URL avatar (opsional) |
+| subscription_tier | TEXT | Tier langganan ('free', 'premium', dll) |
+| preferences | JSONB | Preferensi pengguna (tema, bahasa, dll) |
+| created_at | TIMESTAMP | Waktu pembuatan |
+| updated_at | TIMESTAMP | Waktu pembaruan terakhir |
+
+### Tabel `strategies`
+
+Menyimpan strategi trading yang dibuat pengguna.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key ke profiles(id) |
+| name | TEXT | Nama strategi |
+| description | TEXT | Deskripsi strategi |
+| initial_capital | DECIMAL | Modal awal |
+| risk_type | TEXT | Tipe manajemen risiko ('fixedLot', 'percentageRisk', 'atrBased') |
+| risk_value | DECIMAL | Nilai risiko (lot tetap atau persentase) |
+| stop_loss | DECIMAL | Stop loss dalam pips/poin atau % |
+| take_profit | DECIMAL | Take profit dalam pips/poin atau % |
+| use_trailing_stop | BOOLEAN | Apakah menggunakan trailing stop |
+| trailing_stop_distance | DECIMAL | Jarak trailing stop |
+| entry_rules | JSONB | Aturan masuk pasar (array) |
+| exit_rules | JSONB | Aturan keluar pasar (array) |
+| is_template | BOOLEAN | Apakah strategi adalah template |
+| is_favorite | BOOLEAN | Apakah strategi difavoritkan |
+| is_public | BOOLEAN | Apakah strategi publik |
+| tags | TEXT[] | Tag untuk kategorisasi |
+| created_at | TIMESTAMP | Waktu pembuatan |
+| updated_at | TIMESTAMP | Waktu pembaruan terakhir |
+
+### Tabel `results`
+
+Menyimpan hasil backtest dari strategi.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key ke profiles(id) |
+| strategy_id | UUID | Foreign key ke strategies(id) |
+| symbol | TEXT | Simbol/instrumen yang diuji |
+| timeframe | TEXT | Timeframe yang digunakan |
+| start_date | TIMESTAMP | Tanggal mulai backtest |
+| end_date | TIMESTAMP | Tanggal akhir backtest |
+| initial_capital | DECIMAL | Modal awal |
+| final_capital | DECIMAL | Modal akhir |
+| total_profit_loss | DECIMAL | Total profit/loss |
+| profit_factor | DECIMAL | Faktor profit |
+| win_rate | DECIMAL | Persentase kemenangan |
+| total_trades | INTEGER | Total transaksi |
+| winning_trades | INTEGER | Jumlah transaksi profit |
+| losing_trades | INTEGER | Jumlah transaksi loss |
+| max_drawdown | DECIMAL | Drawdown maksimum |
+| max_drawdown_percentage | DECIMAL | Persentase drawdown maksimum |
+| sharpe_ratio | DECIMAL | Rasio Sharpe |
+| trades | JSONB | Detail transaksi (array) |
+| equity_curve | JSONB | Data kurva ekuitas |
+| monthly_returns | JSONB | Return bulanan |
+| created_at | TIMESTAMP | Waktu pembuatan |
+
+### Row Level Security (RLS)
+
+Semua tabel dilindungi dengan Row Level Security untuk memastikan pengguna hanya dapat:
+
+- Melihat dan mengedit data mereka sendiri
+- Melihat strategi dan hasil publik dari pengguna lain
+- Tidak dapat mengubah data milik pengguna lain
+
+Trigger otomatis diimplementasikan untuk:
+- Membuat profil saat pengguna baru mendaftar
+- Memperbarui timestamp `updated_at` saat data diubah
+
 ### Throttling — Realtime UI
 
 - Home: refresh quick stats di‑throttle agar tidak rebuild beruntun saat batch event (upload/simpan)
