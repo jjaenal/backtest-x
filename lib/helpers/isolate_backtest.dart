@@ -69,7 +69,8 @@ class IsolateBacktest {
       });
     } catch (_) {
       // Fallback: run on main isolate with progress directly
-      final engine = BacktestEngineService(indicatorService: IndicatorService());
+      final engine =
+          BacktestEngineService(indicatorService: IndicatorService());
       StorageService? storageSafe;
       try {
         storageSafe = locator<StorageService>();

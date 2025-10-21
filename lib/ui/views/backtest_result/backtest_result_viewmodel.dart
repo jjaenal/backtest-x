@@ -328,15 +328,15 @@ class BacktestResultViewModel extends BaseRefreshableViewModel {
       final filters = (_selectedTimeframeFilters.toList()..sort());
       final filterLabel = filters.isEmpty ? 'all' : filters.join('-');
       final fileName = FilenameHelper.build(
-      [
-      'backtest',
-      result.strategyId,
-      result.marketDataId,
-      'tfstats',
-      'tfs',
-      filterLabel,
-      ],
-      ext: ext,
+        [
+          'backtest',
+          result.strategyId,
+          result.marketDataId,
+          'tfstats',
+          'tfs',
+          filterLabel,
+        ],
+        ext: ext,
       );
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)
@@ -458,15 +458,15 @@ class BacktestResultViewModel extends BaseRefreshableViewModel {
       final filters = (_selectedTimeframeFilters.toList()..sort());
       final filterLabel = filters.isEmpty ? 'all' : filters.join('-');
       final fileName = FilenameHelper.build(
-      [
-      'backtest',
-      result.strategyId,
-      result.marketDataId,
-      'trades',
-      'tfs',
-      filterLabel,
-      ],
-      ext: ext,
+        [
+          'backtest',
+          result.strategyId,
+          result.marketDataId,
+          'trades',
+          'tfs',
+          filterLabel,
+        ],
+        ext: ext,
       );
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)

@@ -17,10 +17,10 @@ void main() {
   testWidgets('HomeView - warm-up indicator visible', (tester) async {
     await loadAppFonts();
     await setupGoldenViewport(tester);
-    
+
     // Simulate warm-up in progress without triggering background tasks
     DataManager().warmupNotifier.value = true;
-    
+
     await pumpWidgetForGolden(tester, const HomeView());
     await verifyGolden(tester, find.byType(HomeView), 'home_view_warmup');
   });

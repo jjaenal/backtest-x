@@ -148,7 +148,8 @@ class ComparisonViewModel extends BaseViewModel {
         _selectedTfMetric = savedMetric;
       }
       // Load timeframe filters and intersect with available TFs
-      final savedFiltersStr = await _prefs.getString('compare.selectedTfFilters');
+      final savedFiltersStr =
+          await _prefs.getString('compare.selectedTfFilters');
       if (savedFiltersStr != null && savedFiltersStr.trim().isNotEmpty) {
         final allTfs = getAllAvailableTimeframes().toSet();
         final saved = savedFiltersStr
@@ -246,8 +247,7 @@ class ComparisonViewModel extends BaseViewModel {
       _selectedTimeframeFilters.add(tf);
     }
     // Persist filters (sorted for stability)
-    _prefs.setString(
-        'compare.selectedTfFilters',
+    _prefs.setString('compare.selectedTfFilters',
         (_selectedTimeframeFilters.toList()..sort()).join(','));
     _invalidateGroupedCache();
     _throttleNotify();
