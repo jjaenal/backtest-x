@@ -3,7 +3,7 @@
 - [x] Linting bersih (`flutter analyze`) — tidak ada issues
 - [x] Dokumentasi `AuthService` ditambahkan (class + metode inti)
 - [x] Redaksi Supabase keys dari `project_rules.md` (gunakan `--dart-define`)
-- [ ] Test baseline gagal; rencanakan triage subset unit tests terlebih dulu
+- [x] Test baseline: all unit tests passing locally
 
 ## Progress Update — Auth Verification Banner & Cooldown
 
