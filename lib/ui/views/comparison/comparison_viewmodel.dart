@@ -213,9 +213,10 @@ class ComparisonViewModel extends BaseViewModel {
     String ext = 'pdf',
     DateTime? timestamp,
   }) {
-    final ctx = StackedService.navigatorKey!.currentContext!;
-    final t = AppLocalizations.of(ctx)!;
-    return FilenameHelper.build([t.comparisonFilenameLabel, baseLabel],
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx) : null;
+    final comparisonLabel = t?.comparisonFilenameLabel ?? 'comparison';
+    return FilenameHelper.build([comparisonLabel, baseLabel],
         ext: ext, timestamp: timestamp);
   }
 
