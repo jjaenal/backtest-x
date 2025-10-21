@@ -8,6 +8,8 @@ import 'package:backtestx/models/strategy.dart';
 import 'package:backtestx/helpers/share_content_helper.dart';
 import 'package:backtestx/app/app.locator.dart';
 import 'package:backtestx/services/storage_service.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class PdfExportService {
   Future<Uint8List> buildBacktestReport(BacktestResult result) async {
@@ -22,6 +24,8 @@ class PdfExportService {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     final summary = result.summary;
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
     pdf.addPage(
       pw.MultiPage(
@@ -29,7 +33,7 @@ class PdfExportService {
           padding: const pw.EdgeInsets.symmetric(vertical: 8),
           alignment: pw.Alignment.center,
           child: pw.Text(
-            'Page ${context.pageNumber} of ${context.pagesCount}',
+            loc.pdfPageOf(context.pageNumber, context.pagesCount),
             style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600),
           ),
         ),
@@ -47,7 +51,7 @@ class PdfExportService {
                       pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('Backtest Report',
+                          pw.Text(loc.backtestReportFilenameLabel,
                               style: pw.TextStyle(
                                 fontSize: 20,
                                 fontWeight: pw.FontWeight.bold,
@@ -58,16 +62,8 @@ class PdfExportService {
                               style: const pw.TextStyle(fontSize: 12)),
                           pw.SizedBox(height: 2),
                           pw.Text(
-                              'Symbol: ${marketData?.symbol ?? 'Unknown'} (${marketData?.timeframe ?? 'Unknown'})',
-                              style: const pw.TextStyle(fontSize: 10)),
-                          if (result.equityCurve.isNotEmpty)
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.only(top: 2),
-                              child: pw.Text(
-                                'Data Range: ${dateFormat.format(result.equityCurve.first.timestamp)} — ${dateFormat.format(result.equityCurve.last.timestamp)}',
-                                style: const pw.TextStyle(fontSize: 9),
-                              ),
-                            ),
+                              'Symbol: ${marketData?.symbol ?? result.marketDataId} | TF: ${marketData?.timeframe ?? ''}',
+                              style: const pw.TextStyle(fontSize: 12)),
                         ],
                       ),
                       pw.Text(
@@ -153,46 +149,46 @@ class PdfExportService {
                     child: pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.start,
                       children: [
-                        pw.Text('Performance Summary',
+                        pw.Text(loc.pdfPerformanceSummary,
                             style: pw.TextStyle(
                               fontSize: 14,
                               fontWeight: pw.FontWeight.bold,
                             )),
                         pw.SizedBox(height: 8),
                         _summaryRow(
-                            'Total Trades', summary.totalTrades.toString()),
-                        _summaryRow(
-                            'Winning Trades', summary.winningTrades.toString()),
-                        _summaryRow(
-                            'Losing Trades', summary.losingTrades.toString()),
-                        _summaryRow('Win Rate',
+                            loc.pdfTotalTrades, summary.totalTrades.toString()),
+                        _summaryRow(loc.pdfWinningTrades,
+                            summary.winningTrades.toString()),
+                        _summaryRow(loc.pdfLosingTrades,
+                            summary.losingTrades.toString()),
+                        _summaryRow(loc.pdfWinRate,
                             '${summary.winRate.toStringAsFixed(1)}%'),
                         _summaryRow(
-                            'Total PnL', _fmtCurrencyUsd(summary.totalPnl)),
-                        _summaryRow('Total PnL %',
+                            loc.pdfTotalPnl, _fmtCurrencyUsd(summary.totalPnl)),
+                        _summaryRow(loc.pdfTotalPnlPercent,
                             '${summary.totalPnlPercentage.toStringAsFixed(2)}%'),
-                        _summaryRow('Profit Factor',
+                        _summaryRow(loc.pdfProfitFactor,
                             summary.profitFactor.toStringAsFixed(2)),
-                        _summaryRow('Max Drawdown',
+                        _summaryRow(loc.pdfMaxDrawdown,
                             _fmtCurrencyUsd(summary.maxDrawdown)),
-                        _summaryRow('Max Drawdown %',
+                        _summaryRow(loc.pdfMaxDrawdownPercent,
                             '${summary.maxDrawdownPercentage.toStringAsFixed(2)}%'),
-                        _summaryRow('Sharpe Ratio',
+                        _summaryRow(loc.pdfSharpeRatio,
                             summary.sharpeRatio.toStringAsFixed(2)),
                         _summaryRow(
-                            'Average Win', _fmtCurrencyUsd(summary.averageWin)),
-                        _summaryRow('Average Loss',
+                            loc.pdfAvgWin, _fmtCurrencyUsd(summary.averageWin)),
+                        _summaryRow(loc.pdfAvgLoss,
                             _fmtCurrencyUsd(summary.averageLoss)),
-                        _summaryRow(
-                            'Largest Win', _fmtCurrencyUsd(summary.largestWin)),
-                        _summaryRow('Largest Loss',
+                        _summaryRow(loc.pdfLargestWin,
+                            _fmtCurrencyUsd(summary.largestWin)),
+                        _summaryRow(loc.pdfLargestLoss,
                             _fmtCurrencyUsd(summary.largestLoss)),
-                        _summaryRow(
-                            'Expectancy', _fmtCurrencyUsd(summary.expectancy)),
+                        _summaryRow(loc.pdfExpectancy,
+                            _fmtCurrencyUsd(summary.expectancy)),
                         if (summary.tfStats != null &&
                             summary.tfStats!.isNotEmpty) ...[
                           pw.SizedBox(height: 8),
-                          pw.Text('Per-Timeframe Stats',
+                          pw.Text(loc.perTfStatsHeader,
                               style: pw.TextStyle(
                                 fontSize: 14,
                                 fontWeight: pw.FontWeight.bold,
@@ -207,7 +203,7 @@ class PdfExportService {
                             final pf = (s['profitFactor'] ?? 0).toDouble();
                             final ex = (s['expectancy'] ?? 0).toDouble();
                             final value =
-                                'Signals: $signals, Trades: $trades, Wins: $wins, WinRate: ${wr.toStringAsFixed(1)}%, PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}, Expectancy: ${_fmtCurrencyUsd(ex)}';
+                                '${loc.sbStatsSignals}: $signals, ${loc.sbStatsTrades}: $trades, ${loc.sbStatsWins}: $wins, ${loc.sbStatsWinRate}: ${wr.toStringAsFixed(1)}%, PF: ${pf.isFinite ? pf.toStringAsFixed(2) : '—'}, ${loc.pdfExpectancy}: ${_fmtCurrencyUsd(ex)}';
                             return _summaryRow('TF $tf', value);
                           }).toList(),
                         ],
@@ -218,13 +214,6 @@ class PdfExportService {
 
                   // Charts (Equity & Drawdown)
                   ..._buildCharts(result),
-
-                  // Trades table
-                  pw.Text('Trade History',
-                      style: pw.TextStyle(
-                          fontSize: 14, fontWeight: pw.FontWeight.bold)),
-                  pw.SizedBox(height: 8),
-                  ..._buildTradesTables(result),
                 ],
               ),
             ),
@@ -249,6 +238,7 @@ class PdfExportService {
     );
   }
 
+  // ignore: unused_element
   List<pw.Widget> _buildTradesTables(BacktestResult result) {
     final dateFormat = DateFormat('yyyy-MM-dd');
     final trades =
@@ -589,11 +579,13 @@ class PdfExportService {
   }
 
   String _logicalLabel(LogicalOperator l) {
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
     switch (l) {
       case LogicalOperator.and:
-        return 'AND';
+        return loc.pdfOperatorAnd;
       case LogicalOperator.or:
-        return 'OR';
+        return loc.pdfOperatorOr;
     }
   }
 
@@ -639,6 +631,8 @@ class PdfExportService {
   }) async {
     // Create document without network font dependencies for testability
     final pdf = pw.Document();
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
     // Older versions of the pdf package may not support PageBreak.
     // To ensure compatibility, render each image on its own Page
@@ -674,7 +668,7 @@ class PdfExportService {
                   padding: const pw.EdgeInsets.symmetric(vertical: 8),
                   alignment: pw.Alignment.center,
                   child: pw.Text(
-                    'Page ${i + 1} of ${images.length}',
+                    loc.pdfPageOf(i + 1, images.length),
                     style: const pw.TextStyle(
                         fontSize: 10, color: PdfColors.grey600),
                   ),

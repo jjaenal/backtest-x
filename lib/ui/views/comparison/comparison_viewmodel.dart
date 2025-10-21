@@ -14,6 +14,8 @@ import 'package:backtestx/services/prefs_service.dart';
 import 'package:backtestx/debug/perf_monitor.dart';
 import 'package:backtestx/helpers/filename_helper.dart';
 import 'package:backtestx/services/share_service.dart';
+import 'package:backtestx/l10n/app_localizations.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class ComparisonViewModel extends BaseViewModel {
   final List<BacktestResult> results;
@@ -167,6 +169,9 @@ class ComparisonViewModel extends BaseViewModel {
   // Export a single image into a one‑page PDF
   Future<bool> exportImagePdf(Uint8List imageBytes, String fileName,
       {String? title}) async {
+    // Ambil lokalitas sebelum operasi async untuk menghindari use_build_context_synchronously
+    final ctx = StackedService.navigatorKey!.currentContext!;
+    final t = AppLocalizations.of(ctx)!;
     try {
       final pdf = await _pdfExportService.buildImageDocument(
         imageBytes,
@@ -191,7 +196,7 @@ class ComparisonViewModel extends BaseViewModel {
         final share = locator<ShareService>();
         await share.shareFilePath(
           path,
-          text: 'BacktestX Comparison PDF',
+          text: t.pdfShareComparisonPdfText,
           mimeType: 'application/pdf',
           filename: fileName,
         );
@@ -208,7 +213,10 @@ class ComparisonViewModel extends BaseViewModel {
     String ext = 'pdf',
     DateTime? timestamp,
   }) {
-    return FilenameHelper.build(['comparison', baseLabel],
+    final ctx = StackedService.navigatorKey?.currentContext;
+    final t = ctx != null ? AppLocalizations.of(ctx) : null;
+    final comparisonLabel = t?.comparisonFilenameLabel ?? 'comparison';
+    return FilenameHelper.build([comparisonLabel, baseLabel],
         ext: ext, timestamp: timestamp);
   }
 
@@ -477,7 +485,12 @@ class ComparisonViewModel extends BaseViewModel {
     }
 
     final csv = const ListToCsvConverter().convert(rows);
-    const fileName = 'comparison_backtest_results.csv';
+    final ctx = StackedService.navigatorKey!.currentContext!;
+    final t = AppLocalizations.of(ctx)!;
+    final fileName = generateExportFilename(
+      baseLabel: 'backtest_results',
+      ext: 'csv',
+    );
 
     try {
       if (kIsWeb) {
@@ -498,7 +511,7 @@ class ComparisonViewModel extends BaseViewModel {
         final share = locator<ShareService>();
         await share.shareFilePath(
           path,
-          text: 'BacktestX Comparison',
+          text: t.pdfShareComparisonPdfText,
           mimeType: 'text/csv',
           filename: fileName,
         );
@@ -560,6 +573,8 @@ class ComparisonViewModel extends BaseViewModel {
       }
 
       final isCsv = format.toLowerCase() == 'csv';
+      final ctx = StackedService.navigatorKey!.currentContext!;
+      final t = AppLocalizations.of(ctx)!;
       final content = isCsv
           ? const ListToCsvConverter().convert(rows)
           : rows.map((r) => r.join('\t')).join('\n');
@@ -591,7 +606,7 @@ class ComparisonViewModel extends BaseViewModel {
         final share = locator<ShareService>();
         await share.shareFilePath(
           path,
-          text: 'BacktestX Comparison Per‑TF Stats',
+          text: t.pdfShareComparisonPdfText,
           mimeType: mime,
           filename: fileName,
         );

@@ -14,6 +14,119 @@ flutter pub get
 flutter pub run build_runner build --delete-conflicting-outputs
 ```
 
+## 🔐 Supabase CLI
+
+### Instalasi
+
+```bash
+# Menggunakan npm
+npm install -g supabase
+
+# Menggunakan Homebrew (macOS)
+brew install supabase/tap/supabase
+
+# Menggunakan Scoop (Windows)
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
+### Login dan Setup
+
+```bash
+# Login ke Supabase
+supabase login
+
+# Inisialisasi proyek Supabase di direktori saat ini
+supabase init
+
+# Link proyek lokal ke proyek Supabase yang sudah ada
+supabase link --project-ref <project-id>
+```
+
+### Pengembangan Lokal
+
+```bash
+# Memulai Supabase lokal
+supabase start
+
+# Menghentikan Supabase lokal
+supabase stop
+
+# Mereset database lokal
+supabase db reset
+
+# Melihat status Supabase lokal
+supabase status
+```
+
+### Migrasi Database
+
+```bash
+# Membuat file migrasi baru
+supabase migration new <nama_migrasi>
+
+# Menjalankan migrasi ke database lokal
+supabase db push
+
+# Menjalankan migrasi ke database remote
+supabase db push --db-url <database_url>
+
+# Melihat status migrasi
+supabase migration list
+```
+
+### Operasi Database
+
+```bash
+# Membuka shell SQL di database lokal
+supabase db studio
+
+# Mengekspor skema database
+supabase db dump --schema-only > schema.sql
+
+# Mengekspor data database
+supabase db dump > full_dump.sql
+```
+
+### Fungsi Edge
+
+```bash
+# Membuat fungsi edge baru
+supabase functions new <nama_fungsi>
+
+# Deploy fungsi edge
+supabase functions deploy <nama_fungsi>
+
+# Menjalankan fungsi edge secara lokal
+supabase functions serve <nama_fungsi> --no-verify-jwt
+```
+
+### Troubleshooting Supabase
+
+1. **Error Koneksi Database**:
+   ```
+   Error: connection refused
+   ```
+   Solusi: Pastikan Supabase lokal berjalan dengan `supabase status`
+
+2. **Error Migrasi**:
+   ```
+   Error: migration failed
+   ```
+   Solusi: Periksa log dengan `supabase logs` dan perbaiki file migrasi
+
+3. **JWT Error**:
+   ```
+   Error: JWT verification failed
+   ```
+   Solusi: Gunakan flag `--no-verify-jwt` saat menjalankan fungsi lokal
+
+4. **Konflik Port**:
+   ```
+   Error: port already in use
+   ```
+   Solusi: Hentikan layanan yang menggunakan port tersebut atau ubah port di `supabase/config.toml`
+
 ## 🔄 Code Generation
 
 ### When to Run

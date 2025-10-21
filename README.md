@@ -54,13 +54,181 @@ Alternatif (Makefile):
 make run-web URL=<your_supabase_url> KEY=<your_anon_key>
 ```
 
+## 📱 Platform Setup Guide
+
+### Web Setup
+
+1. **Development Setup**
+
+```bash
+# Jalankan web server dengan port tetap
+flutter run -d web-server \
+  --web-hostname localhost \
+  --web-port 8081 \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Atau gunakan Makefile
+make run-web URL=<your_supabase_url> KEY=<your_anon_key>
+```
+
+2. **Production Build**
+
+```bash
+# Build untuk production
+flutter build web \
+  --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Deploy ke hosting (contoh Firebase)
+firebase deploy --only hosting
+```
+
+3. **Web-Specific Configuration**
+
+- Pastikan `index.html` memiliki meta tag yang sesuai:
+```html
+<meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
+```
+- Untuk PWA, pastikan `manifest.json` dan service worker sudah dikonfigurasi dengan benar
+- Aktifkan CORS di Supabase untuk domain aplikasi web Anda
+
+### Android Setup
+
+1. **Konfigurasi Project**
+
+- Buka `android/app/build.gradle.kts` dan pastikan:
+  - `minSdkVersion` minimal 21
+  - `compileSdkVersion` minimal 33
+  - `targetSdkVersion` minimal 33
+
+2. **Intent Filter untuk Deep Links**
+
+Tambahkan kode berikut di `android/app/src/main/AndroidManifest.xml` dalam tag `<activity>`:
+
+```xml
+<!-- Deep Link Handler -->
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <!-- Supabase Auth Redirect -->
+    <data android:scheme="io.supabase.flutter" android:host="login-callback" />
+</intent-filter>
+```
+
+3. **Menjalankan di Device/Emulator**
+
+```bash
+# Lihat daftar device yang tersedia
+flutter devices
+
+# Jalankan di device Android
+flutter run -d <android_device_id> \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+4. **Build APK/App Bundle**
+
+```bash
+# Build APK debug
+flutter build apk --debug \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Build APK release
+flutter build apk --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Build App Bundle untuk Play Store
+flutter build appbundle \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+### iOS Setup
+
+1. **Konfigurasi Project**
+
+- Buka `ios/Runner.xcworkspace` dengan Xcode
+- Pastikan iOS Deployment Target minimal 12.0
+- Atur Bundle Identifier yang sesuai (mis. `com.yourcompany.backtestx`)
+- Tambahkan team development Apple Anda
+
+2. **URL Scheme untuk Deep Links**
+
+- Di Xcode, pilih target Runner
+- Buka tab "Info"
+- Expand "URL Types"
+- Tambahkan URL Type baru:
+  - Identifier: `io.supabase.flutter`
+  - URL Schemes: `io.supabase.flutter`
+  - Role: Editor
+
+3. **Associated Domains (Opsional untuk Universal Links)**
+
+- Di tab "Signing & Capabilities", tambahkan "Associated Domains"
+- Tambahkan: `applinks:yourdomain.com`
+
+4. **Menjalankan di Simulator/Device**
+
+```bash
+# Lihat daftar device yang tersedia
+flutter devices
+
+# Jalankan di simulator iOS
+flutter run -d <ios_simulator_id> \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+5. **Build IPA untuk TestFlight/App Store**
+
+```bash
+# Build untuk iOS
+flutter build ios \
+  --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+Kemudian buka `ios/Runner.xcworkspace` di Xcode untuk menyelesaikan proses archive dan upload ke App Store Connect.
+
+### Environment Configuration & Fallback Mode
+
+## 🌐 Localization
+
+- See `docs/LOCALIZATION.md` for naming conventions, adding keys, and guard scripts.
+- Manual `AppLocalizations` is the source of truth; ARB keys are snake_case, getters are camelCase.
+- Run `dart run tool/check_arb_consistency.dart` to validate ARB consistency and unused keys.
+
+Aplikasi memerlukan konfigurasi Supabase untuk autentikasi dan penyimpanan data:
+
+- **Konfigurasi Normal**: Gunakan `--dart-define` untuk menyediakan kredensial Supabase:
+  ```bash
+  flutter run --dart-define=SUPABASE_URL=<your_supabase_url> --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+  ```
+
+- **Fallback Mode (Web Dev)**: Jika kredensial tidak dikonfigurasi saat menjalankan aplikasi web:
+  - Banner peringatan akan muncul di StartupView
+  - Operasi autentikasi diblokir dengan pesan error yang jelas
+  - Tombol "Learn more" tersedia untuk membuka dokumentasi Supabase Flutter
+  - Fitur ini membantu developer mengetahui bahwa kredensial belum dikonfigurasi
+
+- **Produksi**: Pastikan selalu menyediakan kredensial yang valid untuk build produksi:
+  ```bash
+  flutter build web --dart-define=SUPABASE_URL=<your_supabase_url> --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+  ```
+
 Catatan:
 - Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend di Web, dan skema `io.supabase.flutter://login-callback` di mobile untuk OAuth, signup verification, serta reset password.
 - Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
 - Di iOS, `AppDelegate` telah meneruskan `openURL` ke Flutter sehingga plugin menerima callback.
 
 - Kode menggunakan `Uri.base.origin` untuk `emailRedirectTo` saat signup/resend sehingga link verifikasi diarahkan ke origin yang sedang aktif.
-- Pastikan `SUPABASE_URL` dan `SUPABASE_ANON_KEY` terpasang saat run.
 
 ## 📱 Key Features
 
@@ -179,6 +347,92 @@ Catatan:
 
 - Proses warm-up ditahan bila toggle dimatikan, dan dilanjutkan kembali saat diaktifkan.
 - Throttling & batching mengurangi spike I/O sehingga UI tetap responsif.
+
+## 📊 Database Structure (Supabase)
+
+Aplikasi menggunakan Supabase sebagai backend dengan struktur tabel berikut:
+
+### Tabel `profiles`
+
+Menyimpan data profil pengguna yang terhubung dengan `auth.users`.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key, referensi ke auth.users(id) |
+| email | TEXT | Email pengguna |
+| full_name | TEXT | Nama lengkap (opsional) |
+| avatar_url | TEXT | URL avatar (opsional) |
+| subscription_tier | TEXT | Tier langganan ('free', 'premium', dll) |
+| preferences | JSONB | Preferensi pengguna (tema, bahasa, dll) |
+| created_at | TIMESTAMP | Waktu pembuatan |
+| updated_at | TIMESTAMP | Waktu pembaruan terakhir |
+
+### Tabel `strategies`
+
+Menyimpan strategi trading yang dibuat pengguna.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key ke profiles(id) |
+| name | TEXT | Nama strategi |
+| description | TEXT | Deskripsi strategi |
+| initial_capital | DECIMAL | Modal awal |
+| risk_type | TEXT | Tipe manajemen risiko ('fixedLot', 'percentageRisk', 'atrBased') |
+| risk_value | DECIMAL | Nilai risiko (lot tetap atau persentase) |
+| stop_loss | DECIMAL | Stop loss dalam pips/poin atau % |
+| take_profit | DECIMAL | Take profit dalam pips/poin atau % |
+| use_trailing_stop | BOOLEAN | Apakah menggunakan trailing stop |
+| trailing_stop_distance | DECIMAL | Jarak trailing stop |
+| entry_rules | JSONB | Aturan masuk pasar (array) |
+| exit_rules | JSONB | Aturan keluar pasar (array) |
+| is_template | BOOLEAN | Apakah strategi adalah template |
+| is_favorite | BOOLEAN | Apakah strategi difavoritkan |
+| is_public | BOOLEAN | Apakah strategi publik |
+| tags | TEXT[] | Tag untuk kategorisasi |
+| created_at | TIMESTAMP | Waktu pembuatan |
+| updated_at | TIMESTAMP | Waktu pembaruan terakhir |
+
+### Tabel `results`
+
+Menyimpan hasil backtest dari strategi.
+
+| Kolom | Tipe | Deskripsi |
+|-------|------|-----------|
+| id | UUID | Primary key |
+| user_id | UUID | Foreign key ke profiles(id) |
+| strategy_id | UUID | Foreign key ke strategies(id) |
+| symbol | TEXT | Simbol/instrumen yang diuji |
+| timeframe | TEXT | Timeframe yang digunakan |
+| start_date | TIMESTAMP | Tanggal mulai backtest |
+| end_date | TIMESTAMP | Tanggal akhir backtest |
+| initial_capital | DECIMAL | Modal awal |
+| final_capital | DECIMAL | Modal akhir |
+| total_profit_loss | DECIMAL | Total profit/loss |
+| profit_factor | DECIMAL | Faktor profit |
+| win_rate | DECIMAL | Persentase kemenangan |
+| total_trades | INTEGER | Total transaksi |
+| winning_trades | INTEGER | Jumlah transaksi profit |
+| losing_trades | INTEGER | Jumlah transaksi loss |
+| max_drawdown | DECIMAL | Drawdown maksimum |
+| max_drawdown_percentage | DECIMAL | Persentase drawdown maksimum |
+| sharpe_ratio | DECIMAL | Rasio Sharpe |
+| trades | JSONB | Detail transaksi (array) |
+| equity_curve | JSONB | Data kurva ekuitas |
+| monthly_returns | JSONB | Return bulanan |
+| created_at | TIMESTAMP | Waktu pembuatan |
+
+### Row Level Security (RLS)
+
+Semua tabel dilindungi dengan Row Level Security untuk memastikan pengguna hanya dapat:
+
+- Melihat dan mengedit data mereka sendiri
+- Melihat strategi dan hasil publik dari pengguna lain
+- Tidak dapat mengubah data milik pengguna lain
+
+Trigger otomatis diimplementasikan untuk:
+- Membuat profil saat pengguna baru mendaftar
+- Memperbarui timestamp `updated_at` saat data diubah
 
 ### Throttling — Realtime UI
 

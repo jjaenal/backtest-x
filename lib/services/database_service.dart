@@ -18,11 +18,8 @@ class DatabaseService {
     if (user == null) return null;
 
     try {
-      final response = await _supabase
-          .from('profiles')
-          .select()
-          .eq('id', user.id)
-          .single();
+      final response =
+          await _supabase.from('profiles').select().eq('id', user.id).single();
 
       return UserProfile.fromJson(response);
     } catch (e) {
@@ -49,8 +46,7 @@ class DatabaseService {
 
     await _supabase
         .from('profiles')
-        .update({'preferences': preferences})
-        .eq('id', user.id);
+        .update({'preferences': preferences}).eq('id', user.id);
   }
 
   // =====================================================
@@ -108,9 +104,10 @@ class DatabaseService {
     if (profile != null) {
       final currentCount = await _getUserStrategyCount();
       final maxStrategies = profile.subscriptionTier.maxStrategies;
-      
+
       if (maxStrategies > 0 && currentCount >= maxStrategies) {
-        throw Exception('Strategy limit reached for ${profile.subscriptionTier.name} tier');
+        throw Exception(
+            'Strategy limit reached for ${profile.subscriptionTier.name} tier');
       }
     }
 
@@ -140,10 +137,7 @@ class DatabaseService {
 
   /// Delete strategy
   Future<void> deleteStrategy(String strategyId) async {
-    await _supabase
-        .from('strategies')
-        .delete()
-        .eq('id', strategyId);
+    await _supabase.from('strategies').delete().eq('id', strategyId);
   }
 
   /// Get user's strategy count (untuk quota checking)
@@ -151,8 +145,7 @@ class DatabaseService {
     final user = _supabase.auth.currentUser;
     if (user == null) return 0;
 
-    final response = await _supabase
-        .rpc('get_user_strategy_count');
+    final response = await _supabase.rpc('get_user_strategy_count');
 
     return response as int;
   }
@@ -187,10 +180,8 @@ class DatabaseService {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
 
-    var query = _supabase
-        .from('backtest_results')
-        .select()
-        .eq('user_id', user.id);
+    var query =
+        _supabase.from('backtest_results').select().eq('user_id', user.id);
 
     if (symbol != null) {
       query = query.eq('symbol', symbol);
@@ -199,9 +190,8 @@ class DatabaseService {
       query = query.eq('timeframe', timeframe);
     }
 
-    final response = await query
-        .order('created_at', ascending: false)
-        .limit(limit);
+    final response =
+        await query.order('created_at', ascending: false).limit(limit);
 
     return response
         .map<BacktestResult>((json) => BacktestResult.fromJson(json))
@@ -218,9 +208,10 @@ class DatabaseService {
     if (profile != null) {
       final currentCount = await _getUserBacktestCount();
       final maxResults = profile.subscriptionTier.maxBacktestResults;
-      
+
       if (maxResults > 0 && currentCount >= maxResults) {
-        throw Exception('Backtest result limit reached for ${profile.subscriptionTier.name} tier');
+        throw Exception(
+            'Backtest result limit reached for ${profile.subscriptionTier.name} tier');
       }
     }
 
@@ -238,10 +229,7 @@ class DatabaseService {
 
   /// Delete backtest result
   Future<void> deleteBacktestResult(String resultId) async {
-    await _supabase
-        .from('backtest_results')
-        .delete()
-        .eq('id', resultId);
+    await _supabase.from('backtest_results').delete().eq('id', resultId);
   }
 
   /// Get user's backtest count (untuk quota checking)
@@ -249,8 +237,7 @@ class DatabaseService {
     final user = _supabase.auth.currentUser;
     if (user == null) return 0;
 
-    final response = await _supabase
-        .rpc('get_user_backtest_count');
+    final response = await _supabase.rpc('get_user_backtest_count');
 
     return response as int;
   }
@@ -292,17 +279,14 @@ class DatabaseService {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('User not authenticated');
 
-    final response = await _supabase
-        .from('strategies')
-        .select('''
+    final response = await _supabase.from('strategies').select('''
           *,
           strategy_shares!inner(
             share_type,
             expires_at,
             shared_by
           )
-        ''')
-        .eq('strategy_shares.shared_with', user.id);
+        ''').eq('strategy_shares.shared_with', user.id);
 
     return response.map<Strategy>((json) => Strategy.fromJson(json)).toList();
   }

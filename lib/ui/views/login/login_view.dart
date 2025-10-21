@@ -87,7 +87,7 @@ class LoginView extends StackedView<LoginViewModel> {
                           bottom: StrategyBuilderConstants.mediumSpacing),
                       child: Text(
                         t?.loginPostRedirectBanner ??
-                            'Setelah login, kamu akan diarahkan ke halaman yang diminta.',
+                            'After login, you will be redirected to the requested page.',
                         style: TextStyle(
                           color: Theme.of(context).colorScheme.primary,
                         ),
@@ -164,7 +164,7 @@ class LoginView extends StackedView<LoginViewModel> {
                             viewModel.password.length < 6)
                         ? null
                         : viewModel.signUpEmail,
-                    child: Text(t?.loginSignUpEmail ?? 'Sign Up with Email'),
+                    child: Text(t?.loginSignInEmail ?? 'Sign Up with Email'),
                   ),
                   Align(
                     alignment: Alignment.centerRight,
@@ -184,6 +184,19 @@ class LoginView extends StackedView<LoginViewModel> {
                     icon: const Icon(Icons.login),
                     label:
                         Text(t?.loginContinueGoogle ?? 'Continue with Google'),
+                  ),
+                  const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                  OutlinedButton.icon(
+                    onPressed: viewModel.isBusy ? null : viewModel.signInGithub,
+                    icon: const Icon(Icons.code),
+                    label:
+                        Text(t?.loginContinueGithub ?? 'Continue with GitHub'),
+                  ),
+                  const SizedBox(height: StrategyBuilderConstants.smallSpacing),
+                  OutlinedButton.icon(
+                    onPressed: viewModel.isBusy ? null : viewModel.signInApple,
+                    icon: const Icon(Icons.phone_iphone),
+                    label: Text(t?.loginContinueApple ?? 'Continue with Apple'),
                   ),
                 ],
               ),

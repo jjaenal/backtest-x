@@ -19,6 +19,7 @@ import '../services/data_parser_service.dart';
 import '../services/data_validation_service.dart';
 import '../services/database_service.dart';
 import '../services/deep_link_service.dart';
+import '../services/env_service.dart';
 import '../services/indicator_service.dart';
 import '../services/pdf_export_service.dart';
 import '../services/prefs_service_io_impl.dart';
@@ -54,4 +55,5 @@ Future<void> setupLocator({
   locator.registerLazySingleton(() => DeepLinkService());
   locator.registerLazySingleton(() => AuthService());
   locator.registerLazySingleton(() => DatabaseService());
+  locator.registerLazySingleton(() => EnvService());
 }

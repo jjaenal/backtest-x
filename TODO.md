@@ -3,7 +3,7 @@
 - [x] Linting bersih (`flutter analyze`) — tidak ada issues
 - [x] Dokumentasi `AuthService` ditambahkan (class + metode inti)
 - [x] Redaksi Supabase keys dari `project_rules.md` (gunakan `--dart-define`)
-- [ ] Test baseline gagal; rencanakan triage subset unit tests terlebih dulu
+- [x] Test baseline: all unit tests passing locally
 
 ## Progress Update — Auth Verification Banner & Cooldown
 
@@ -77,14 +77,14 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 
 ### Low Priority (Sprint 3)
 
-- [ ] Password reset flow lengkap (email link & konfirmasi)
-- [ ] Social login tambahan (Apple, GitHub) — opsional
-- [ ] CI/guard build: deteksi env yang belum dikonfigurasi; fallback dev‑mode (web)
-- [ ] Backend: desain tabel `profiles`, `strategies`, `results` di Supabase
-- [ ] RLS policies untuk per-user akses; migrasi SQL (opsional)
-- [ ] Dokumentasi
-  - [ ] README: panduan setup per platform (Web/Android/iOS)
-  - [ ] COMMANDS.md: ringkas perintah Supabase CLI & Dashboard (referensi)
+- [x] Password reset flow lengkap (email link & konfirmasi)
+- [x] Social login tambahan (Apple, GitHub) — opsional
+- [x] CI/guard build: deteksi env yang belum dikonfigurasi; fallback dev‑mode (web)
+- [x] Backend: desain tabel `profiles`, `strategies`, `results` di Supabase
+- [x] RLS policies untuk per-user akses; migrasi SQL (opsional)
+- [x] Dokumentasi
+  - [x] README: panduan setup per platform (Web/Android/iOS)
+  - [x] COMMANDS.md: ringkas perintah Supabase CLI & Dashboard (referensi)
 
 ### Milestone & Deliverables
 
@@ -297,7 +297,7 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
   - [x] Data Upload
   - [ ] Workspace
   - [ ] Workspace Compare
-  - [ ] Backtest Result
+  - [x] Backtest Result
   - [ ] Strategy Builder
   - [x] Pattern Scanner
   - [x] Market Analysis
@@ -320,8 +320,8 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 - [ ] Interpolation & plurals for counts (trades, signals, wins)
 - [ ] RTL readiness baseline (no layout break; respect `Directionality` where applicable)
 - [ ] Tests: unit for localization lookups; golden for key screens in `en`/`id`
-- [ ] Docs: README section for localization and contribution guidelines
-- [ ] CI/guard: script to check ARB key consistency and unused keys (optional)
+- [x] Docs: README section for localization and contribution guidelines
+- [x] CI/guard: script to check ARB key consistency and unused keys (optional)
 
 ## Progress Update — ATR Enhancements
 

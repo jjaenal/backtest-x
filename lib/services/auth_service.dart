@@ -9,6 +9,7 @@ import 'package:backtestx/app/app.router.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:backtestx/services/theme_service.dart';
+import 'package:backtestx/services/env_service.dart';
 
 /// AuthService mengelola autentikasi pengguna dan sesi aplikasi.
 ///
@@ -27,6 +28,13 @@ class AuthService {
       return Supabase.instance.client;
     } catch (_) {
       return null;
+    }
+  }
+
+  void _assertEnvConfigured() {
+    final env = locator<EnvService>();
+    if (env.isDevFallbackWeb) {
+      throw const AuthException('Supabase env not configured (web dev mode)');
     }
   }
 
@@ -58,6 +66,7 @@ class AuthService {
   }
 
   Future<void> signInWithGoogle({String? redirectTo}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) return;
     final rt = redirectTo ??
@@ -65,8 +74,27 @@ class AuthService {
     await c.auth.signInWithOAuth(OAuthProvider.google, redirectTo: rt);
   }
 
+  Future<void> signInWithGithub({String? redirectTo}) async {
+    _assertEnvConfigured();
+    final c = _safeClient();
+    if (c == null) return;
+    final rt = redirectTo ??
+        (kIsWeb ? Uri.base.origin : 'io.supabase.flutter://login-callback');
+    await c.auth.signInWithOAuth(OAuthProvider.github, redirectTo: rt);
+  }
+
+  Future<void> signInWithApple({String? redirectTo}) async {
+    _assertEnvConfigured();
+    final c = _safeClient();
+    if (c == null) return;
+    final rt = redirectTo ??
+        (kIsWeb ? Uri.base.origin : 'io.supabase.flutter://login-callback');
+    await c.auth.signInWithOAuth(OAuthProvider.apple, redirectTo: rt);
+  }
+
   Future<AuthResponse> signUpWithEmail(
       {required String email, required String password}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) {
       throw const AuthException('Supabase not initialized');
@@ -83,6 +111,7 @@ class AuthService {
 
   Future<void> sendPasswordResetEmail(
       {required String email, String? redirectTo}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) {
       throw const AuthException('Supabase not initialized');
@@ -93,6 +122,7 @@ class AuthService {
   }
 
   Future<void> resendEmailVerification({String? email}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) {
       throw const AuthException('Supabase not initialized');
@@ -118,6 +148,7 @@ class AuthService {
   /// Melempar `AuthException` jika Supabase belum terinisialisasi.
   Future<AuthResponse> signInWithEmail(
       {required String email, required String password}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) {
       throw const AuthException('Supabase not initialized');
@@ -136,6 +167,7 @@ class AuthService {
   /// Mengembalikan `UserResponse` jika berhasil.
   /// Melempar `AuthException` jika Supabase belum terinisialisasi.
   Future<UserResponse> updatePassword({required String newPassword}) async {
+    _assertEnvConfigured();
     final c = _safeClient();
     if (c == null) {
       throw const AuthException('Supabase not initialized');

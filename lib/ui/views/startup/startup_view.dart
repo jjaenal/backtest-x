@@ -5,6 +5,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 import 'package:backtestx/l10n/app_localizations.dart';
 import 'package:backtestx/ui/common/branding.dart';
+import 'package:backtestx/ui/widgets/error_banner.dart';
+import 'package:universal_html/html.dart' as html;
 
 import 'startup_viewmodel.dart';
 
@@ -40,6 +42,26 @@ class StartupView extends StackedView<StartupViewModel> {
                   ),
                 ),
               ),
+              // Env warning banner (web-only) when Supabase env missing
+              if (viewModel.showEnvWarning)
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 12,
+                  child: ErrorBanner(
+                    message:
+                        'Supabase env belum dikonfigurasi. Mode dev (web-only) aktif. Fitur autentikasi dinonaktifkan sampai SUPABASE_URL/ANON_KEY diset.',
+                    onRetry: viewModel.dismissEnvBanner,
+                    onSecondary: () {
+                      html.window.open(
+                        'https://supabase.com/docs/guides/getting-started/tutorials/with-flutter',
+                        'supabase-docs',
+                      );
+                    },
+                    onClose: viewModel.dismissEnvBanner,
+                    dense: true,
+                  ),
+                ),
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
