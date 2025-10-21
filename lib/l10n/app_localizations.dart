@@ -2003,12 +2003,16 @@ class AppLocalizations {
       .replaceAll('{total}', '$total');
   String get perTfChartTitle => _text('per_tf_chart_title');
   String get perTfPanelTitle => _text('per_tf_panel_title');
-  String get pdfShareBacktestReportText => _text('pdf_share_backtest_report_text');
+  String get pdfShareBacktestReportText =>
+      _text('pdf_share_backtest_report_text');
   String get pdfShareImagePdfText => _text('pdf_share_image_pdf_text');
-  String get pdfShareComparisonPdfText => _text('pdf_share_comparison_pdf_text');
+  String get pdfShareComparisonPdfText =>
+      _text('pdf_share_comparison_pdf_text');
   String get pdfExportSuccess => _text('pdf_export_success');
-  String pdfExportFailed(String error) => _text('pdf_export_failed_prefix') + error;
-  String get backtestReportFilenameLabel => _text('backtest_report_filename_label');
+  String pdfExportFailed(String error) =>
+      _text('pdf_export_failed_prefix') + error;
+  String get backtestReportFilenameLabel =>
+      _text('backtest_report_filename_label');
   String get comparisonFilenameLabel => _text('comparison_filename_label');
 
   // Strategy Builder — buttons and messages

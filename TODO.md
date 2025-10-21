@@ -297,7 +297,7 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
   - [x] Data Upload
   - [ ] Workspace
   - [ ] Workspace Compare
-  - [ ] Backtest Result
+  - [x] Backtest Result
   - [ ] Strategy Builder
   - [x] Pattern Scanner
   - [x] Market Analysis

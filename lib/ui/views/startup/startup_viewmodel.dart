@@ -15,7 +15,8 @@ class StartupViewModel extends BaseViewModel {
   String get appVersion => 'v0.1.0';
 
   // Env banner flag (web-only when not configured)
-  bool get showEnvWarning => _envService.isDevFallbackWeb && !_envWarningDismissed;
+  bool get showEnvWarning =>
+      _envService.isDevFallbackWeb && !_envWarningDismissed;
 
   bool _envWarningDismissed = false;
   void dismissEnvBanner() {

@@ -24,7 +24,8 @@ class PdfExportService {
     final dateFormat = DateFormat('yyyy-MM-dd HH:mm');
 
     final summary = result.summary;
-    final loc = AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
     pdf.addPage(
       pw.MultiPage(
@@ -154,22 +155,38 @@ class PdfExportService {
                               fontWeight: pw.FontWeight.bold,
                             )),
                         pw.SizedBox(height: 8),
-                        _summaryRow(loc.pdfTotalTrades, summary.totalTrades.toString()),
-                        _summaryRow(loc.pdfWinningTrades, summary.winningTrades.toString()),
-                        _summaryRow(loc.pdfLosingTrades, summary.losingTrades.toString()),
-                        _summaryRow(loc.pdfWinRate, '${summary.winRate.toStringAsFixed(1)}%'),
-                        _summaryRow(loc.pdfTotalPnl, _fmtCurrencyUsd(summary.totalPnl)),
-                        _summaryRow(loc.pdfTotalPnlPercent, '${summary.totalPnlPercentage.toStringAsFixed(2)}%'),
-                        _summaryRow(loc.pdfProfitFactor, summary.profitFactor.toStringAsFixed(2)),
-                        _summaryRow(loc.pdfMaxDrawdown, _fmtCurrencyUsd(summary.maxDrawdown)),
-                        _summaryRow(loc.pdfMaxDrawdownPercent, '${summary.maxDrawdownPercentage.toStringAsFixed(2)}%'),
-                        _summaryRow(loc.pdfSharpeRatio, summary.sharpeRatio.toStringAsFixed(2)),
-                        _summaryRow(loc.pdfAvgWin, _fmtCurrencyUsd(summary.averageWin)),
-                        _summaryRow(loc.pdfAvgLoss, _fmtCurrencyUsd(summary.averageLoss)),
-                        _summaryRow(loc.pdfLargestWin, _fmtCurrencyUsd(summary.largestWin)),
-                        _summaryRow(loc.pdfLargestLoss, _fmtCurrencyUsd(summary.largestLoss)),
-                        _summaryRow(loc.pdfExpectancy, _fmtCurrencyUsd(summary.expectancy)),
-                        if (summary.tfStats != null && summary.tfStats!.isNotEmpty) ...[
+                        _summaryRow(
+                            loc.pdfTotalTrades, summary.totalTrades.toString()),
+                        _summaryRow(loc.pdfWinningTrades,
+                            summary.winningTrades.toString()),
+                        _summaryRow(loc.pdfLosingTrades,
+                            summary.losingTrades.toString()),
+                        _summaryRow(loc.pdfWinRate,
+                            '${summary.winRate.toStringAsFixed(1)}%'),
+                        _summaryRow(
+                            loc.pdfTotalPnl, _fmtCurrencyUsd(summary.totalPnl)),
+                        _summaryRow(loc.pdfTotalPnlPercent,
+                            '${summary.totalPnlPercentage.toStringAsFixed(2)}%'),
+                        _summaryRow(loc.pdfProfitFactor,
+                            summary.profitFactor.toStringAsFixed(2)),
+                        _summaryRow(loc.pdfMaxDrawdown,
+                            _fmtCurrencyUsd(summary.maxDrawdown)),
+                        _summaryRow(loc.pdfMaxDrawdownPercent,
+                            '${summary.maxDrawdownPercentage.toStringAsFixed(2)}%'),
+                        _summaryRow(loc.pdfSharpeRatio,
+                            summary.sharpeRatio.toStringAsFixed(2)),
+                        _summaryRow(
+                            loc.pdfAvgWin, _fmtCurrencyUsd(summary.averageWin)),
+                        _summaryRow(loc.pdfAvgLoss,
+                            _fmtCurrencyUsd(summary.averageLoss)),
+                        _summaryRow(loc.pdfLargestWin,
+                            _fmtCurrencyUsd(summary.largestWin)),
+                        _summaryRow(loc.pdfLargestLoss,
+                            _fmtCurrencyUsd(summary.largestLoss)),
+                        _summaryRow(loc.pdfExpectancy,
+                            _fmtCurrencyUsd(summary.expectancy)),
+                        if (summary.tfStats != null &&
+                            summary.tfStats!.isNotEmpty) ...[
                           pw.SizedBox(height: 8),
                           pw.Text(loc.perTfStatsHeader,
                               style: pw.TextStyle(
@@ -562,7 +579,8 @@ class PdfExportService {
   }
 
   String _logicalLabel(LogicalOperator l) {
-    final loc = AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
     switch (l) {
       case LogicalOperator.and:
         return loc.pdfOperatorAnd;
@@ -613,7 +631,8 @@ class PdfExportService {
   }) async {
     // Create document without network font dependencies for testability
     final pdf = pw.Document();
-    final loc = AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
+    final loc =
+        AppLocalizations.of(StackedService.navigatorKey!.currentContext!)!;
 
     // Older versions of the pdf package may not support PageBreak.
     // To ensure compatibility, render each image on its own Page

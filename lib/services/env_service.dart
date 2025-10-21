@@ -19,7 +19,8 @@ class EnvService {
   bool get isSupabaseConfigured {
     final hasUrl = supabaseUrl.startsWith('http');
     final looksProd = supabaseUrl.contains('supabase.co');
-    final hasKey = supabaseAnonKey.isNotEmpty && supabaseAnonKey != 'invalid-key';
+    final hasKey =
+        supabaseAnonKey.isNotEmpty && supabaseAnonKey != 'invalid-key';
     return hasUrl && hasKey && looksProd;
   }
 

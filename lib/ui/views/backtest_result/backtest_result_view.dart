@@ -370,7 +370,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                       children: [
                                         const Icon(Icons.bar_chart, size: 18),
                                         const SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.menuExportChartPng),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportChartPng),
                                       ],
                                     ),
                                   ),
@@ -378,9 +379,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     value: 'png_panel_dialog',
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.dashboard_customize, size: 18),
+                                        const Icon(Icons.dashboard_customize,
+                                            size: 18),
                                         const SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.menuExportPanelPng),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportPanelPng),
                                       ],
                                     ),
                                   ),
@@ -390,7 +393,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                       children: [
                                         const Icon(Icons.bar_chart, size: 18),
                                         const SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.menuExportChartPdf),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportChartPdf),
                                       ],
                                     ),
                                   ),
@@ -398,9 +402,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     value: 'pdf_chart_panel_dialog',
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.picture_as_pdf, size: 18),
+                                        const Icon(Icons.picture_as_pdf,
+                                            size: 18),
                                         const SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.menuExportChartPanelPdf),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportChartPanelPdf),
                                       ],
                                     ),
                                   ),
@@ -408,9 +414,11 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
                                     value: 'pdf_panel_dialog',
                                     child: Row(
                                       children: [
-                                        const Icon(Icons.dashboard_customize, size: 18),
+                                        const Icon(Icons.dashboard_customize,
+                                            size: 18),
                                         const SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.menuExportPanelPdf),
+                                        Text(AppLocalizations.of(context)!
+                                            .menuExportPanelPdf),
                                       ],
                                     ),
                                   ),
@@ -639,7 +647,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
   // ==== Export Chart/Panel as PDF (single page) ====
   Future<void> _promptExportChartPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
-    final ratio = await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportChartPdf);
+    final ratio = await _promptPixelRatio(context,
+        title: AppLocalizations.of(context)!.menuExportChartPdf);
     if (ratio != null) {
       await _exportTfChartPdf(viewModel, pixelRatio: ratio);
     }
@@ -647,7 +656,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
 
   Future<void> _promptExportPanelPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
-    final ratio = await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportPanelPdf);
+    final ratio = await _promptPixelRatio(context,
+        title: AppLocalizations.of(context)!.menuExportPanelPdf);
     if (ratio != null) {
       await _exportTfPanelPdf(viewModel, pixelRatio: ratio);
     }
@@ -655,8 +665,8 @@ class BacktestResultView extends StackedView<BacktestResultViewModel> {
 
   Future<void> _promptExportChartPanelPdf(
       BuildContext context, BacktestResultViewModel viewModel) async {
-    final ratio =
-        await _promptPixelRatio(context, title: AppLocalizations.of(context)!.menuExportChartPanelPdf);
+    final ratio = await _promptPixelRatio(context,
+        title: AppLocalizations.of(context)!.menuExportChartPanelPdf);
     if (ratio != null) {
       await _exportTfChartPanelPdf(viewModel, pixelRatio: ratio);
     }

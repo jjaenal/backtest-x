@@ -17,12 +17,18 @@ Future<void> main() async {
   final l10nDartPath = '$projectRoot/lib/l10n/app_localizations.dart';
 
   try {
-    final enJson = jsonDecode(await File(enPath).readAsString()) as Map<String, dynamic>;
-    final idJson = jsonDecode(await File(idPath).readAsString()) as Map<String, dynamic>;
+    final enJson =
+        jsonDecode(await File(enPath).readAsString()) as Map<String, dynamic>;
+    final idJson =
+        jsonDecode(await File(idPath).readAsString()) as Map<String, dynamic>;
 
     // Filter out metadata keys (start with '@') and values that aren't strings
-    Set<String> enKeys = enJson.keys.where((k) => !k.startsWith('@') && enJson[k] is String).toSet();
-    Set<String> idKeys = idJson.keys.where((k) => !k.startsWith('@') && idJson[k] is String).toSet();
+    Set<String> enKeys = enJson.keys
+        .where((k) => !k.startsWith('@') && enJson[k] is String)
+        .toSet();
+    Set<String> idKeys = idJson.keys
+        .where((k) => !k.startsWith('@') && idJson[k] is String)
+        .toSet();
 
     // Load AppLocalizations references
     final l10nDart = await File(l10nDartPath).readAsString();
@@ -57,7 +63,8 @@ Future<void> main() async {
 
     // Report unused keys as warnings (do not fail build)
     if (unusedInEn.isNotEmpty || unusedInId.isNotEmpty) {
-      stdout.writeln('⚠️  Unused ARB keys (not referenced in AppLocalizations):');
+      stdout
+          .writeln('⚠️  Unused ARB keys (not referenced in AppLocalizations):');
       if (unusedInEn.isNotEmpty) {
         stdout.writeln('  - app_en.arb:');
         for (final k in unusedInEn.toList()..sort()) {
