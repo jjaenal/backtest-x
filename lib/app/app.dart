@@ -30,9 +30,11 @@ import 'package:backtestx/ui/bottom_sheets/candlestick_pattern_guide/candlestick
 import 'package:backtestx/ui/bottom_sheets/onboarding/onboarding_sheet.dart';
 import 'package:backtestx/services/deep_link_service.dart';
 import 'package:backtestx/services/auth_service.dart';
+import 'package:backtestx/services/database_service.dart';
 import 'package:backtestx/app/auth_guard.dart';
 import 'package:backtestx/ui/views/login/login_view.dart';
 import 'package:backtestx/ui/views/signup/signup_view.dart';
+import 'package:backtestx/ui/views/user/user_view.dart';
 // @stacked-import
 
 @StackedApp(
@@ -42,6 +44,7 @@ import 'package:backtestx/ui/views/signup/signup_view.dart';
     MaterialRoute(page: DataUploadView),
     MaterialRoute(page: LoginView),
     MaterialRoute(page: SignupView),
+    MaterialRoute(page: UserView, guards: [AuthGuard]),
     MaterialRoute(page: StrategyBuilderView, guards: [AuthGuard]),
     MaterialRoute(page: BacktestResultView),
     MaterialRoute(page: WorkspaceView),
@@ -67,6 +70,7 @@ import 'package:backtestx/ui/views/signup/signup_view.dart';
     LazySingleton(classType: ShareService),
     LazySingleton(classType: DeepLinkService),
     LazySingleton(classType: AuthService),
+    LazySingleton(classType: DatabaseService),
 // @stacked-service
   ],
   bottomsheets: [

@@ -5,27 +5,27 @@
 // **************************************************************************
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'package:backtestx/models/trade.dart' as _i14;
+import 'package:backtestx/models/trade.dart' as _i15;
 import 'package:backtestx/ui/views/backtest_result/backtest_result_view.dart'
-    as _i8;
-import 'package:backtestx/ui/views/comparison/comparison_view.dart' as _i10;
+    as _i9;
+import 'package:backtestx/ui/views/comparison/comparison_view.dart' as _i11;
 import 'package:backtestx/ui/views/data_upload/data_upload_view.dart' as _i4;
 import 'package:backtestx/ui/views/home/home_view.dart' as _i2;
 import 'package:backtestx/ui/views/login/login_view.dart' as _i5;
 import 'package:backtestx/ui/views/market_analysis/market_analysis_view.dart'
-    as _i11;
-import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart'
     as _i12;
-import 'package:backtestx/ui/views/user/user_view.dart' as _i16;
+import 'package:backtestx/ui/views/pattern_scanner/pattern_scanner_view.dart'
+    as _i13;
 import 'package:backtestx/ui/views/signup/signup_view.dart' as _i6;
 import 'package:backtestx/ui/views/startup/startup_view.dart' as _i3;
 import 'package:backtestx/ui/views/strategy_builder/strategy_builder_view.dart'
-    as _i7;
-import 'package:backtestx/ui/views/workspace/workspace_view.dart' as _i9;
-import 'package:flutter/material.dart' as _i13;
+    as _i8;
+import 'package:backtestx/ui/views/user/user_view.dart' as _i7;
+import 'package:backtestx/ui/views/workspace/workspace_view.dart' as _i10;
+import 'package:flutter/material.dart' as _i14;
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart' as _i1;
-import 'package:stacked_services/stacked_services.dart' as _i15;
+import 'package:stacked_services/stacked_services.dart' as _i16;
 
 class Routes {
   static const homeView = '/home-view';
@@ -37,6 +37,8 @@ class Routes {
   static const loginView = '/login-view';
 
   static const signupView = '/signup-view';
+
+  static const userView = '/user-view';
 
   static const strategyBuilderView = '/strategy-builder-view';
 
@@ -50,21 +52,19 @@ class Routes {
 
   static const patternScannerView = '/pattern-scanner-view';
 
-  static const userView = '/user-view';
-
   static const all = <String>{
     homeView,
     startupView,
     dataUploadView,
     loginView,
     signupView,
+    userView,
     strategyBuilderView,
     backtestResultView,
     workspaceView,
     comparisonView,
     marketAnalysisView,
     patternScannerView,
-    userView,
   };
 }
 
@@ -91,113 +91,113 @@ class StackedRouter extends _i1.RouterBase {
       page: _i6.SignupView,
     ),
     _i1.RouteDef(
+      Routes.userView,
+      page: _i7.UserView,
+    ),
+    _i1.RouteDef(
       Routes.strategyBuilderView,
-      page: _i7.StrategyBuilderView,
+      page: _i8.StrategyBuilderView,
     ),
     _i1.RouteDef(
       Routes.backtestResultView,
-      page: _i8.BacktestResultView,
+      page: _i9.BacktestResultView,
     ),
     _i1.RouteDef(
       Routes.workspaceView,
-      page: _i9.WorkspaceView,
+      page: _i10.WorkspaceView,
     ),
     _i1.RouteDef(
       Routes.comparisonView,
-      page: _i10.ComparisonView,
+      page: _i11.ComparisonView,
     ),
     _i1.RouteDef(
       Routes.marketAnalysisView,
-      page: _i11.MarketAnalysisView,
+      page: _i12.MarketAnalysisView,
     ),
     _i1.RouteDef(
       Routes.patternScannerView,
-      page: _i12.PatternScannerView,
-    ),
-    _i1.RouteDef(
-      Routes.userView,
-      page: _i16.UserView,
+      page: _i13.PatternScannerView,
     ),
   ];
 
   final _pagesMap = <Type, _i1.StackedRouteFactory>{
     _i2.HomeView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i2.HomeView(),
         settings: data,
       );
     },
     _i3.StartupView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i3.StartupView(),
         settings: data,
       );
     },
     _i4.DataUploadView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i4.DataUploadView(),
         settings: data,
       );
     },
     _i5.LoginView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i5.LoginView(),
         settings: data,
       );
     },
     _i6.SignupView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) => const _i6.SignupView(),
         settings: data,
       );
     },
-    _i7.StrategyBuilderView: (data) {
+    _i7.UserView: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i7.UserView(),
+        settings: data,
+      );
+    },
+    _i8.StrategyBuilderView: (data) {
       final args = data.getArgs<StrategyBuilderViewArguments>(
         orElse: () => const StrategyBuilderViewArguments(),
       );
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i7.StrategyBuilderView(key: args.key, strategyId: args.strategyId),
+            _i8.StrategyBuilderView(key: args.key, strategyId: args.strategyId),
         settings: data,
       );
     },
-    _i8.BacktestResultView: (data) {
+    _i9.BacktestResultView: (data) {
       final args = data.getArgs<BacktestResultViewArguments>(nullOk: false);
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i8.BacktestResultView(key: args.key, result: args.result),
+            _i9.BacktestResultView(key: args.key, result: args.result),
         settings: data,
       );
     },
-    _i9.WorkspaceView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i9.WorkspaceView(),
+    _i10.WorkspaceView: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i10.WorkspaceView(),
         settings: data,
       );
     },
-    _i10.ComparisonView: (data) {
+    _i11.ComparisonView: (data) {
       final args = data.getArgs<ComparisonViewArguments>(nullOk: false);
-      return _i13.MaterialPageRoute<dynamic>(
+      return _i14.MaterialPageRoute<dynamic>(
         builder: (context) =>
-            _i10.ComparisonView(key: args.key, results: args.results),
+            _i11.ComparisonView(key: args.key, results: args.results),
         settings: data,
       );
     },
-    _i11.MarketAnalysisView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i11.MarketAnalysisView(),
+    _i12.MarketAnalysisView: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i12.MarketAnalysisView(),
         settings: data,
       );
     },
-    _i12.PatternScannerView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i12.PatternScannerView(),
-        settings: data,
-      );
-    },
-    _i16.UserView: (data) {
-      return _i13.MaterialPageRoute<dynamic>(
-        builder: (context) => const _i16.UserView(),
+    _i13.PatternScannerView: (data) {
+      return _i14.MaterialPageRoute<dynamic>(
+        builder: (context) => const _i13.PatternScannerView(),
         settings: data,
       );
     },
@@ -216,7 +216,7 @@ class StrategyBuilderViewArguments {
     this.strategyId,
   });
 
-  final _i13.Key? key;
+  final _i14.Key? key;
 
   final String? strategyId;
 
@@ -243,9 +243,9 @@ class BacktestResultViewArguments {
     required this.result,
   });
 
-  final _i13.Key? key;
+  final _i14.Key? key;
 
-  final _i14.BacktestResult result;
+  final _i15.BacktestResult result;
 
   @override
   String toString() {
@@ -270,9 +270,9 @@ class ComparisonViewArguments {
     required this.results,
   });
 
-  final _i13.Key? key;
+  final _i14.Key? key;
 
-  final List<_i14.BacktestResult> results;
+  final List<_i15.BacktestResult> results;
 
   @override
   String toString() {
@@ -291,7 +291,7 @@ class ComparisonViewArguments {
   }
 }
 
-extension NavigatorStateExtension on _i15.NavigationService {
+extension NavigatorStateExtension on _i16.NavigationService {
   Future<dynamic> navigateToHomeView([
     int? routerId,
     bool preventDuplicates = true,
@@ -362,8 +362,22 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition: transition);
   }
 
+  Future<dynamic> navigateToUserView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return navigateTo<dynamic>(Routes.userView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
   Future<dynamic> navigateToStrategyBuilderView({
-    _i13.Key? key,
+    _i14.Key? key,
     String? strategyId,
     int? routerId,
     bool preventDuplicates = true,
@@ -381,8 +395,8 @@ extension NavigatorStateExtension on _i15.NavigationService {
   }
 
   Future<dynamic> navigateToBacktestResultView({
-    _i13.Key? key,
-    required _i14.BacktestResult result,
+    _i14.Key? key,
+    required _i15.BacktestResult result,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -412,8 +426,8 @@ extension NavigatorStateExtension on _i15.NavigationService {
   }
 
   Future<dynamic> navigateToComparisonView({
-    _i13.Key? key,
-    required List<_i14.BacktestResult> results,
+    _i14.Key? key,
+    required List<_i15.BacktestResult> results,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -450,20 +464,6 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition,
   ]) async {
     return navigateTo<dynamic>(Routes.patternScannerView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> navigateToUserView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return navigateTo<dynamic>(Routes.userView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
@@ -540,8 +540,22 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition: transition);
   }
 
+  Future<dynamic> replaceWithUserView([
+    int? routerId,
+    bool preventDuplicates = true,
+    Map<String, String>? parameters,
+    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
+        transition,
+  ]) async {
+    return replaceWith<dynamic>(Routes.userView,
+        id: routerId,
+        preventDuplicates: preventDuplicates,
+        parameters: parameters,
+        transition: transition);
+  }
+
   Future<dynamic> replaceWithStrategyBuilderView({
-    _i13.Key? key,
+    _i14.Key? key,
     String? strategyId,
     int? routerId,
     bool preventDuplicates = true,
@@ -559,8 +573,8 @@ extension NavigatorStateExtension on _i15.NavigationService {
   }
 
   Future<dynamic> replaceWithBacktestResultView({
-    _i13.Key? key,
-    required _i14.BacktestResult result,
+    _i14.Key? key,
+    required _i15.BacktestResult result,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -590,8 +604,8 @@ extension NavigatorStateExtension on _i15.NavigationService {
   }
 
   Future<dynamic> replaceWithComparisonView({
-    _i13.Key? key,
-    required List<_i14.BacktestResult> results,
+    _i14.Key? key,
+    required List<_i15.BacktestResult> results,
     int? routerId,
     bool preventDuplicates = true,
     Map<String, String>? parameters,
@@ -628,20 +642,6 @@ extension NavigatorStateExtension on _i15.NavigationService {
         transition,
   ]) async {
     return replaceWith<dynamic>(Routes.patternScannerView,
-        id: routerId,
-        preventDuplicates: preventDuplicates,
-        parameters: parameters,
-        transition: transition);
-  }
-
-  Future<dynamic> replaceWithUserView([
-    int? routerId,
-    bool preventDuplicates = true,
-    Map<String, String>? parameters,
-    Widget Function(BuildContext, Animation<double>, Animation<double>, Widget)?
-        transition,
-  ]) async {
-    return replaceWith<dynamic>(Routes.userView,
         id: routerId,
         preventDuplicates: preventDuplicates,
         parameters: parameters,
