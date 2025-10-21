@@ -1,10 +1,12 @@
 ## Progress Update — Project Rules Priorities
+
 - [x] Linting bersih (`flutter analyze`) — tidak ada issues
 - [x] Dokumentasi `AuthService` ditambahkan (class + metode inti)
 - [x] Redaksi Supabase keys dari `project_rules.md` (gunakan `--dart-define`)
 - [ ] Test baseline gagal; rencanakan triage subset unit tests terlebih dulu
 
 ## Progress Update — Auth Verification Banner & Cooldown
+
 - [x] Ekstrak widget reusable `VerificationBanner`; integrasi di `LoginView` dan `SignupView`.
 - [x] Tambah ticker cooldown per detik di `LoginViewModel` dan `SignupViewModel` (gunakan `Timer.periodic` + `notifyListeners()`).
 - [x] Hentikan ticker saat banner ditutup (`dismissVerificationBanner()`); pastikan `dispose()` membersihkan timer; ganti `Future.delayed` dengan ticker setelah kirim ulang.
@@ -63,15 +65,15 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 
 ### Medium Priority (Sprint 2)
 
-- [ ] Integrasi mobile (Android/iOS)
-  - [ ] Konfigurasi redirect scheme & intent filter; uji Google Sign-In pada perangkat
-  - [ ] Session persistence via `supabase_flutter` (secure storage opsional)
-- [ ] UX polish
-  - [ ] Loading state & disable button saat proses auth
-  - [ ] Konsistensi spacing dengan `StrategyBuilderConstants`
-- [ ] Arsitektur Stacked
-  - [ ] `AuthViewModel` + wiring `NavigationService` (redirect on login/logout)
-  - [ ] Update `app.router.dart` untuk routes & guards
+- [x] Integrasi mobile (Android/iOS)
+  - [x] Konfigurasi redirect scheme & intent filter; uji Google Sign-In pada perangkat
+  - [x] Session persistence via `supabase_flutter` (secure storage opsional)
+- [x] UX polish
+  - [x] Loading state & disable button saat proses auth
+  - [x] Konsistensi spacing dengan `StrategyBuilderConstants`
+- [x] Arsitektur Stacked
+  - [x] `AuthViewModel` + wiring `NavigationService` (redirect on login/logout)
+  - [x] Update `app.router.dart` untuk routes & guards
 
 ### Low Priority (Sprint 3)
 
