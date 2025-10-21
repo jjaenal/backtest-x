@@ -97,6 +97,54 @@ class LoginViewModel extends BaseViewModel {
     }
   }
 
+  Future<void> signInGithub() async {
+    setBusy(true);
+    errorMessage = null;
+    infoMessage = null;
+    try {
+      await _auth.signInWithGithub();
+      final redirect = _auth.takePostLoginRedirect();
+      if (redirect?.route == Routes.strategyBuilderView) {
+        final args = redirect!.arguments as StrategyBuilderViewArguments?;
+        _nav.replaceWithStrategyBuilderView(strategyId: args?.strategyId);
+      } else {
+        _nav.replaceWithHomeView();
+      }
+    } catch (e) {
+      errorMessage = _friendlyError(e);
+      if (canResendVerification) {
+        showVerificationBanner = true;
+      }
+    } finally {
+      setBusy(false);
+      notifyListeners();
+    }
+  }
+
+  Future<void> signInApple() async {
+    setBusy(true);
+    errorMessage = null;
+    infoMessage = null;
+    try {
+      await _auth.signInWithApple();
+      final redirect = _auth.takePostLoginRedirect();
+      if (redirect?.route == Routes.strategyBuilderView) {
+        final args = redirect!.arguments as StrategyBuilderViewArguments?;
+        _nav.replaceWithStrategyBuilderView(strategyId: args?.strategyId);
+      } else {
+        _nav.replaceWithHomeView();
+      }
+    } catch (e) {
+      errorMessage = _friendlyError(e);
+      if (canResendVerification) {
+        showVerificationBanner = true;
+      }
+    } finally {
+      setBusy(false);
+      notifyListeners();
+    }
+  }
+
   Future<void> signUpEmail() async {
     setBusy(true);
     errorMessage = null;

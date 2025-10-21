@@ -54,6 +54,149 @@ Alternatif (Makefile):
 make run-web URL=<your_supabase_url> KEY=<your_anon_key>
 ```
 
+## 📱 Platform Setup Guide
+
+### Web Setup
+
+1. **Development Setup**
+
+```bash
+# Jalankan web server dengan port tetap
+flutter run -d web-server \
+  --web-hostname localhost \
+  --web-port 8081 \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Atau gunakan Makefile
+make run-web URL=<your_supabase_url> KEY=<your_anon_key>
+```
+
+2. **Production Build**
+
+```bash
+# Build untuk production
+flutter build web \
+  --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Deploy ke hosting (contoh Firebase)
+firebase deploy --only hosting
+```
+
+3. **Web-Specific Configuration**
+
+- Pastikan `index.html` memiliki meta tag yang sesuai:
+```html
+<meta name="google-signin-client_id" content="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com">
+```
+- Untuk PWA, pastikan `manifest.json` dan service worker sudah dikonfigurasi dengan benar
+- Aktifkan CORS di Supabase untuk domain aplikasi web Anda
+
+### Android Setup
+
+1. **Konfigurasi Project**
+
+- Buka `android/app/build.gradle.kts` dan pastikan:
+  - `minSdkVersion` minimal 21
+  - `compileSdkVersion` minimal 33
+  - `targetSdkVersion` minimal 33
+
+2. **Intent Filter untuk Deep Links**
+
+Tambahkan kode berikut di `android/app/src/main/AndroidManifest.xml` dalam tag `<activity>`:
+
+```xml
+<!-- Deep Link Handler -->
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <!-- Supabase Auth Redirect -->
+    <data android:scheme="io.supabase.flutter" android:host="login-callback" />
+</intent-filter>
+```
+
+3. **Menjalankan di Device/Emulator**
+
+```bash
+# Lihat daftar device yang tersedia
+flutter devices
+
+# Jalankan di device Android
+flutter run -d <android_device_id> \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+4. **Build APK/App Bundle**
+
+```bash
+# Build APK debug
+flutter build apk --debug \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Build APK release
+flutter build apk --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+
+# Build App Bundle untuk Play Store
+flutter build appbundle \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+### iOS Setup
+
+1. **Konfigurasi Project**
+
+- Buka `ios/Runner.xcworkspace` dengan Xcode
+- Pastikan iOS Deployment Target minimal 12.0
+- Atur Bundle Identifier yang sesuai (mis. `com.yourcompany.backtestx`)
+- Tambahkan team development Apple Anda
+
+2. **URL Scheme untuk Deep Links**
+
+- Di Xcode, pilih target Runner
+- Buka tab "Info"
+- Expand "URL Types"
+- Tambahkan URL Type baru:
+  - Identifier: `io.supabase.flutter`
+  - URL Schemes: `io.supabase.flutter`
+  - Role: Editor
+
+3. **Associated Domains (Opsional untuk Universal Links)**
+
+- Di tab "Signing & Capabilities", tambahkan "Associated Domains"
+- Tambahkan: `applinks:yourdomain.com`
+
+4. **Menjalankan di Simulator/Device**
+
+```bash
+# Lihat daftar device yang tersedia
+flutter devices
+
+# Jalankan di simulator iOS
+flutter run -d <ios_simulator_id> \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+5. **Build IPA untuk TestFlight/App Store**
+
+```bash
+# Build untuk iOS
+flutter build ios \
+  --release \
+  --dart-define=SUPABASE_URL=<your_supabase_url> \
+  --dart-define=SUPABASE_ANON_KEY=<your_anon_key>
+```
+
+Kemudian buka `ios/Runner.xcworkspace` di Xcode untuk menyelesaikan proses archive dan upload ke App Store Connect.
+
 ### Environment Configuration & Fallback Mode
 
 Aplikasi memerlukan konfigurasi Supabase untuk autentikasi dan penyimpanan data:

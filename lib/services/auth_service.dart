@@ -74,6 +74,24 @@ class AuthService {
     await c.auth.signInWithOAuth(OAuthProvider.google, redirectTo: rt);
   }
 
+  Future<void> signInWithGithub({String? redirectTo}) async {
+    _assertEnvConfigured();
+    final c = _safeClient();
+    if (c == null) return;
+    final rt = redirectTo ??
+        (kIsWeb ? Uri.base.origin : 'io.supabase.flutter://login-callback');
+    await c.auth.signInWithOAuth(OAuthProvider.github, redirectTo: rt);
+  }
+
+  Future<void> signInWithApple({String? redirectTo}) async {
+    _assertEnvConfigured();
+    final c = _safeClient();
+    if (c == null) return;
+    final rt = redirectTo ??
+        (kIsWeb ? Uri.base.origin : 'io.supabase.flutter://login-callback');
+    await c.auth.signInWithOAuth(OAuthProvider.apple, redirectTo: rt);
+  }
+
   Future<AuthResponse> signUpWithEmail(
       {required String email, required String password}) async {
     _assertEnvConfigured();
