@@ -132,6 +132,8 @@ class AppLocalizations {
       'login_sign_in_email': 'Sign In with Email',
       'login_sign_up_email': 'Sign Up with Email',
       'login_continue_google': 'Continue with Google',
+      'login_continue_github': 'Continue with GitHub',
+      'login_continue_apple': 'Continue with Apple',
       // Home user menu
       'home_user_menu_tooltip': 'Account',
       'home_user_unknown': 'Unknown',
@@ -736,6 +738,8 @@ class AppLocalizations {
       'login_sign_in_email': 'Sign In dengan Email',
       'login_sign_up_email': 'Sign Up dengan Email',
       'login_continue_google': 'Lanjutkan dengan Google',
+      'login_continue_github': 'Lanjutkan dengan GitHub',
+      'login_continue_apple': 'Lanjutkan dengan Apple',
       // Home user menu
       'home_user_menu_tooltip': 'Akun',
       'home_user_unknown': 'Tidak diketahui',
@@ -1427,6 +1431,8 @@ class AppLocalizations {
   String get loginSignInEmail => _text('login_sign_in_email');
   String get loginSignUpEmail => _text('login_sign_up_email');
   String get loginContinueGoogle => _text('login_continue_google');
+  String get loginContinueGithub => _text('login_continue_github');
+  String get loginContinueApple => _text('login_continue_apple');
 
   // Home user menu
   String get homeUserMenuTooltip => _text('home_user_menu_tooltip');
