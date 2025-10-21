@@ -35,6 +35,8 @@
   "login_sign_in_email": "Sign In with Email",
   "login_sign_up_email": "Sign Up with Email",
   "login_continue_google": "Continue with Google",
+  "login_continue_github": "Continue with GitHub",
+  "login_continue_apple": "Continue with Apple",
   "signup_title": "Sign Up",
   "signup_confirm_password_label": "Confirm Password",
   "home_user_menu_tooltip": "Account",

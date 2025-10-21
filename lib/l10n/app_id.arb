@@ -35,6 +35,8 @@
   "login_sign_in_email": "Sign In dengan Email",
   "login_sign_up_email": "Sign Up dengan Email",
   "login_continue_google": "Lanjutkan dengan Google",
+  "login_continue_github": "Lanjutkan dengan GitHub",
+  "login_continue_apple": "Lanjutkan dengan Apple",
   "signup_title": "Buat Akun",
   "signup_confirm_password_label": "Konfirmasi Password",
   "home_user_menu_tooltip": "Akun",

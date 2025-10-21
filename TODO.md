@@ -78,13 +78,13 @@ Prioritas: deliver login/signup via Google dan email/password, mulai dari Web, l
 ### Low Priority (Sprint 3)
 
 - [x] Password reset flow lengkap (email link & konfirmasi)
-- [ ] Social login tambahan (Apple, GitHub) — opsional
+- [x] Social login tambahan (Apple, GitHub) — opsional
 - [x] CI/guard build: deteksi env yang belum dikonfigurasi; fallback dev‑mode (web)
-- [ ] Backend: desain tabel `profiles`, `strategies`, `results` di Supabase
-- [ ] RLS policies untuk per-user akses; migrasi SQL (opsional)
-- [ ] Dokumentasi
-  - [ ] README: panduan setup per platform (Web/Android/iOS)
-  - [ ] COMMANDS.md: ringkas perintah Supabase CLI & Dashboard (referensi)
+- [x] Backend: desain tabel `profiles`, `strategies`, `results` di Supabase
+- [x] RLS policies untuk per-user akses; migrasi SQL (opsional)
+- [x] Dokumentasi
+  - [x] README: panduan setup per platform (Web/Android/iOS)
+  - [x] COMMANDS.md: ringkas perintah Supabase CLI & Dashboard (referensi)
 
 ### Milestone & Deliverables
 

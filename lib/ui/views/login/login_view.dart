@@ -189,13 +189,13 @@ class LoginView extends StackedView<LoginViewModel> {
                   OutlinedButton.icon(
                     onPressed: viewModel.isBusy ? null : viewModel.signInGithub,
                     icon: const Icon(Icons.code),
-                    label: const Text('Continue with GitHub'),
+                    label: Text(t?.loginContinueGithub ?? 'Continue with GitHub'),
                   ),
                   const SizedBox(height: StrategyBuilderConstants.smallSpacing),
                   OutlinedButton.icon(
                     onPressed: viewModel.isBusy ? null : viewModel.signInApple,
                     icon: const Icon(Icons.phone_iphone),
-                    label: const Text('Continue with Apple'),
+                    label: Text(t?.loginContinueApple ?? 'Continue with Apple'),
                   ),
                 ],
               ),
